@@ -1,0 +1,90 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+//apply plugin: 'checkstyle'
+//apply plugin: 'pmd'
+apply plugin: 'distribution'
+apply plugin: 'application'
+//apply plugin: "net.saliman.cobertura"
+// java -javaagent:tracer.jar 
+//https://blogs.oracle.com/sundararajan/entry/tracing_class_loading_1_5e
+sourceSets {
+    integrationTest {
+        java.srcDir file('src/integration-test/java')
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+test {
+    //jvmArgs '-javaagent:tracer.jar'
+    //jvmArgs '-verbose:class'
+}
+task wrapper(type: Wrapper) { gradleVersion = '2.9' }
+buildscript {
+    repositories {
+        jcenter()
+        mavenLocal()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies { classpath "net.saliman:gradle-cobertura-plugin:2.2.8" }
+}
+repositories {
+    jcenter()
+    mavenLocal()
+    mavenCentral()
+    maven { url "https://plugins.gradle.org/m2/" }
+    flatDir {
+        // not working yet
+        name 'core'
+        dirs '../repository'
+    }
+}
+dependencies {
+     testCompile 'junit:junit:4.12'
+     integrationTestCompile sourceSets.main.output
+     integrationTestCompile configurations.testCompile
+     integrationTestCompile sourceSets.test.output
+     integrationTestRuntime configurations.testRuntime
+     }
+task integrationTest(type: Test, dependsOn: jar) {
+    group 'Verification'
+    description 'Runs the integration tests.'
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    systemProperties['jar.path'] = jar.archivePath
+}
+//check.dependsOn integrationTest // try this later
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+jar {
+    manifest { attributes 'Main-Class': MyStuff.main }
+    exclude('com/tayek/io/swing/**') // not needed if swing stuff is in another project
+}
+group='core'
+version = "1.0"
+mainClassName = MyStuff.main // for application plugin (or is it the dist thing?)
+//checkstyle {
+//       configFile = new File(rootDir, "checkstyle.xml")
+//}
+
+//checkstyle { //configFile = file("${project.rootDir}/config/checkstyle.xml")
+    //toolVersion = '6.7' }
+if(false) {cobertura {
+    coverageFormats = ['html', 'xml']
+    coverageIgnoreTrivial = true
+    coverageIgnores = [
+        'java.util.logging.*'
+    ]
+    coverageReportDir = new File("$buildDir/reports/cobertura")
+}
+}
+//test.finalizedBy(project.tasks.cobertura) // broke something
+run { systemProperties System.getProperties() }
+class MyStuff {
+    public static final String main='com.tayek.tablet.Main'
+}
+task printClasspath {
+    doLast {
+        configurations.testRuntime.each { println it }
+    }
+}
