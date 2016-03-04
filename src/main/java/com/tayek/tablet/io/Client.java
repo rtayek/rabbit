@@ -145,36 +145,6 @@ public class Client implements Sender {
             }
         p(n+" connections.");
     }
-    static void tryConnect() throws UnknownHostException,IOException,InterruptedException {
-        InetAddress inetAddress0=InetAddress.getByName(Main.networkPrefix+100);
-        InetAddress inetAddress1=InetAddress.getByName(Main.defaultTestingHost);
-        InetSocketAddress inetSocketAddress0=new InetSocketAddress(inetAddress0,Main.defaultReceivePort);
-        InetSocketAddress inetSocketAddress1=new InetSocketAddress(inetAddress1,Main.defaultReceivePort);
-        Histories history0=new Histories(),history1=new Histories();
-        p("inetAddress0: "+inetAddress0);
-        Server server0=new Server(null,inetSocketAddress0,null,false,history0);
-        p("inetAddress1: "+inetAddress1);
-        Server server1=new Server(null,inetSocketAddress1,null,false,history1);
-        server0.startServer();
-        server1.startServer();
-        int service=Main.defaultReceivePort;
-        service=8080;
-        Et et=new Et();
-        if(false) try {
-            connect(Main.testingPrefix,service);
-        } catch(Exception e) {
-            p("caught: '"+e+"'");
-        }
-        try {
-            connect(Main.networkPrefix,service);
-        } catch(Exception e) {
-            p("caught: '"+e+"'");
-        }
-        p("et: "+et);
-        server0.stopServer();
-        server1.stopServer();
-        Thread.sleep(100);
-    }
     public static void driveTabletsFromClient() throws InterruptedException {
         Map<Integer,Info> infos=new Groups().groups.get("g0");
         Group group=new Group(1,infos,Model.mark1,false);
@@ -246,7 +216,7 @@ public class Client implements Sender {
     }
     public static void main(String[] arguments) throws IOException,InterruptedException {
         LoggingHandler.init();
-        LoggingHandler.startSocketHandler(Main.defaultLogServerHost,LogServer.defaultService);
+        LoggingHandler.startSocketHandler(Main.testingHost,LogServer.defaultService);
         LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
         LoggingHandler.setLevel(Level.WARNING);
         //tryConnect();

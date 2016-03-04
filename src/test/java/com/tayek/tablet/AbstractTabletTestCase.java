@@ -36,7 +36,7 @@ public abstract class AbstractTabletTestCase {
     public Set<Tablet> createForTest(int n,int offset) {
         Map<Integer,Group.Info> map=new TreeMap<>();
         for(int i=1;i<=n;i++)
-            map.put(i,new Group.Info("T"+i+" on PC",Main.defaultTestingHost,Main.defaultReceivePort+100+offset+i));
+            map.put(i,new Group.Info("T"+i+" on PC",Main.testingHost,Main.defaultReceivePort+100+offset+i));
         return new Group(1,map,Model.mark1,false).create();
     }
     protected void startListening() {

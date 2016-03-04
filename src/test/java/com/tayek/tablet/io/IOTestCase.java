@@ -26,16 +26,16 @@ public class IOTestCase {
         p(host+" get by name: "+InetAddress.getByName(host));
     }
     @Test public void testGetByName() throws InterruptedException,ExecutionException {
-        GetByNameCallable task=new GetByNameCallable(Main.defaultTestingHost);
+        GetByNameCallable task=new GetByNameCallable(Main.testingHost);
         InetAddress inetAddress=IO.runAndWait(task);
-        assertTrue(inetAddress.getHostAddress().contains(Main.defaultTestingHost));
+        assertTrue(inetAddress.getHostAddress().contains(Main.testingHost));
     }
     @Test public void testGetNetworkInterfacesWithHost() throws InterruptedException,ExecutionException {
-        Set<InetAddress> inetAddresses=IO.runAndWait(new GetNetworkInterfacesCallable(Main.defaultTestingHost));
+        Set<InetAddress> inetAddresses=IO.runAndWait(new GetNetworkInterfacesCallable(Main.testingHost));
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
-        assertTrue(inetAddress.getHostAddress().contains(Main.defaultTestingHost));
+        assertTrue(inetAddress.getHostAddress().contains(Main.testingHost));
     }
     @Test public void testGetNetworkInterfacesWithNetworkPrefix() throws InterruptedException,ExecutionException {
         // you will need a wireless nic or be able to plug in to the real network for this to work

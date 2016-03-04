@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.io.*;
+import static com.tayek.tablet.io.IO.*;
 import com.tayek.utilities.*;
 // http://cs.nyu.edu/~yap/prog/cygwin/FAQs.html
 // http://poppopret.org/2013/01/07/suterusu-rootkit-inline-kernel-function-hooking-on-x86-and-arm/
@@ -35,14 +36,20 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
             }
         }.run();
     }
+    public static boolean isLaptop=!System.getProperty("user.dir").contains("D:\\");
     public static final Integer defaultReceivePort=33000;
-    public static final String networkStub="192.168.";
-    public static final String networkPrefix="192.168.0.";
-    public static final String testingPrefix="192.168.1.";
-    public static final String defaultTestingHost="192.168.1.2";
-    public static final int myNetworkAddress=100; // for pc on tablet network
-    // need to get this programmatically!
-    public static final String defaultLogServerHost="192.168.0.100";
+    public static String networkStub="192.168.";
+    public static String networkPrefix="192.168.0.";
+    public static String testingPrefix="192.168.1.";
+    public static String networkAddress=isLaptop?"100":"101";
+    public static String testingAddress=isLaptop?"100":"2";
+    public static String networkHost=networkPrefix+networkAddress;
+    public static String testingHost=testingPrefix+testingAddress;
+    static {
+        p("user dir: "+System.getProperty("user.dir"));
+        p("network host: "+networkHost);
+        p("testing host: "+testingHost);
+    }
     public static final Map<Integer,String> tablets=new TreeMap<>();
     static {
         tablets.put(1,"0a9196e8"); // ab97465ca5e2af1a

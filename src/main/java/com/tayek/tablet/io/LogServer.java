@@ -21,10 +21,8 @@ public class LogServer {
                     max=Math.max(max,i);
                     min=Math.min(min,i);
                 }
-            if(min>=50)
-                return 1;
-            else if(max<50)
-                return 50;
+            if(min>=50) return 1;
+            else if(max<50) return 50;
             return 100;
         }
         String name() {
@@ -43,13 +41,23 @@ public class LogServer {
         String prefix;
         int sequenceNumber=1;
     }
+    public static class Factory { // is this just for testing? (i think so)
+        public Factory(Writer writer) {
+            this.writer=writer;
+        }
+        public Copier create(Socket socket) {
+            return new Copier(socket,writer,false);
+        }
+        final Writer writer;
+    }
     public static class Copier extends Thread {
-        public Copier(Socket socket,Writer out) {
+        public Copier(Socket socket,Writer out,boolean verbose) {
             super(""+socket.getRemoteSocketAddress());
             this.socket=socket;
             this.out=out;
+            this.verbose=verbose;
         }
-        public void close(Collection<Copier> copiers) {
+        public void close() {
             try {
                 out.flush();
                 out.close();
@@ -67,7 +75,7 @@ public class LogServer {
                     if(line.contains(Message.Type.rolloverLogNow.name())) rollover();
                     out.write(line+"\n");
                     out.flush();
-                    p("copier wrote: "+line);
+                    if(verbose) p("copier wrote: "+line);
                     if(file!=null&&file.exists()&&file.length()>maxSize) if(line.equals("</record>")) {
                         rollover();
                     }
@@ -77,7 +85,7 @@ public class LogServer {
                 if(isShuttingdown) ;
                 else p("log copier caught: '"+e+"'");
             } finally {
-                close(null);
+                close();
             }
         }
         private void rollover() throws IOException {
@@ -90,50 +98,29 @@ public class LogServer {
             p("rollover to: "+newFile);
         }
         final Socket socket;
+        final boolean verbose;
         Writer out;
         public File file; // may be null for testing
         LogFile logFile; // may be null for testing
         private boolean isShuttingdown;
-        public static class Factory {
-            public Factory(Writer writer) {
-                this.writer=writer;
-            }
-            public Copier create(Socket socket) {
-                return new Copier(socket,writer);
-            }
-            final Writer writer;
-        }
     }
-    public LogServer(int service) throws IOException {
-        this(service,null);
+    public LogServer(String host,int service,String prefix) throws IOException {
+        this(host,service,null,prefix);
     }
-    public LogServer(int service,String prefix) throws IOException {
-        this(service,null,prefix);
-    }
-    public LogServer(int service,Copier.Factory factory,String prefix) {
+    public LogServer(String host,int service,Factory factory,String prefix) {
+        this.host=host;
         this.service=service;
         this.prefix=prefix!=null?prefix:"";
         InetAddress inetAddress;
-        String host=Main.defaultLogServerHost;
-        ServerSocket serverSocket_=null;
+        p("trying "+host+":"+service);
         try {
             inetAddress=InetAddress.getByName(host);
-            serverSocket_=new ServerSocket(service,10,inetAddress);
+            serverSocket=new ServerSocket(service,10/* what should this be?*/,inetAddress);
         } catch(IOException e) {
             p("can not create log server: "+e);
             p("make sure host: "+host+":"+service+" is up.");
-            host=Main.defaultTestingHost;
-            p("tryingL "+host+":"+service);
-            try {
-                inetAddress=InetAddress.getByName(host);
-                serverSocket_=new ServerSocket(service,10,inetAddress);
-            } catch(IOException e1) {
-                p("can not create log server: "+e);
-                p("make sure a host is up.");
-                throw new RuntimeException(e);
-            }
+            throw new RuntimeException(e);
         }
-        serverSocket=serverSocket_;
         this.factory=factory;
     }
     static String logFileName(Socket socket,String prefix,int sequence) {
@@ -154,15 +141,14 @@ public class LogServer {
                     socket=serverSocket.accept();
                     p("accepted connection from: "+socket);
                     Copier copier=null;
-                    if(factory!=null) {
-                        copier=factory.create(socket);
-                    } else {
+                    if(factory!=null) copier=factory.create(socket);
+                    else {
                         LogFile logFile=new LogFile(socket,prefix,1);
                         String name=logFile.name();
                         File file=new File(name);
                         p("log file: "+file);
                         Writer out=new FileWriter(file);
-                        copier=new Copier(socket,out);
+                        copier=new Copier(socket,out,true);
                         copier.file=file;
                         copier.logFile=logFile;
                         synchronized(copiers) {
@@ -186,7 +172,7 @@ public class LogServer {
             for(Iterator<Copier> i=copiers.iterator();i.hasNext();) {
                 Copier copier=i.next();
                 if(copier.isAlive()) { // why test for alive?
-                    copier.close(copiers);
+                    copier.close();
                     i.remove();
                     // how to kill off thread?
                 } else p(copier+" is not alive!");
@@ -198,17 +184,19 @@ public class LogServer {
     public static void print() {}
     public static void main(String args[]) {
         try {
-            new LogServer(defaultService).run();
+            new LogServer(Main.networkHost,defaultService,null).run();
         } catch(Exception e) {
             p("caught: '"+e+"'");
         }
     }
+    public final String host;
     public final int service;
     public final String prefix;
     private boolean isShuttingDown;
     private final ServerSocket serverSocket;
-    private final Copier.Factory factory;
+    private final Factory factory;
     public final List<Copier> copiers=new ArrayList<>();
+    public static final String defaultHost="127.0.0.1";
     public static final int defaultService=5000;
     public static final int maxSize=1_000_000;
 }

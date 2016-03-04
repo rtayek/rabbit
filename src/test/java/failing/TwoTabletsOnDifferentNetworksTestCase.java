@@ -13,6 +13,7 @@ public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCas
         super.setUp();
         Map<Integer,Info> infos=new Groups().groups.get("g1each");
         Map<Integer,Info> infos2=new TreeMap<>();
+        p("info: "+infos);
         for(int tabletId:infos.keySet()) {
             Info info=infos.get(tabletId);
             infos2.put(tabletId,new Info(info.name,info.host,info.service+serviceOffset));

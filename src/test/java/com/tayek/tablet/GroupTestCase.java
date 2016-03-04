@@ -14,11 +14,10 @@ public class GroupTestCase {
     }
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
-        io=new IO();
     }
     @After public void tearDown() throws Exception {}
     @Test public void testGetTablet() throws UnknownHostException,InterruptedException,ExecutionException {
-        Set<InetAddress> inetAddresses=io.runAndWait(new GetNetworkInterfacesCallable(Main.defaultTestingHost));
+        Set<InetAddress> inetAddresses=IO.runAndWait(new GetNetworkInterfacesCallable(Main.testingHost));
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1)
             p("more than one nic: "+inetAddresses);
@@ -28,7 +27,7 @@ public class GroupTestCase {
         assertEquals(tablet.tabletId(),group.tabletIds().iterator().next());
     }
     @Test public void testGetTabletWithService() throws UnknownHostException,InterruptedException,ExecutionException {
-        Set<InetAddress> inetAddresses=io.runAndWait(new GetNetworkInterfacesCallable(Main.defaultTestingHost));
+        Set<InetAddress> inetAddresses=IO.runAndWait(new GetNetworkInterfacesCallable(Main.testingHost));
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1)
             p("more than one nic: "+inetAddresses);
@@ -39,5 +38,4 @@ public class GroupTestCase {
         i.next(); // skip the first tablet
         assertEquals(tablet.tabletId(),i.next()); // fragile
     }
-    IO io;
 }

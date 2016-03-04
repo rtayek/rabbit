@@ -64,9 +64,9 @@ public class LoggingHandler {
     }
     // make non static!
     // or pass in ExecutorService executorService
-    public static void startSocketHandler(String Host,int service) {
+    public static void startSocketHandler(String host,int service) {
         if(socketHandler==null) {
-            SocketHandlerCallable task=new SocketHandlerCallable(Host,service);
+            SocketHandlerCallable task=new SocketHandlerCallable(host,service);
             try {
                 socketHandler=io.runAndWait(task);
             } catch(InterruptedException|ExecutionException e) {

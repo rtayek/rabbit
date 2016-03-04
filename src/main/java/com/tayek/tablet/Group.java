@@ -12,6 +12,7 @@ import com.tayek.tablet.io.*;
 public class Group implements Cloneable {
     public static class Groups {
         public Groups() {
+            // this needs to take testing prefix
             boolean old=false;
             if(!old) {
                 int tablets=6;
@@ -29,23 +30,23 @@ public class Group implements Cloneable {
                 //g0.put(99,new Info("nexus 4",99,IO.defaultReceivePort)));
             }
             groups.put("g0",g0);
-            g2.put(4,new Info("pc-4",Main.defaultTestingHost,Main.defaultReceivePort+4));
-            g2.put(5,new Info("pc-5",Main.defaultTestingHost,Main.defaultReceivePort+5));
+            g2.put(4,new Info("pc-4",Main.testingHost,Main.defaultReceivePort+4));
+            g2.put(5,new Info("pc-5",Main.testingHost,Main.defaultReceivePort+5));
             groups.put("g2",g2);
             //g1each.put(3,new Info("nexus 7",Main.networkPrefix+70,Main.defaultReceivePort));
             // two fake tablets on pc, but on different networks.
             // the 100 is dhcp'ed, so it may change once in a while.
-            g1each.put(4,new Info("pc-4",Main.networkPrefix+100,Main.defaultReceivePort+4));
-            g1each.put(5,new Info("pc-5",Main.defaultTestingHost,Main.defaultReceivePort+4));
+            g1each.put(4,new Info("pc-4",Main.networkHost,Main.defaultReceivePort+4));
+            g1each.put(5,new Info("pc-5",Main.testingHost,Main.defaultReceivePort+4));
             groups.put("g1each",g1each);
             Map<Integer,Info> g32OnPc=new TreeMap<>();
             int n=6;
             for(int i=1;i<=n;i++)
-                g6OnPc.put(i,new Info(""+i,Main.defaultTestingHost,Main.defaultReceivePort+i));
+                g6OnPc.put(i,new Info(""+i,Main.testingHost,Main.defaultReceivePort+i));
             groups.put("g6OnPc",g6OnPc);
             n=32;
             for(int i=1;i<=n;i++)
-                g32OnPc.put(i,new Info(""+i,Main.defaultTestingHost,Main.defaultReceivePort+i));
+                g32OnPc.put(i,new Info(""+i,Main.testingHost,Main.defaultReceivePort+i));
             groups.put("g32OnPc",g32OnPc);
         }
         private final Map<Integer,Info> g2=new TreeMap<>();
@@ -53,6 +54,7 @@ public class Group implements Cloneable {
         private final Map<Integer,Info> g6OnPc=new TreeMap<>();
         private final Map<Integer,Info> g1each=new TreeMap<>();
         public final Map<String,Map<Integer,Info>> groups=new TreeMap<>();
+        // hack, change the above before calling new Groups!
     }
     public static class Info {
         public static class Histories {

@@ -3,7 +3,7 @@ import static org.junit.Assert.*;
 import java.net.*;
 import java.util.Set;
 import org.junit.*;
-import com.tayek.tablet.Main;
+import com.tayek.tablet.*;
 import static com.tayek.tablet.io.IO.*;
 public class NetworkIOtestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
@@ -17,9 +17,9 @@ public class NetworkIOtestCase {
             assertTrue(y.getHostAddress().contains(Main.networkPrefix));
     }
     @Test public void testDefaultTestingHost() throws UnknownHostException {
-        Set<InetAddress> x=myInetAddress(Main.defaultTestingHost);
+        Set<InetAddress> x=myInetAddress(Main.testingHost);
         assertTrue(x.size()>0);
         for(InetAddress y:x)
-            assertTrue(y.getHostAddress().contains(Main.defaultTestingHost));
+            assertTrue(y.getHostAddress().contains(Main.testingHost));
     }
 }

@@ -12,7 +12,7 @@ public class RealLogServerTestCase {
         LoggingHandler.once=false;
         LoggingHandler.init();
         LoggingHandler.socketHandler=null; // static, was causing tests to fail!
-        LoggingHandler.startSocketHandler(Main.defaultLogServerHost,LogServer.defaultService);
+        LoggingHandler.startSocketHandler(Main.testingHost,LogServer.defaultService);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
     }

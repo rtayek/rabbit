@@ -22,7 +22,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         executorService=Executors.newSingleThreadExecutor();
         //printThreads();
         LoggingHandler.socketHandler=null; // static, was causing tests to fail!
-        logServer=new LogServer(++service,getClass().getName());
+        logServer=new LogServer(host,++service,getClass().getName());
         thread=new Thread(new Runnable() {
             @Override public void run() {
                 logServer.run();
@@ -51,7 +51,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     }
     @Test(timeout=5_000) public void test() throws InterruptedException {
         // start socket logging
-        LoggingHandler.startSocketHandler(Main.defaultLogServerHost,service);
+        LoggingHandler.startSocketHandler(host,service);
         LoggingHandler.once=false;
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.ALL);
@@ -77,6 +77,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
             //assertTrue(stringBuffer.toString().contains(expected));
         }
     }
+    String host="127.0.0.1";
     LogServer logServer;
     Thread thread;
     private ExecutorService executorService;

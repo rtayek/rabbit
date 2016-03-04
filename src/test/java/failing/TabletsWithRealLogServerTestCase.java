@@ -19,7 +19,6 @@ public class TabletsWithRealLogServerTestCase extends AbstractTabletTestCase {
     @Before public void setUp() throws Exception {
         super.setUp();
         LogManager.getLogManager().reset();
-        executorService=Executors.newSingleThreadExecutor();
         //printThreads();
         LoggingHandler.socketHandler=null; // static, was causing tests to fail!
         LoggingHandler.setLevel(Level.INFO);
@@ -28,7 +27,6 @@ public class TabletsWithRealLogServerTestCase extends AbstractTabletTestCase {
     @After public void tearDown() throws Exception {
         shutdown();
         LoggingHandler.setLevel(Level.OFF);
-        executorService.shutdown();
         //printThreads();
         int big=2*Thread.activeCount();
         Thread[] threads=new Thread[big];
@@ -42,7 +40,7 @@ public class TabletsWithRealLogServerTestCase extends AbstractTabletTestCase {
     }
     @Test public void test() throws InterruptedException {
         // start socket logging
-        LoggingHandler.startSocketHandler(Main.defaultLogServerHost,LogServer.defaultService);
+        LoggingHandler.startSocketHandler(Main.testingHost,LogServer.defaultService);
         // use real port for a while
         LoggingHandler.once=false;
         LoggingHandler.init();
@@ -65,6 +63,5 @@ public class TabletsWithRealLogServerTestCase extends AbstractTabletTestCase {
         //Utility.fromFile(stringBuffer,copier.file);
         // hard to do, just verify that the log file got written for now
     }
-    private ExecutorService executorService;
     final String expected="i am a duck.";
 }
