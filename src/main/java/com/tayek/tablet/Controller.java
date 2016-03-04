@@ -89,7 +89,7 @@ public class Controller {
                 else LoggingHandler.setLevel(Level.OFF);
                 break;
             case 'L':
-                if(LoggingHandler.socketHandler==null) LoggingHandler.startSocketHandler(Main.testingHost,LogServer.defaultService);
+                if(LoggingHandler.socketHandler==null) LoggingHandler.startSocketHandler(Main.logServerHost,LogServer.defaultService);
                 else LoggingHandler.stopSocketHandler();
                 break;
             case 'p':

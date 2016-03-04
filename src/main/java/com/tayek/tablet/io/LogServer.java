@@ -184,11 +184,11 @@ public class LogServer {
     public static void print() {}
     public static void main(String args[]) {
         try {
-            new LogServer(Main.networkHost,defaultService,null).run();
+            new LogServer(Main.logServerHost,defaultService,null).run();
         } catch(Exception e) {
             p("caught: '"+e+"'");
             try {
-                new LogServer(Main.testingHost,defaultService,null).run();
+                new LogServer(Main.networkHost,defaultService,null).run();
             } catch(Exception e2) {
                 p("caught: '"+e2+"'");
             }

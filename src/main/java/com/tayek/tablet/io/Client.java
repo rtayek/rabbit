@@ -216,7 +216,7 @@ public class Client implements Sender {
     }
     public static void main(String[] arguments) throws IOException,InterruptedException {
         LoggingHandler.init();
-        LoggingHandler.startSocketHandler(Main.testingHost,LogServer.defaultService);
+        LoggingHandler.startSocketHandler(Main.networkHost,LogServer.defaultService);
         LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
         LoggingHandler.setLevel(Level.WARNING);
         //tryConnect();

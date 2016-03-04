@@ -43,6 +43,7 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
     public static final String networkStub="192.168.";
     public static final String networkPrefix="192.168.0.";
     public static final String testingPrefix="192.168.1.";
+    public static final String logServerHost;
     public static final String networkHost;
     public static final String testingHost;
     static {
@@ -57,15 +58,18 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
                 InetAddress inetAddress=myInetAddresses.iterator().next();
                 testingHost=inetAddress.getHostAddress();
             } else testingHost="localhost";
+            logServerHost=isRaysPc?testingHost:networkHost;
         } else {
             networkHost="localhost"; // nothing but trouble :(
             testingHost="localhost";
+            logServerHost="192.168.1.2"; // or the laptop's 192.68.0
         }
     }
     static {
         p("user dir: "+System.getProperty("user.dir"));
         p("network host: "+networkHost);
         p("testing host: "+testingHost);
+        p("log serverHost host: "+logServerHost);
     }
     public static final Map<Integer,String> tablets=new TreeMap<>();
     static {
