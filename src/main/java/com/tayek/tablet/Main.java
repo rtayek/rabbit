@@ -37,7 +37,8 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
             }
         }.run();
     }
-    public static final boolean isLaptop=!System.getProperty("user.dir").contains("D:\\");
+    public static final boolean isRaysPc=System.getProperty("user.dir").contains("D:\\");
+    public static final boolean isLaptop=System.getProperty("user.dir").contains("C:\\Users\\");
     public static final Integer defaultReceivePort=33000;
     public static final String networkStub="192.168.";
     public static final String networkPrefix="192.168.0.";
@@ -47,17 +48,21 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
     public static final String networkHost;
     public static final String testingHost;
     static {
-        p("on laptop: "+isLaptop);
-        Set<InetAddress> myInetAddresses=IO.myInetAddresses(networkPrefix);
-        if(myInetAddresses.size()>0) {
-            InetAddress inetAddress=myInetAddresses.iterator().next();
-            networkHost=inetAddress.getHostAddress();
-        } else networkHost="localhost";
-        myInetAddresses=IO.myInetAddresses(testingPrefix);
-        if(myInetAddresses.size()>0) {
-            InetAddress inetAddress=myInetAddresses.iterator().next();
-            testingHost=inetAddress.getHostAddress();
-        } else testingHost="localhost";
+        if(isRaysPc||isLaptop) {
+            Set<InetAddress> myInetAddresses=IO.myInetAddresses(networkPrefix);
+            if(myInetAddresses.size()>0) {
+                InetAddress inetAddress=myInetAddresses.iterator().next();
+                networkHost=inetAddress.getHostAddress();
+            } else networkHost="localhost";
+            myInetAddresses=IO.myInetAddresses(testingPrefix);
+            if(myInetAddresses.size()>0) {
+                InetAddress inetAddress=myInetAddresses.iterator().next();
+                testingHost=inetAddress.getHostAddress();
+            } else testingHost="localhost";
+        } else {
+            networkHost="localhost"; // nothing but trouble :(
+            testingHost="localhost";
+        }
     }
     static {
         p("user dir: "+System.getProperty("user.dir"));
