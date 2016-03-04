@@ -71,6 +71,7 @@ public class LoggingHandler {
                 socketHandler=io.runAndWait(task);
             } catch(InterruptedException|ExecutionException e) {
                 p("caught: '"+e+"'");
+                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         }

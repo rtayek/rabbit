@@ -8,13 +8,18 @@ public class RealLogServerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
-        // LogManager.getLogManager().reset();
+        LogManager.getLogManager().reset();
         LoggingHandler.once=false;
         LoggingHandler.init();
         LoggingHandler.socketHandler=null; // static, was causing tests to fail!
-        LoggingHandler.startSocketHandler(Main.testingHost,LogServer.defaultService);
+        LoggingHandler.startSocketHandler(Main.networkHost,LogServer.defaultService);
         LoggingHandler.setLevel(Level.ALL);
-        LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
+        if(LoggingHandler.socketHandler!=null) LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
+        else {
+            LoggingHandler.startSocketHandler(Main.testingHost,LogServer.defaultService);
+            if(LoggingHandler.socketHandler!=null) LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
+            else fail("can start a log server!");
+        }
     }
     @After public void tearDown() throws Exception {
         LoggingHandler.stopSocketHandler();

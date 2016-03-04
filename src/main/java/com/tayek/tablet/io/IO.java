@@ -67,6 +67,7 @@ public class IO {
                 p("socket handler constructed to: "+host+":"+service);
             } catch(IOException e) {
                 p("caught: '"+e+"' constructing socket handler on: "+host+":"+service);
+                e.printStackTrace();
                 throw new RuntimeException(e);
             }
             return socketHandler;

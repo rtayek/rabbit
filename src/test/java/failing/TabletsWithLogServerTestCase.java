@@ -19,7 +19,6 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     @Before public void setUp() throws Exception {
         super.setUp();
         LogManager.getLogManager().reset();
-        executorService=Executors.newSingleThreadExecutor();
         //printThreads();
         LoggingHandler.socketHandler=null; // static, was causing tests to fail!
         logServer=new LogServer(host,++service,getClass().getName());
@@ -35,7 +34,6 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     @After public void tearDown() throws Exception {
         shutdown();
         LoggingHandler.setLevel(Level.OFF);
-        executorService.shutdown();
         p("copiers: "+logServer.copiers);
         logServer.stop();
         //printThreads();
@@ -80,7 +78,6 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     String host="127.0.0.1";
     LogServer logServer;
     Thread thread;
-    private ExecutorService executorService;
     final String expected="i am a duck.";
     static int service=LogServer.defaultService+1000;
 }

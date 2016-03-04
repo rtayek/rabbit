@@ -43,8 +43,6 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
     public static final String networkStub="192.168.";
     public static final String networkPrefix="192.168.0.";
     public static final String testingPrefix="192.168.1.";
-    //public static String networkAddress=isLaptop?"100":"101";
-    //public static String testingAddress=isLaptop?"100":"2";
     public static final String networkHost;
     public static final String testingHost;
     static {
