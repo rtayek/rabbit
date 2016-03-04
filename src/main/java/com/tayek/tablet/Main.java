@@ -1,6 +1,7 @@
 package com.tayek.tablet;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.util.*;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.io.*;
@@ -36,15 +37,28 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
             }
         }.run();
     }
-    public static boolean isLaptop=!System.getProperty("user.dir").contains("D:\\");
+    public static final boolean isLaptop=!System.getProperty("user.dir").contains("D:\\");
     public static final Integer defaultReceivePort=33000;
-    public static String networkStub="192.168.";
-    public static String networkPrefix="192.168.0.";
-    public static String testingPrefix="192.168.1.";
-    public static String networkAddress=isLaptop?"100":"101";
-    public static String testingAddress=isLaptop?"100":"2";
-    public static String networkHost=networkPrefix+networkAddress;
-    public static String testingHost=testingPrefix+testingAddress;
+    public static final String networkStub="192.168.";
+    public static final String networkPrefix="192.168.0.";
+    public static final String testingPrefix="192.168.1.";
+    //public static String networkAddress=isLaptop?"100":"101";
+    //public static String testingAddress=isLaptop?"100":"2";
+    public static final String networkHost;
+    public static final String testingHost;
+    static {
+        p("on laptop: "+isLaptop);
+        Set<InetAddress> myInetAddresses=IO.myInetAddresses(networkPrefix);
+        if(myInetAddresses.size()>0) {
+            InetAddress inetAddress=myInetAddresses.iterator().next();
+            networkHost=inetAddress.getHostAddress();
+        } else networkHost="localhost";
+        myInetAddresses=IO.myInetAddresses(testingPrefix);
+        if(myInetAddresses.size()>0) {
+            InetAddress inetAddress=myInetAddresses.iterator().next();
+            testingHost=inetAddress.getHostAddress();
+        } else testingHost="localhost";
+    }
     static {
         p("user dir: "+System.getProperty("user.dir"));
         p("network host: "+networkHost);

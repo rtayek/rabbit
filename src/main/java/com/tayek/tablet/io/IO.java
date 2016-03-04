@@ -29,7 +29,7 @@ public class IO {
         }
         final String host;
     }
-    public static Set<InetAddress> myInetAddress(String networkPrefix) {
+    public static Set<InetAddress> myInetAddresses(String networkPrefix) {
         Set<InetAddress> set=new LinkedHashSet<>(); // 
         try {
             Enumeration<NetworkInterface> networkInterfaces=NetworkInterface.getNetworkInterfaces();
@@ -48,7 +48,7 @@ public class IO {
         }
         @Override public Set<InetAddress> call() throws Exception {
             Thread.currentThread().setName(getClass().getName());
-            return myInetAddress(networkPrefix);
+            return myInetAddresses(networkPrefix);
         }
         final String networkPrefix;
     }
@@ -113,7 +113,7 @@ public class IO {
         }
     }
     public static void printInetAddresses(String prefix) {
-        Set<InetAddress> x=myInetAddress(prefix);
+        Set<InetAddress> x=myInetAddresses(prefix);
         p("addresses: "+x);
     }
     public static void main(String args[]) throws UnknownHostException {

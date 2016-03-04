@@ -11,13 +11,13 @@ public class NetworkIOtestCase {
     @Before public void setUp() throws Exception {}
     @After public void tearDown() throws Exception {}
     @Test public void testDefaultNetworkPrefix() throws UnknownHostException {
-        Set<InetAddress> x=myInetAddress(Main.networkPrefix);
+        Set<InetAddress> x=myInetAddresses(Main.networkPrefix);
         assertTrue(x.size()>0);
         for(InetAddress y:x)
             assertTrue(y.getHostAddress().contains(Main.networkPrefix));
     }
     @Test public void testDefaultTestingHost() throws UnknownHostException {
-        Set<InetAddress> x=myInetAddress(Main.testingHost);
+        Set<InetAddress> x=myInetAddresses(Main.testingHost);
         assertTrue(x.size()>0);
         for(InetAddress y:x)
             assertTrue(y.getHostAddress().contains(Main.testingHost));

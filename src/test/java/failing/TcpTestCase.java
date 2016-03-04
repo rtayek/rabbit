@@ -34,8 +34,8 @@ import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
         List<InetSocketAddress> list=new ArrayList<>();
         list.add(new InetSocketAddress("localhost",Main.defaultReceivePort+serviceOffset));
         list.add(new InetSocketAddress(InetAddress.getByName("127.0.0.1"),Main.defaultReceivePort+serviceOffset));
+        list.add(new InetSocketAddress(Main.networkHost,Main.defaultReceivePort+serviceOffset));
         list.add(new InetSocketAddress(Main.testingHost,Main.defaultReceivePort+serviceOffset));
-        list.add(new InetSocketAddress(Main.networkPrefix+Main.networkAddress,Main.defaultReceivePort+serviceOffset));
         List<Object[]> parameters=new ArrayList<Object[]>();
         for(InetSocketAddress inetSocketAddress:list) {
             parameters.add(new Object[] {inetSocketAddress,Boolean.FALSE});
