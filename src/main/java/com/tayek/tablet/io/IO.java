@@ -5,6 +5,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
+import com.tayek.tablet.Main;
 public class IO {
     public interface Callback<T> { // should be Consumer<T>
         void call(T t);
@@ -123,10 +124,11 @@ public class IO {
         p("host: "+host);
         InetAddress inetAddress=InetAddress.getByName(host);
         p("address: "+inetAddress);
-        printInetAddresses("192.168.");
-        printInetAddresses("192.168.0.");
-        printInetAddresses("192.168.1.");
-        printInetAddresses("192.168.1.2");
+        printInetAddresses(Main.networkStub);
+        printInetAddresses(Main.networkPrefix);
+        printInetAddresses(Main.testingPrefix);
+        printInetAddresses(Main.networkHost);
+        printInetAddresses(Main.testingHost);
     }
     public final Logger l=Logger.getLogger(getClass().getName());
     // put into instance
