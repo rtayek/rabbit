@@ -28,7 +28,7 @@ public class Enums {
         private final Level level;
     }
     public enum MenuItem {
-        Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,Forever,Level;
+        ToggleLogging,Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,Forever,Level;
         public void doItem(Tablet tablet) {
             doItem(this,tablet);
         }
@@ -45,6 +45,9 @@ public class Enums {
         }
         public static void doItem(MenuItem tabletMenuItem,final Tablet tablet) {
             switch(tabletMenuItem) {
+                case ToggleLogging:
+                    LoggingHandler.toggleSockethandlers();
+                    break;
                 case Reset:
                     tablet.model.reset();
                     break;
@@ -64,8 +67,8 @@ public class Enums {
                 case Log:
                     // gui.textView.setVisible(!gui.textView.isVisible());
                     break;
-                case Level: // handled by submenu 
-                    break;
+                //case Level: // handled by submenu 
+                //    break; // no, it's not
                 case Sound:
                     Audio.Instance.sound=!Audio.Instance.sound;
                     tablet.l.info("sound: "+Audio.Instance.sound);

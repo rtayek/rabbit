@@ -90,7 +90,7 @@ public class Controller {
                 if(IO.staticLogger.getLevel()==Level.OFF) LoggingHandler.setLevel(Level.ALL);
                 else LoggingHandler.setLevel(Level.OFF);
                 break;
-            case 'L': // we need to add it!
+            case 'L': 
                 LoggingHandler.toggleSockethandlers();
                 break;
             case 'p':
