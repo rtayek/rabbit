@@ -21,7 +21,6 @@ import com.tayek.utilities.Utility;
         LogManager.getLogManager().reset();
         LoggingHandler.once=false;
         LoggingHandler.init();
-        LoggingHandler.socketHandler=null; // static, was causing tests to fail!
         if(useWriter) {
             writer=new StringWriter();
             LogServer.Factory factory=new LogServer.Factory(writer);
@@ -35,12 +34,12 @@ import com.tayek.utilities.Utility;
             }
         },"log server");
         thread.start();
-        LoggingHandler.startSocketHandler(host,service);
+        socketHandler=LoggingHandler.startSocketHandler(host,service);
         LoggingHandler.setLevel(Level.ALL);
-        LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
+        LoggingHandler.addSocketHandler(socketHandler);
     }
     @After public void tearDown() throws Exception {
-        LoggingHandler.stopSocketHandler();
+        LoggingHandler.stopSocketHandler(socketHandler);
         logServer.stop();
     }
     public ParameterizedLogServerTestCase(String host,boolean useWriter) {
@@ -81,6 +80,7 @@ import com.tayek.utilities.Utility;
     final String host;
     final boolean useWriter;
     LogServer logServer;
+    SocketHandler socketHandler;
     Thread thread;
     Writer writer;
     final String expected="i am a duck.";

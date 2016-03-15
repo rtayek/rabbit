@@ -3,6 +3,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.util.*;
+import java.util.logging.SocketHandler;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.io.*;
 import static com.tayek.tablet.io.IO.*;
@@ -15,11 +16,28 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
         // add p() here?
         // and all constants
     }
+    public static class Instance {
+        // maybe just put messages in group?
+        private Instance(int tabletId) {
+            this.tabletId=tabletId;
+        }
+        public Instance create(int tabletId) {
+            return new Instance(tabletId);
+        }
+        public Set<Instance> create(Set<Integer> tabletIds) {
+            Set<Instance> instances=new LinkedHashSet<>();
+            for(int tabletId:tabletIds)
+                instances.add(create(tabletId));
+            return instances;
+        }
+        final int tabletId;
+        Messages messages=new Messages();
+    }
     // install notes:
     // android project needs sdk location.
     // core fails to find gradle wrapper main. fix: run gradle wrapper directly.
     // http://stackoverflow.com/questions/23081263/adb-android-device-unauthorized
-    // G0K0H404542514AX - fire 1 with factory reset. (ray's 3'rf fire)
+    // G0K0H404542514AX - fire 1 with factory reset. (ray's 3'rd fire)
     // G0K0H40453650FLR - fire 2 (ray's 2'nd fire)
     // 015d2109aa080e1a - my nexus 7
     // 094374c354415780809 - azpen a727
@@ -62,7 +80,8 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
         } else {
             networkHost="localhost"; // nothing but trouble :(
             testingHost="localhost";
-            logServerHost="192.168.1.2"; // or the laptop's 192.68.0
+            //logServerHost="192.168.1.2";
+            logServerHost="192.168.0.102"; // or the laptop's 192.68.0
         }
     }
     static {
@@ -70,6 +89,13 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
         p("network host: "+networkHost);
         p("testing host: "+testingHost);
         p("log serverHost host: "+logServerHost);
+    }
+    public static final Map<Integer,Instance> instances=new TreeMap<>();
+    public static final Map<String,SocketHandler> logServerHosts=new LinkedHashMap<>();
+    static {
+        logServerHosts.put("192.168.1.2",null); // static ip on my pc
+        logServerHosts.put("192.168.0.101",null); // my pc today
+        logServerHosts.put("192.168.0.100",null); // laptop today
     }
     public static final Map<Integer,String> tablets=new TreeMap<>();
     static {

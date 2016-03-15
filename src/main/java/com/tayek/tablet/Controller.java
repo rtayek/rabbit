@@ -4,9 +4,11 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
+import java.util.logging.*;
 import com.tayek.tablet.Group.Groups;
+import com.tayek.tablet.Receiver.Model;
 import com.tayek.tablet.io.*;
+import javafx.scene.control.Toggle;
 public class Controller {
     Controller(Tablet tablet) {
         this(tablet,System.in,System.out);
@@ -88,9 +90,8 @@ public class Controller {
                 if(IO.staticLogger.getLevel()==Level.OFF) LoggingHandler.setLevel(Level.ALL);
                 else LoggingHandler.setLevel(Level.OFF);
                 break;
-            case 'L':
-                if(LoggingHandler.socketHandler==null) LoggingHandler.startSocketHandler(Main.logServerHost,LogServer.defaultService);
-                else LoggingHandler.stopSocketHandler();
+            case 'L': // we need to add it!
+                LoggingHandler.toggleSockethandlers();
                 break;
             case 'p':
                 p(out,tablet.model.toString());
@@ -156,6 +157,7 @@ public class Controller {
     protected final Tablet tablet;
     protected final InputStream in;
     protected final PrintStream out;
+    protected SocketHandler socketHandler;
     private View.CommandLine commandLineView;
     private Observer audioObserver;
     public static final String lineSeparator=System.getProperty("line.separator");

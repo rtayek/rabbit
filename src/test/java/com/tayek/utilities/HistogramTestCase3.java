@@ -48,7 +48,7 @@ public class HistogramTestCase3 {
     }
     @Test public void testMissing() {
         histogram.add(Double.NaN);
-        assertEquals(1,histogram.missing());
+        assertEquals(1,histogram.nans());
     }
     @Test public void testUndeflows() {
         histogram.add(-1);

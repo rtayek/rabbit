@@ -1,4 +1,4 @@
-package failing;
+package com.tayek.tablet;
 import static com.tayek.tablet.io.IO.*;
 import static org.junit.Assert.*;
 import java.io.IOException;
@@ -11,8 +11,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Group.Info.Histories;
+import com.tayek.tablet.Messages.Message;
 import com.tayek.tablet.Receiver.DummyReceiver;
+import com.tayek.tablet.Sender.Client;
 import com.tayek.tablet.io.*;
 import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
 @RunWith(Parameterized.class) public class TcpTestCase extends AbstractTabletTestCase {
@@ -23,7 +24,6 @@ import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
     @Before public void setUp() throws Exception {
         super.setUp();
         printThreads=true;
-        //LoggingHandler.setLevel(Level.ALL);
     }
     @After public void tearDown() throws Exception {
         super.tearDown();
@@ -48,11 +48,11 @@ import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
     boolean sendAndReceiveOneMessage(SocketAddress socketAddress,boolean replying) throws UnknownHostException,IOException,InterruptedException {
         DummyReceiver receiver=new DummyReceiver();
         Histories history=new Histories();
-        Server server=new Server(null,socketAddress,receiver,replying,history);
+        Server server=new Server(null,socketAddress,receiver,replying,history.server,null,messages);
         server.startServer();
         // where is client socket bound to?
-        Client client=new Client(socketAddress,replying,Tablet.defaultConnectTimeout); 
-        Message dummy=Message.dummy(1,1);
+        Client client=new Client(socketAddress,replying,Group.defaultConnectTimeout); 
+        Message dummy=messages.dummy(1,1);
         client.l.info("sending: "+dummy);
         client.send(dummy,history.client);
         while(history.server.server.successes()+history.server.server.failures()==0)
@@ -69,7 +69,7 @@ import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
         DummyReceiver receiver=new DummyReceiver();
         Server server=null;
         try {
-            server=new Server(null,socketAddress,receiver,false,history);
+            server=new Server(null,socketAddress,receiver,false,history.server,null,messages);
         } catch(Exception e) {
             p("socket address: "+socketAddress+" failed! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         }
@@ -117,4 +117,5 @@ import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
     final boolean replying;
     int service;
     int threads;
+    Messages messages=new Messages();
 }

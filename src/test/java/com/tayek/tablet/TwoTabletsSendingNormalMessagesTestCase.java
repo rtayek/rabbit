@@ -4,7 +4,6 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import org.junit.*;
-import com.tayek.tablet.Group.Info.Histories;
 import com.tayek.tablet.io.LoggingHandler;
 import static com.tayek.tablet.io.IO.*;
 public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestCase {

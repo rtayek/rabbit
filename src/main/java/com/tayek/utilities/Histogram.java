@@ -30,7 +30,7 @@ public class Histogram {
             recent.put(n,x);
         }
         if(Double.valueOf(x).equals(Double.NaN)) {
-            missing++; // omitted?
+            nans++; // omitted?
             return;
         }
         n++;
@@ -58,7 +58,7 @@ public class Histogram {
         synchronized(recent) {
             recent.putAll(histogram.recent);
         }
-        missing+=histogram.missing;
+        nans+=histogram.nans;
         n+=histogram.n;
         sum+=histogram.sum;
         sum2+=histogram.sum2;
@@ -71,8 +71,8 @@ public class Histogram {
         for(int i=0;i<bins;i++)
             bin[i]+=histogram.bin[i];
     }
-    public int missing() {
-        return missing;
+    public int nans() {
+        return nans;
     }
     public List<Double> recent() {
         synchronized(recent) {
@@ -82,7 +82,7 @@ public class Histogram {
         }
     }
     public void clear() {
-        n=underflows=overflows=missing=0;
+        n=underflows=overflows=nans=0;
         sum=sum2=0;
         min=Double.MAX_VALUE;
         max=Double.MIN_VALUE;
@@ -148,7 +148,7 @@ public class Histogram {
         for(int i=0;i<bins;i++)
             sb.append(i>0?",":"").append(bin(i));
         sb.append("],").append(bin(bins));
-        sb.append(" missing: ").append(missing);
+        sb.append(" missing: ").append(nans);
         return sb.toString();
     }
     public String toStringFrequency() {
@@ -158,11 +158,11 @@ public class Histogram {
         for(int i=0;i<bins;i++)
             sb.append(i>0?",":"").append(bin(i)/(double)n);
         sb.append("],").append(bin(bins));
-        sb.append(" missing: ").append(missing);
+        sb.append(" NaNs: ").append(nans);
         return sb.toString();
     }
     private int[] bin;
-    private int n,bins,underflows,overflows,missing;
+    private int n,bins,underflows,overflows,nans;
     private final double low,high,range;
     private double min=Double.MAX_VALUE,max=Double.MIN_VALUE,sum,sum2;
     private LruMap<Integer,Double> recent=new LruMap<>(101);

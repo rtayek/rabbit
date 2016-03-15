@@ -5,169 +5,42 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
-import com.tayek.tablet.Group.Info.Histories;
-import com.tayek.tablet.Tablet.SendCallable;
+import com.tayek.tablet.Messages.Message;
+import com.tayek.tablet.Receiver.Model;
 import com.tayek.tablet.io.*;
 import com.tayek.utilities.*;
 public class Tablet {
-    public enum LevelSubMenuItem {
-        all(Level.ALL),finest(Level.FINEST),finer(Level.FINER),fine(Level.FINE),config(Level.CONFIG),info(Level.INFO),warning(Level.WARNING),sever(Level.SEVERE),none(Level.OFF);
-        LevelSubMenuItem(Level level) {
-            this.level=level;
-        }
-        public void doItem(Tablet tablet) {
-            doItem(this,tablet);
-        }
-        public static boolean isItem(int ordinal) {
-            return item(ordinal)!=null;
-        }
-        public static LevelSubMenuItem item(int ordinal) {
-            return 0<=ordinal&&ordinal<values().length?values()[ordinal]:null;
-        }
-        public static void doItem(int ordinal,Tablet tablet) { // used by android
-            if(tablet!=null) if(0<=ordinal&&ordinal<values().length) values()[ordinal].doItem(tablet);
-            else tablet.l.warning(ordinal+" is invalid ordinal for!");
-            else IO.staticLogger.warning("tablet is null in do item!");
-        }
-      public static void doItem(LevelSubMenuItem levelSubMenuItem,final Tablet tablet) {
-            LoggingHandler.setLevel(levelSubMenuItem.level);
-        }
-        private final Level level;
+
+    // no need for ip address really,
+    // maybe set the tablet id after construction
+    // or before broadcast
+    // and add "instance" stuff!
+    // like last mesage sent
+    // and ip addresses
+    
+    static void forever(final Tablet tablet) {
+        for(int i=1;i<100;i++)
+            drive(tablet,100);
     }
-    public enum MenuItem {
-        Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive;
-        public void doItem(Tablet tablet) {
-            doItem(this,tablet);
-        }
-        public static boolean isItem(int ordinal) {
-            return item(ordinal)!=null;
-        }
-        public static MenuItem item(int ordinal) {
-            return 0<=ordinal&&ordinal<values().length?values()[ordinal]:null;
-        }
-        public static void doItem(int ordinal,Tablet tablet) { // used by android
-            if(tablet!=null) if(0<=ordinal&&ordinal<values().length) values()[ordinal].doItem(tablet);
-            else tablet.l.warning(ordinal+" is invalid ordinal for!");
-            else IO.staticLogger.warning("tablet is null in do item!");
-        }
-        public static void doItem(MenuItem tabletMenuItem,final Tablet tablet) {
-            switch(tabletMenuItem) {
-                case Reset:
-                    tablet.model.reset();
-                    break;
-                case Ping:
-                    tablet.broadcast(Message.ping(tablet.group.groupId,tablet.tabletId),0);
-                    break;
-                case Heartbeat:
-                    if(tablet.heartbeatTimer!=null) Tablet.startHeatbeat(tablet);
-                    else tablet.stopHeartbeat();
-                    break;
-                case Disconnect:
-                    tablet.stopListening();
-                    break;
-                case Connect:
-                    if(!tablet.startListening()) tablet.l.info(Utility.method()+" startListening() failed!");
-                    break;
-                case Log:
-                    // gui.textView.setVisible(!gui.textView.isVisible());
-                    break;
-                case Sound:
-                    Audio.Instance.sound=!Audio.Instance.sound;
-                    tablet.l.info("sound: "+Audio.Instance.sound);
-                    break;
-                case Simulate:
-                    if(tablet.simulationTimer==null) Tablet.startSimulating(tablet);
-                    else tablet.stopSimulating();
-                    break;
-                case Quit:
-                    // System.exit(0); // how to test this?
-                    break;
-                case Drive:
-                    new Thread(new Runnable() {
-                        @Override public void run() {
-                            int n=100; // put this in main?
-                            tablet.reportPeriod=n;
-                            tablet.drive(n,driveWait);
-                            try {
-                                Thread.sleep(100);
-                            } catch(InterruptedException e) {
-                                tablet.l.severe("caught: "+e);
-                            }
-                            tablet.l.severe("start histories()");
-                            tablet.l.severe(tablet.group.histories(tablet));
-                            tablet.l.severe("start histories()");
-                        }
-                    }).start();
-                    break;
-                default:
-                    tablet.l.severe(tabletMenuItem+" was not handled!");
-            }
-        }
-    }
-    private void send(final Message message,Integer destinationTabletId,int timeout) {
-        InetSocketAddress inetSocketAddress=group.socketAddress(destinationTabletId);
-        if(message.type.equals(Message.Type.ack)) l.warning("sending act to: "+inetSocketAddress);
-        Client client=new Client(inetSocketAddress,group.replying,timeout);
-        //if(!destinationTabletId.equals(tabletId()))
-        Histories history=group.info(destinationTabletId).history;
-        l.info("tablet "+name+"("+tabletId()+") sending: #"+(history.client.client.attempts()+1)+" to tablet "+group.name(destinationTabletId));
+    static void drive(final Tablet tablet,int n) {
+        tablet.drive(n,tablet.group.driveWait);
         try {
-            boolean ok=client.send(message,history.client);
-            if(!ok) ; //l.warning("tablet: "+tabletId+", send to: "+inetSocketAddress+" failed!");
-            if(false&&!ok) {
-                p("trying to send again to: "+inetSocketAddress);
-                ok=client.send(message,history.client);
-                if(ok) p("worked the second time send to: "+inetSocketAddress);
-                else p("second time failed sending to: "+inetSocketAddress);
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
+            Thread.sleep(100);
+        } catch(InterruptedException e) {
+            tablet.l.severe("caught: "+e);
         }
-    }
-    public class SendCallable implements Callable<Void> {
-        public SendCallable(Message message,Integer destinationTabletId,int timeout) {
-            this.message=message;
-            this.destinationTabletId=destinationTabletId;
-            this.timeout=timeout;
-        }
-        @Override public Void call() throws Exception {
-            Thread.currentThread().setName(getClass().getSimpleName()+", tablet: "+tabletId+" send to: "+destinationTabletId);
-            l.fine("call send to: "+destinationTabletId);
-            if(message.type.equals(Message.Type.ack)) l.warning(Tablet.this+", sending ack: "+message+", to: "+destinationTabletId);
-            send(message,destinationTabletId,timeout);
-            return null;
-        }
-        private final Message message;
-        private final Integer destinationTabletId;
-        private final Integer timeout;
-    }
-    private class BroadcastCallable implements Callable<Void> {
-        BroadcastCallable(Message message) {
-            this.message=message;
-        }
-        @Override public Void call() throws Exception {
-            Thread.currentThread().setName(getClass().getName()+" tablet: "+tabletId+" broadcast");
-            l.info("broadcast: "+message);
-            for(Integer destinationTabletId:group.tabletIds()) {
-                l.info("broadcasting to: "+destinationTabletId);
-                // what should this wait really be?
-                executeTaskAndCancelIfItTakesTooLong(new SendCallable(message,destinationTabletId,connectTimeout),sendTimeout,canceller);
-            }
-            return null;
-        }
-        final Message message;
+        tablet.l.severe("start histories()");
+        tablet.l.severe(tablet.group.histories(tablet));
+        tablet.l.severe("start histories()");
     }
     public Tablet(Group group,int tabletId) {
-        this(group,tabletId,defaultConnectTimeout,(int)(defaultConnectTimeout*1.3));
+        this(group,tabletId,group.defaultConnectTimeout,group.defaultSendTimeout);
     }
     public Tablet(Group group,int tabletId,int connectTimeout,int sendTimeout) {
         this.group=group;
         this.tabletId=tabletId;
-        this.connectTimeout=connectTimeout;
-        this.sendTimeout=sendTimeout;
-        int n=group.info().size()+4;
-        this.executorService=Executors.newFixedThreadPool(n+2);
-        canceller=Executors.newScheduledThreadPool(n+2);
+        group.connectTimeout=connectTimeout;
+        group.sendTimeout=sendTimeout;
         model=group.getModelClone();
         model.history=group.info(tabletId).history.model;
         model.tablet=this;
@@ -175,20 +48,6 @@ public class Tablet {
         if(!group.tabletIds().contains(tabletId)) l.severe("tablet: "+tabletId+" is not a member of group: "+group);
         setName("T"+tabletId);
         if(group.info(tabletId)!=null&&group.info(tabletId).name!=null) setName(group.info(tabletId).name);
-    }
-    public <T> Future<T> executeTaskAndCancelIfItTakesTooLong(final Callable<T> callable,final long timeoutMS,ScheduledExecutorService canceller) {
-        final Future<T> future=executorService.submit(callable);
-        // awk this makes another thread!
-        canceller.schedule(new Callable<Void>() {
-            public Void call() {
-                if(!future.isDone()) {
-                    l.warning("future: "+future+", callable: "+callable+" task is not finished after: "+timeoutMS);
-                    future.cancel(true);
-                }
-                return null;
-            }
-        },timeoutMS,TimeUnit.MILLISECONDS);
-        return future;
     }
     public void accumulateToAll() {
         Histories history=group.info(tabletId()).history;
@@ -204,37 +63,25 @@ public class Tablet {
         p("after: "+history.client.allSendTimes);
     }
     public void broadcast(final Message message,int unused) {
-        // does this wait?
-        // false seemed to work, but still got a lot of timeouts
-        if(false) executorService.submit(new BroadcastCallable(message));
-        else for(Integer destinationTabletId:group.tabletIds())
-            executeTaskAndCancelIfItTakesTooLong(new SendCallable(message,destinationTabletId,connectTimeout),sendTimeout,canceller);
-        // no, it does not wait!
-        // we only need this to be on a separate thread if it waits
-        // and currently, it does not wait.
-        Histories both=group.info(tabletId()).history;
-        Client.History clientHistory=both.client;
-        if(reportPeriod>0&&both.anyAttempts()&&(clientHistory.client.attempts()%reportPeriod==0||both.server.server.attempts()%reportPeriod==0))
-            if(true||both.anyFailures()) l.warning("histories from client: "+group.histories(this));
-        else l.warning("no failures in client (really?)&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+        group.broadcast(this,message,unused);
     }
     // add toggle for testing?
     public void toggle(int id) {
         Boolean state=!model.state(id);
         model.setState(id,state);
-        Message message=Message.normal(group.groupId,tabletId(),id,model);
+        Message message=group.messages.normal(group.groupId,tabletId(),id,model);
         broadcast(message,0);
     }
     public void click(int id) {
         synchronized(model) {
             if(model.resetButtonId!=null&&id==model.resetButtonId) {
                 model.reset();
-                Message message=Message.reset(group.groupId,tabletId(),id);
+                Message message=group.messages.reset(group.groupId,tabletId(),id);
                 broadcast(message,0);
             } else {
                 Boolean state=!model.state(id);
                 model.setState(id,state);
-                Message message=Message.normal(group.groupId,tabletId(),id,model);
+                Message message=group.messages.normal(group.groupId,tabletId(),id,model);
                 broadcast(message,0);
             }
         }
@@ -287,7 +134,7 @@ public class Tablet {
         }
         Histories history=group.info(tabletId()).history;
         try {
-            server=new Server(this,socketAddress,model,group.replying,history);
+            server=new Server(this,socketAddress,model,group.replying,history.server,group.tabletIds(),group.messages);
             server.startServer();
             return true;
         } catch(BindException e) {
@@ -306,7 +153,7 @@ public class Tablet {
     public void drive(int n,int wait) {
         // try sending 3 real fast then waiting a while
         // repeat a lot.
-        Message message=Message.rolloverLogNow(group.groupId,tabletId);
+        Message message=group.messages.rolloverLogNow(group.groupId,tabletId);
         broadcast(message,0);
         try {
             Thread.sleep(1_000);
@@ -322,8 +169,11 @@ public class Tablet {
             e1.printStackTrace();
         }
         boolean sequential=true;
+        double lastToggle=Double.NaN;
+        Et et=new Et();
         for(int j=3;j<=n;j++) {
-            Et et=new Et();
+            if(lastToggle!=Double.NaN)
+                p((et.etms()-lastToggle)+" between toggles.");
             if(sequential) i=(j-3)%(model.buttons-1);
             else i=random.nextInt(model.buttons-1);
             toggle(i+1);
@@ -333,6 +183,7 @@ public class Tablet {
                 l.warning("drive caught: '"+e+"'");
                 e.printStackTrace();
             }
+            lastToggle=et.etms();
         }
         //l.warning(histories());
     }
@@ -381,7 +232,7 @@ public class Tablet {
             tablet.heartbeatTimer=new Timer();
             tablet.heartbeatTimer.schedule(new TimerTask() {
                 @Override public void run() {
-                    tablet.broadcast(Message.heartbeat(tablet.group.groupId,tablet.tabletId),0);
+                    tablet.broadcast(tablet.group.messages.heartbeat(tablet.group.groupId,tablet.tabletId),0);
                 }
             },1_000);
         }
@@ -395,22 +246,14 @@ public class Tablet {
     public static void main(String[] arguments) throws IOException,InterruptedException {
         System.getProperties().list(System.out);
     }
-    private Timer simulationTimer;
+    Timer simulationTimer;
     Timer heartbeatTimer;
     private String name;
     private final Integer tabletId;
-    public final Integer connectTimeout;
-    public final Integer sendTimeout;
-    public Integer reportPeriod=100;
     public Server server;
-    public final ExecutorService executorService;
-    public final ScheduledExecutorService canceller;
     public final Model model;
     public final Colors colors;
     public final Group group;
-    public static Integer defaultConnectTimeout=100; // 40;
-    public static Integer defaultSendTimeout=150; // 60;
-    public static Integer driveWait=200; // 100;
     public final Logger l=Logger.getLogger(getClass().getName());
     static final int length=10;
 }

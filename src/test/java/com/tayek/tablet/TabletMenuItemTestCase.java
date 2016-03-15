@@ -2,7 +2,8 @@ package com.tayek.tablet;
 import java.util.Map;
 import org.junit.*;
 import com.tayek.tablet.Group.*;
-import com.tayek.tablet.Tablet.MenuItem;
+import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.Enums.MenuItem;
 import com.tayek.tablet.io.*;
 public class TabletMenuItemTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {

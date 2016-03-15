@@ -3,21 +3,21 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Messages.*;
 import static com.tayek.tablet.io.IO.*;
-public class LogServer {
+public class LogServer implements Runnable {
     // need some way to end a log file when tablet stops
     // need some way to use a date or prefix.
-    public static class LogFile {
-        LogFile(Socket socket,String prefix,int sequenceNumber) {
+    private class LogFile {
+        private LogFile(Socket socket,String prefix,int sequenceNumber) {
             this.socket=socket;
             this.prefix=prefix;
             this.sequenceNumber=sequenceNumber;
         }
-        int first() { // figure out something reasonable to do here.
+        private int first() { // figure out something reasonable to do here.
             int min=Integer.MAX_VALUE,max=Integer.MIN_VALUE;
-            File file=null;
             for(int i=1;i<99;i++)
-                if(new File(name(i)).exists()) {
+                if(file(i).exists()) {
                     max=Math.max(max,i);
                     min=Math.min(min,i);
                 }
@@ -25,14 +25,18 @@ public class LogServer {
             else if(max<50) return 50;
             return 100;
         }
-        String name() {
-            return name(sequenceNumber);
+        private File file(int n) {
+            return new File("logs",name(n));
         }
-        String name(int n) {
+        File file() {
+            return new File("logs",name(sequenceNumber));
+        }
+        private String name(int n) {
             InetAddress inetAddress=socket.getInetAddress();
             String address=inetAddress.getHostAddress();
             String name=prefix!=null&&!prefix.equals("")?(prefix+"."):"";
             name+=address+"."+socket.getLocalPort()+".";
+            name+=serverSocket.getInetAddress().getHostAddress()+".";
             name+=n;
             name+=".log";
             return name;
@@ -72,7 +76,7 @@ public class LogServer {
                 BufferedReader br=new BufferedReader(new InputStreamReader(is,"US-ASCII"));
                 String line=null;
                 while((line=br.readLine())!=null) {
-                    if(line.contains(Message.Type.rolloverLogNow.name())) rollover();
+                    if(line.contains(Type.rolloverLogNow.name())) rollover();
                     out.write(line+"\n");
                     out.flush();
                     if(verbose) p("copier wrote: "+line);
@@ -92,10 +96,10 @@ public class LogServer {
             // close file and start new one
             out.close();
             logFile.sequenceNumber++; // starts over at 1!
-            File newFile=new File(logFile.name());
+            File newFile=logFile.file();
             out=new FileWriter(newFile);
             file=newFile;
-            p("rollover to: "+newFile);
+            p("rollover to: "+newFile+" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         }
         final Socket socket;
         final boolean verbose;
@@ -123,16 +127,7 @@ public class LogServer {
         }
         this.factory=factory;
     }
-    static String logFileName(Socket socket,String prefix,int sequence) {
-        InetAddress inetAddress=socket.getInetAddress();
-        String address=inetAddress.getHostAddress();
-        String name=prefix!=null&&!prefix.equals("")?(prefix+"."):"";
-        name+=address+"."+socket.getLocalPort()+".";
-        name+=sequence;
-        name+=".log";
-        return name;
-    }
-    public void run() {
+    @Override public void run() {
         p("LogServer running on: "+serverSocket);
         while(true)
             if(!serverSocket.isClosed()&&!isShuttingDown) {
@@ -144,8 +139,7 @@ public class LogServer {
                     if(factory!=null) copier=factory.create(socket);
                     else {
                         LogFile logFile=new LogFile(socket,prefix,1);
-                        String name=logFile.name();
-                        File file=new File(name);
+                        File file=logFile.file();
                         p("log file: "+file);
                         Writer out=new FileWriter(file);
                         copier=new Copier(socket,out,true);
@@ -183,16 +177,12 @@ public class LogServer {
     }
     public static void print() {}
     public static void main(String args[]) {
-        try {
-            new LogServer(Main.logServerHost,defaultService,null).run();
-        } catch(Exception e) {
-            p("caught: '"+e+"'");
+        for(String host:Main.logServerHosts.keySet())
             try {
-                new LogServer(Main.networkHost,defaultService,null).run();
-            } catch(Exception e2) {
-                p("caught: '"+e2+"'");
+                new Thread(new LogServer(host,defaultService,null)).start();
+            } catch(Exception e) {
+                p("caught: '"+e+"'");
             }
-        }
     }
     public final String host;
     public final int service;

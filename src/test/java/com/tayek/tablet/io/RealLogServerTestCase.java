@@ -1,4 +1,4 @@
-package failing;
+package com.tayek.tablet.io;
 import static org.junit.Assert.*;
 import java.util.logging.*;
 import org.junit.*;
@@ -11,20 +11,14 @@ public class RealLogServerTestCase {
         LogManager.getLogManager().reset();
         LoggingHandler.once=false;
         LoggingHandler.init();
-        LoggingHandler.socketHandler=null; // static, was causing tests to fail!
-        LoggingHandler.startSocketHandler(Main.networkHost,LogServer.defaultService);
-        LoggingHandler.setLevel(Level.ALL);
-        if(LoggingHandler.socketHandler!=null) LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
-        else {
-            LoggingHandler.startSocketHandler(Main.testingHost,LogServer.defaultService);
-            if(LoggingHandler.socketHandler!=null) LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
-            else fail("can start a log server!");
-        }
+        LoggingHandler.toggleSockethandlers();
+        LoggingHandler.setLevel(Level.WARNING);
     }
     @After public void tearDown() throws Exception {
-        LoggingHandler.stopSocketHandler();
+        LoggingHandler.toggleSockethandlers();
     }
     @Test public void test() { // just testing that we can log.
         IO.staticLogger.info("sample log message");
     }
+    SocketHandler socketHandler;
 }

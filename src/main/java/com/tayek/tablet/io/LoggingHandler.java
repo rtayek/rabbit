@@ -6,6 +6,10 @@ import java.util.logging.*;
 import java.util.logging.Formatter;
 import javax.management.RuntimeErrorException;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Messages.Message;
+import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.Sender.Client;
+import com.tayek.tablet.io.IO.SocketHandlerCallable;
 import static com.tayek.tablet.io.IO.*;
 public class LoggingHandler {
     public static class MyFormatter extends Formatter {
@@ -62,23 +66,6 @@ public class LoggingHandler {
         for(Logger logger:map.values())
             logger.setLevel(level);
     }
-    // make non static!
-    // or pass in ExecutorService executorService
-    public static void startSocketHandler(String host,int service) {
-        if(socketHandler==null) {
-            SocketHandlerCallable task=new SocketHandlerCallable(host,service);
-            try {
-                socketHandler=io.runAndWait(task);
-            } catch(InterruptedException|ExecutionException e) {
-                p("caught: '"+e+"'");
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            }
-        }
-    }
-    public static void stopSocketHandler() {
-        if(socketHandler!=null) socketHandler.close();
-    }
     public static void main(String[] arguments) {
         Logger logger=Logger.getLogger("foo");
         logger.info("info");
@@ -99,8 +86,57 @@ public class LoggingHandler {
             }
         }
     }
+    public static SocketHandler startSocketHandler(String host,int service) {
+        SocketHandler socketHandler=null;
+        SocketHandlerCallable task=new SocketHandlerCallable(host,service);
+        try {
+            socketHandler=runAndWait(task);
+        } catch(InterruptedException|ExecutionException e) {
+            staticLogger.warning("caught: '"+e+"'");
+        }
+        return socketHandler;
+    }
+    public static void stopSocketHandler(SocketHandler socketHandler) {
+        if(socketHandler!=null) socketHandler.close();
+    }
+    public static void startSocketHandler(final String host) {
+        // make this another callable?
+        new Thread(new Runnable() {
+            @Override public void run() {
+                try {
+                    IO.staticLogger.info("start socket handler");
+                    SocketHandler socketHandler=startSocketHandler(host,LogServer.defaultService);
+                    if(socketHandler!=null) {
+                        p("got socket handler: "+socketHandler);
+                        LoggingHandler.addSocketHandler(socketHandler);
+                        synchronized(Main.logServerHosts) {
+                            Main.logServerHosts.put(host,socketHandler);
+                        }
+                        Logger global=Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+                        global.addHandler(socketHandler);
+                        global.severe("global with socket handler.");
+                    } else IO.staticLogger.warning("could not start socket handler to: "+host);
+                } catch(Exception e) {
+                    IO.staticLogger.info("caught: "+e);
+                }
+            }
+        }).start();
+    }
+    public static void toggleSockethandlers() {
+        boolean wereAnyOn=false;
+        synchronized(Main.logServerHosts) {
+            for(String host:Main.logServerHosts.keySet())
+                if(Main.logServerHosts.get(host)!=null) {
+                    stopSocketHandler(Main.logServerHosts.get(host));
+                    Main.logServerHosts.put(host,null);
+                    wereAnyOn=true;
+                }
+        }
+        if(!wereAnyOn) for(String host:Main.logServerHosts.keySet())
+            startSocketHandler(host);
+    }
     public static boolean once;
-    public static SocketHandler socketHandler;
+    //public static SocketHandler socketHandler;
     //private static final Level levels[]= {Level.SEVERE,Level.WARNING,Level.INFO,Level.CONFIG,Level.FINE,Level.FINER,Level.FINEST};
     private static Map<Class<?>,Logger> map;
     public static final Set<Class<?>> loggers=new LinkedHashSet<>();
@@ -120,5 +156,4 @@ public class LoggingHandler {
         loggers.add(View.CommandLine.class);
         loggers.add(LogServer.class);
     }
-    static IO io=new IO();
 }

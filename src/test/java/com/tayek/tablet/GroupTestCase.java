@@ -8,6 +8,7 @@ import com.tayek.tablet.io.*;
 import static com.tayek.tablet.io.IO.*;
 import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
 import com.tayek.tablet.Group.*;
+import com.tayek.tablet.Receiver.Model;
 public class GroupTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         //LoggingHandler.init();

@@ -1,6 +1,7 @@
 package com.tayek.tablet;
 import java.util.*;
 import java.util.logging.Logger;
+import com.tayek.tablet.Receiver.Model;
 import static com.tayek.tablet.io.IO.*;
 public interface View extends Observer {
     public class CommandLine implements View {

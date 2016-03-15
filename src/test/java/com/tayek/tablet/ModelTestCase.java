@@ -3,7 +3,8 @@ import static com.tayek.tablet.io.IO.p;
 import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
-import com.tayek.tablet.Message.Type;
+import com.tayek.tablet.Messages.Message;
+import com.tayek.tablet.Receiver.Model;
 import com.tayek.tablet.io.LoggingHandler;
 public class ModelTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
@@ -18,19 +19,19 @@ public class ModelTestCase {
         model.l.warning("teardown");
     }
     /*@Test*/ public void testShort() {
-        message=Message.normal(1,1,2,model);
+        message=messages.normal(1,1,2,model);
         model.receive(message);
         assertTrue(model.state(2));
     }
     @Test public void testJustRight() {
         Model m=model.clone();
         m.setState(2,true);
-        message=Message.normal(1,1,2,m);
+        message=messages.normal(1,1,2,m);
         model.receive(message);
         assertTrue(model.state(2));
     }
     /*@Test*/ public void testTooLong() {
-        message=Message.normal(1,1,2,model);
+        message=messages.normal(1,1,2,model);
         model.receive(message);
         assertTrue(model.state(2));
     }
@@ -84,5 +85,6 @@ public class ModelTestCase {
             assertFalse(model.state(i));
     }
     Model model=new Model(7,null);
+    Messages messages=new Messages();
     Message message;
 }

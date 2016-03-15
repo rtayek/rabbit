@@ -1,4 +1,4 @@
-package failing;
+package com.tayek.tablet;
 import static com.tayek.tablet.io.IO.p;
 import static org.junit.Assert.*;
 import java.util.*;
@@ -20,7 +20,6 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         super.setUp();
         LogManager.getLogManager().reset();
         //printThreads();
-        LoggingHandler.socketHandler=null; // static, was causing tests to fail!
         logServer=new LogServer(host,++service,getClass().getName());
         thread=new Thread(new Runnable() {
             @Override public void run() {
@@ -48,12 +47,10 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         super.tearDown();
     }
     @Test(timeout=5_000) public void test() throws InterruptedException {
-        // start socket logging
-        LoggingHandler.startSocketHandler(host,service);
         LoggingHandler.once=false;
         LoggingHandler.init();
-        LoggingHandler.setLevel(Level.ALL);
-        LoggingHandler.addSocketHandler(LoggingHandler.socketHandler);
+        LoggingHandler.setLevel(Level.WARNING);
+        LoggingHandler.toggleSockethandlers();
         p("hanlders; "+Arrays.asList(IO.staticLogger.getHandlers()));
         // start tablets
         tablets=createForTest(2,serviceOffset);
@@ -65,7 +62,6 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         Thread.sleep(200);
         // stop socket logging
         LoggingHandler.setLevel(Level.OFF);
-        LoggingHandler.stopSocketHandler();
         for(Iterator<Copier> i=logServer.copiers.iterator();i.hasNext();) {
             Copier copier=i.next();
             StringBuffer stringBuffer=new StringBuffer();
@@ -74,6 +70,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
             //p("contents: "+stringBuffer.toString());
             //assertTrue(stringBuffer.toString().contains(expected));
         }
+        LoggingHandler.toggleSockethandlers();
     }
     String host="127.0.0.1";
     LogServer logServer;

@@ -2,18 +2,15 @@ package com.tayek.tablet;
 import static com.tayek.tablet.io.IO.p;
 import static org.junit.Assert.*;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import org.junit.*;
-import com.tayek.tablet.Group.Info.Histories;
+import com.tayek.tablet.Receiver.Model;
 import com.tayek.tablet.io.*;
 import com.tayek.utilities.Et;
 public abstract class AbstractTabletTestCase {
-    @BeforeClass public static void setUpBeforeClass() throws Exception {
-    }
+    @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {
-        LoggingHandler.setLevel(Level.OFF);
-        Thread.sleep(200);
-        p("tearDownAfterClass():");
         //IO.printThreads();
     }
     @Before public void setUp() throws Exception {
@@ -32,6 +29,7 @@ public abstract class AbstractTabletTestCase {
                 p((threads-this.threads)+" extra threads!");
             }
         }
+        LoggingHandler.setLevel(Level.OFF);
     }
     public Set<Tablet> createForTest(int n,int offset) {
         Map<Integer,Group.Info> map=new TreeMap<>();
@@ -53,7 +51,7 @@ public abstract class AbstractTabletTestCase {
             sendOneDummyMessageFromTablet(tablet);
     }
     void sendOneDummyMessageFromTablet(Tablet tablet) {
-        tablet.broadcast(Message.dummy(tablet.group.groupId,tablet.tabletId()),0);
+        tablet.broadcast(tablet.group.messages.dummy(tablet.group.groupId,tablet.tabletId()),0);
     }
     public void waitForEachTabletToReceiveAtLeastOneMessageFromEachTablet(boolean sleepAndPrint) throws InterruptedException {
         boolean once=false;
@@ -162,11 +160,25 @@ public abstract class AbstractTabletTestCase {
             if(history.server.server.successes()>tablets.size()) tablet.l.warning(tablet+" received too many messages: "+history.server.server.successes());
         }
     }
+    void shutdownAndAwaitTermination(ExecutorService pool) {
+        pool.shutdown(); // Disable new tasks from being submitted
+        try {
+            // Wait a while for existing tasks to terminate
+            if(!pool.awaitTermination(100,TimeUnit.MILLISECONDS)) {
+                pool.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if(!pool.awaitTermination(100,TimeUnit.MILLISECONDS)) System.err.println("Pool did not terminate");
+            }
+        } catch(InterruptedException ie) {
+            pool.shutdownNow(); // (Re-)Cancel if current thread also interrupted
+            Thread.currentThread().interrupt(); // Preserve interrupt status
+        }
+    }
     protected void shutdown() {
         for(Tablet tablet:tablets) {
             tablet.stopListening();
-            if(!tablet.executorService.isShutdown()) tablet.executorService.shutdown();
-            if(!tablet.canceller.isShutdown()) tablet.canceller.shutdown();
+            if(!tablet.group.executorService.isShutdown()) shutdownAndAwaitTermination(tablet.group.executorService);
+            if(!tablet.group.canceller.isShutdown()) tablet.group.canceller.shutdown();
             // don't do this if we are testing and all using the same service.
         }
     }
@@ -174,7 +186,7 @@ public abstract class AbstractTabletTestCase {
         sendOneDummyMessageFromEachTablet();
         Et et=new Et();
         waitForEachTabletToReceiveAtLeastOneMessageFromEachTablet(sleepAndPrint);
-        p("wait for "+tablets.size()+" tablets, took: "+et);
+        //p("wait for "+tablets.size()+" tablets, took: "+et);
         for(Tablet tablet:tablets) {
             Histories history=tablet.group.info(tablet.tabletId()).history;
             if(history.server.server.successes()!=tablets.size()) p(tablet+" received: "+history.server.server.successes()+" instead of "+tablets.size());
@@ -205,14 +217,13 @@ public abstract class AbstractTabletTestCase {
         checkHistory(tablet,tablet.group.info(tablet.tabletId()).history,tablet.group.replying,n,oneTablet);
     }
     public void checkHistory(Tablet tablet,Histories history,boolean replying,Integer n,boolean oneTablet) {
-        p("history: "+history);
+        //p("history: "+history);
         assertEquals(oneTablet?one:n,history.server.server.successes());
         assertEquals(replying?n:zero,history.server.replies.successes());
         //p("sent "+history.clientHistory.sent);
         if(tablet!=null) {
-            if(oneTablet) 
-                assertEquals(one,history.client.client.successes());
-             else assertEquals(n,history.client.client.successes());
+            if(oneTablet) assertEquals(one,history.client.client.successes());
+            else assertEquals(n,history.client.client.successes());
         } else assertEquals(n,history.client.client.successes());
         // fails when sending in parallel since it does not wait?
         // but how?, since sent is incremented after send is complete
@@ -220,6 +231,7 @@ public abstract class AbstractTabletTestCase {
         assertEquals("replying: "+replying,replying?n:zero,history.client.replies.successes());
         assertEquals(zero,history.server.server.failures());
         assertEquals(zero,history.client.client.failures());
+        assertEquals(zero,history.server.missing.failures());
     }
     protected void printStats() {
         for(Tablet tablet:tablets) {

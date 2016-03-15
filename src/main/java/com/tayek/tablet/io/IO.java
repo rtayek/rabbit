@@ -1,9 +1,9 @@
 package com.tayek.tablet.io;
-import static com.tayek.tablet.io.IO.p;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.Callable;
 import java.util.logging.*;
 import com.tayek.tablet.Main;
 public class IO {
@@ -11,7 +11,7 @@ public class IO {
         void call(T t);
     }
     public static <T> T runAndWait(Callable<T> callable) throws InterruptedException,ExecutionException {
-        ExecutorService executorService=Executors.newFixedThreadPool(1); 
+        ExecutorService executorService=Executors.newFixedThreadPool(1);
         Future<T> future=executorService.submit(callable);
         while(!future.isDone())
             Thread.yield();
@@ -42,7 +42,7 @@ public class IO {
         }
         return set;
     }
-   public static class GetNetworkInterfacesCallable implements Callable<Set<InetAddress>> {
+    public static class GetNetworkInterfacesCallable implements Callable<Set<InetAddress>> {
         public GetNetworkInterfacesCallable(String networkPrefix) {
             this.networkPrefix=networkPrefix;
         }
@@ -64,11 +64,8 @@ public class IO {
                 socketHandler=new SocketHandler(host,service);
                 // socketHandler.setFormatter(new LoggingHandler());
                 socketHandler.setLevel(Level.ALL);
-                p("socket handler constructed to: "+host+":"+service);
             } catch(IOException e) {
-                p("caught: '"+e+"' constructing socket handler on: "+host+":"+service);
-                e.printStackTrace();
-                throw new RuntimeException(e);
+               staticLogger.info("caught: '"+e+"' constructing socket handler on: "+host+":"+service);
             }
             return socketHandler;
         }

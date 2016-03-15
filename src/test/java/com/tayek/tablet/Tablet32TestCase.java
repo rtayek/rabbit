@@ -1,4 +1,4 @@
-package failing;
+package com.tayek.tablet;
 import static com.tayek.tablet.io.IO.p;
 import static org.junit.Assert.*;
 import java.util.*;
@@ -6,8 +6,8 @@ import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Main;
+import com.tayek.tablet.Receiver.Model;
 import com.tayek.tablet.Group.Info;
-import com.tayek.tablet.Group.Info.Histories;
 import com.tayek.tablet.io.LoggingHandler;
 import com.tayek.utilities.*;
 public class Tablet32TestCase extends AbstractTabletTestCase {
@@ -23,7 +23,6 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
     }
     @After public void tearDown() throws Exception {
         super.tearDown();
-        LoggingHandler.setLevel(Level.OFF);
     }
     @Test(timeout=10_000) public void testAll32WithOneMessage() throws InterruptedException {
         tablets=createForTest(32,serviceOffset);
@@ -44,7 +43,7 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         boolean areAllLiestening=true;
         if(areAllLiestening) startListening();
         else if(!first.startListening()) fail(first+" startListening() retuns false!");
-        first.broadcast(Message.dummy(first.group.groupId,first.tabletId()),0);
+        first.broadcast(first.group.messages.dummy(first.group.groupId,first.tabletId()),0);
         Thread.sleep(700);
         Histories history=first.group.info(first.tabletId()).history;
         assertEquals(one,history.server.server.successes());

@@ -1,4 +1,4 @@
-package failing;
+package com.tayek.tablet;
 import static org.junit.Assert.*;
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutionException;
@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Group.Info;
-import com.tayek.tablet.Group.Info.Histories;
 import com.tayek.tablet.io.LoggingHandler;
 import static com.tayek.tablet.io.IO.*;
 public class TwoTabletsTestCase extends AbstractTabletTestCase {
