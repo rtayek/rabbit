@@ -6,8 +6,8 @@ import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Messages.Message;
-import com.tayek.tablet.Sender.Client;
 import com.tayek.tablet.io.*;
+import com.tayek.tablet.io.Sender.Client;
 import static com.tayek.tablet.io.IO.*;
 public class ClientServerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
@@ -19,7 +19,7 @@ public class ClientServerTestCase {
     @After public void tearDown() throws Exception {}
     @Test(timeout=500) public void test() throws IOException, InterruptedException {
         socketAddress=new InetSocketAddress("localhost",++service);
-        server=new Server(null,socketAddress,null,false,histories.server,null,messages);
+        server=new Server(null,socketAddress,null,false,histories.server);
         server.startServer();
         client=new Client(socketAddress,false,100);
         Integer n=10;
@@ -42,7 +42,7 @@ public class ClientServerTestCase {
     }
     @Test(timeout=500) public void testWithReply() throws IOException {
         socketAddress=new InetSocketAddress("localhost",++service);
-        server=new Server(null,socketAddress,null,true,histories.server,null,messages);
+        server=new Server(null,socketAddress,null,true,histories.server);
         server.startServer();
         client=new Client(socketAddress,true,100);
         Integer n=10;
@@ -65,7 +65,7 @@ public class ClientServerTestCase {
     }
     @Test(timeout=200) public void testMissing() throws IOException, InterruptedException {
         socketAddress=new InetSocketAddress("localhost",++service);
-        server=new Server(null,socketAddress,null,false,histories.server,null,messages);
+        server=new Server(null,socketAddress,null,false,histories.server);
         server.startServer();
         client=new Client(socketAddress,false,100);
         Integer n=10;

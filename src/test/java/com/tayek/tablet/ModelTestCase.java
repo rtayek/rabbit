@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.tablet.Messages.Message;
-import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.LoggingHandler;
 public class ModelTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {

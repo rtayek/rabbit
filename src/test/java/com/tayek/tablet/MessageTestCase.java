@@ -3,7 +3,7 @@ import static org.junit.Assert.*;
 import org.junit.*;
 import static com.tayek.tablet.io.IO.*;
 import com.tayek.tablet.Messages.*;
-import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.LoggingHandler;
 public class MessageTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {

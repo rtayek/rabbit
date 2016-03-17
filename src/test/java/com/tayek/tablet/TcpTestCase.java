@@ -12,10 +12,10 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Messages.Message;
-import com.tayek.tablet.Receiver.DummyReceiver;
-import com.tayek.tablet.Sender.Client;
+import com.tayek.tablet.MessageReceiver.DummyReceiver;
 import com.tayek.tablet.io.*;
 import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
+import com.tayek.tablet.io.Sender.Client;
 @RunWith(Parameterized.class) public class TcpTestCase extends AbstractTabletTestCase {
     public TcpTestCase(SocketAddress socketAddress,Boolean replying) {
         this.socketAddress=socketAddress;
@@ -46,12 +46,12 @@ import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
         return parameters;
     }
     boolean sendAndReceiveOneMessage(SocketAddress socketAddress,boolean replying) throws UnknownHostException,IOException,InterruptedException {
-        DummyReceiver receiver=new DummyReceiver();
+        Receiver.DummyReceiver receiver=new Receiver.DummyReceiver();
         Histories history=new Histories();
-        Server server=new Server(null,socketAddress,receiver,replying,history.server,null,messages);
+        Server server=new Server(null,socketAddress,receiver,replying,history.server);
         server.startServer();
         // where is client socket bound to?
-        Client client=new Client(socketAddress,replying,Group.defaultConnectTimeout); 
+        Client client=new Client(socketAddress,replying,Histories.defaultConnectTimeout); 
         Message dummy=messages.dummy(1,1);
         client.l.info("sending: "+dummy);
         client.send(dummy,history.client);
@@ -66,10 +66,10 @@ import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
     }
     @Test() public void testConnectAndClose() throws Exception {
         Histories history=new Histories();
-        DummyReceiver receiver=new DummyReceiver();
+        Receiver.DummyReceiver receiver=new Receiver.DummyReceiver();
         Server server=null;
         try {
-            server=new Server(null,socketAddress,receiver,false,history.server,null,messages);
+            server=new Server(null,socketAddress,receiver,false,history.server);
         } catch(Exception e) {
             p("socket address: "+socketAddress+" failed! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         }

@@ -26,6 +26,8 @@ public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestC
         for(Tablet tablet:tablets) {
             Histories history=tablet.group.info(tablet.tabletId()).history;
             assertEquals(new Integer(0),history.client.client.failures());
+            assertEquals(new Integer(0),history.server.server.failures());
+            assertEquals(new Integer(0),history.server.missing.failures());
         }
         for(Tablet tablet:tablets) 
             p("history for tablet: "+tablet+" "+tablet.group.info(tablet.tabletId()).history);

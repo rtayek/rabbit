@@ -1,22 +1,20 @@
 package com.tayek.tablet;
-
 import static com.tayek.tablet.io.IO.p;
 import java.util.*;
 import java.util.logging.Logger;
 import com.tayek.tablet.Messages.Message;
 import com.tayek.tablet.io.Audio;
 import com.tayek.tablet.io.Audio.Sound;
-
-public interface Receiver {
+public interface MessageReceiver {
     void receive(Message message);
-    public static class DummyReceiver implements Receiver {
+    public static class DummyReceiver implements MessageReceiver {
         @Override public void receive(Message message) {
             this.message=message;
         }
         public Message message;
         // maybe history belongs here?
     }
-    public static class Model extends Observable implements Receiver,Cloneable {
+    public static class Model extends Observable implements MessageReceiver,Cloneable {
         public Model(int buttons,Integer resetButtonId) {
             this(buttons,resetButtonId,++ids);
         }
@@ -63,7 +61,7 @@ public interface Receiver {
                 return copy;
             }
         }
-        public Integer lastOnFrom(Integer id) {
+        public Object lastOnFrom(Integer id) {
             synchronized(idToLastOnFrom) {
                 return idToLastOnFrom.get(id);
             }
@@ -170,11 +168,9 @@ public interface Receiver {
         Histories.ModelHistory history;
         Integer messages=0;
         private final Boolean[] states;
-        private final Map<Integer,Integer> idToLastOnFrom=new TreeMap<>();
-        private final Random random=new Random();
+        private final Map<Object,Object> idToLastOnFrom=new LinkedHashMap<>();        private final Random random=new Random();
         public final Logger l=Logger.getLogger(getClass().getName());
         static int ids=0;
         public static final Model mark1=new Model(11,11);
     }
-
 }

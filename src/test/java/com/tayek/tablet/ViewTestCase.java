@@ -2,7 +2,7 @@ package com.tayek.tablet;
 import static org.junit.Assert.*;
 import java.util.Observable;
 import org.junit.*;
-import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.LoggingHandler;
 public class ViewTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {

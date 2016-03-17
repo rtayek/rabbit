@@ -2,7 +2,7 @@ package com.tayek.tablet;
 import java.util.Map;
 import org.junit.*;
 import com.tayek.tablet.Group.*;
-import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.Enums.MenuItem;
 import com.tayek.tablet.io.*;
 public class TabletMenuItemTestCase {
@@ -11,7 +11,7 @@ public class TabletMenuItemTestCase {
     }
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
-        Map<Integer,Info> info=new Groups().groups.get("g2");
+        Map<Object,Info> info=new Groups().groups.get("g2");
         group=new Group(1,info,Model.mark1,false);
         tablet=group.create(group.tabletIds().iterator().next());
         group=null; // tablet has a clone of group!

@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.*;
 import com.tayek.tablet.Group.Groups;
-import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
 import javafx.scene.control.Toggle;
 public class Controller {

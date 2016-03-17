@@ -7,14 +7,17 @@ import java.util.concurrent.*;
 import java.util.logging.*;
 import com.tayek.tablet.Group.Info;
 import com.tayek.tablet.Messages.*;
-import com.tayek.tablet.Receiver.Model;
-import com.tayek.tablet.Sender.Client;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.Tablet.*;
 import com.tayek.tablet.io.*;
-public class Group implements Cloneable {
+import com.tayek.tablet.io.Sender.Client;
+import com.tayek.utilities.Et;
+import static com.tayek.utilities.Utility.*;
+public class Group implements Cloneable { // power set?
     public static class Groups {
         public Groups() {
             // this needs to take testing prefix
+            // really? for socket logging or what?
             boolean old=false;
             if(!old) {
                 int tablets=6;
@@ -42,35 +45,35 @@ public class Group implements Cloneable {
             g1each.put(5,new Info("pc-5",Main.testingHost,Main.defaultReceivePort+4));
             groups.put("g1each",g1each);
         }
-        private final Map<Integer,Info> g2=new TreeMap<>();
-        private final Map<Integer,Info> g0=new TreeMap<>();
-        private final Map<Integer,Info> g1each=new TreeMap<>();
-        public final Map<String,Map<Integer,Info>> groups=new TreeMap<>();
+        private final Map<Object,Info> g2=new LinkedHashMap<>();
+        private final Map<Object,Info> g0=new LinkedHashMap<>();
+        private final Map<Object,Info> g1each=new LinkedHashMap<>();
+        public final Map<String,Map<Object,Info>> groups=new LinkedHashMap<>();
         // hack, change the above before calling new Groups!
     }
     public static class Info {
-        public Info(String name,String host,int port) {
-            this.name=name;
+        public Info(Object iD,String host,int port) {
+            this.iD=iD;
             this.host=host;
             this.service=port;
             history=new Histories();
         }
         @Override public String toString() {
-            return name+" "+host+" "+service;
+            return iD+" "+host+" "+service;
         }
-        public final String name;
+        public final Object iD;
         public final String host;
         public final Integer service;
         public final Histories history;
         // add colors and other stuff;
     }
-    public Group(Integer groupId,Map<Integer,Info> info,Model model,boolean replying) {
+    public Group(Integer groupId,Map<Object,Info> info,Model model,boolean replying) {
         this(groupId,info,++serialNumbers,model,replying);
     }
-    private Group(Integer groupId,Map<Integer,Info> info,Integer serialNumber,Model model,boolean replying) {
+    private Group(Integer groupId,Map<Object,Info> info,Integer serialNumber,Model model,boolean replying) {
         this.serialNumber=serialNumber;
         this.groupId=groupId;
-        this.info=new TreeMap<>();
+        this.info=new LinkedHashMap<>();
         this.info.putAll(info);
         this.replying=replying;
         int n=info().size()+4;
@@ -83,13 +86,13 @@ public class Group implements Cloneable {
         // maybe for more than testing?
         return new Group(groupId,info,serialNumber,getModelClone(),replying);
     }
-    private void send(Tablet tablet,final Message message,Integer destinationTabletId,int timeout) {
+    private void send(Tablet tablet,final Message message,Object destinationTabletId,int timeout) {
         InetSocketAddress inetSocketAddress=socketAddress(destinationTabletId);
         if(message.type.equals(Type.ack)) l.warning("sending act to: "+inetSocketAddress);
         Client client=new Client(inetSocketAddress,replying,timeout);
         //if(!destinationTabletId.equals(tabletId()))
         Histories history=info(destinationTabletId).history;
-        l.info("tablet "+tablet+" sending: "+message+" to tablet "+name(destinationTabletId));
+        l.info("tablet "+tablet+" sending: "+message+" to tablet "+iD(destinationTabletId));
         try {
             boolean ok=client.send(message,history.client);
             if(!ok) ; //l.warning("tablet: "+tabletId+", send to: "+inetSocketAddress+" failed!");
@@ -104,7 +107,7 @@ public class Group implements Cloneable {
         }
     }
     public class SendCallable implements Callable<Void> {
-        public SendCallable(Tablet tablet,Message message,Integer destinationTabletId,int timeout) {
+        public SendCallable(Tablet tablet,Message message,Object destinationTabletId,int timeout) {
             this.tablet=tablet;
             this.message=message;
             this.destinationTabletId=destinationTabletId;
@@ -114,13 +117,34 @@ public class Group implements Cloneable {
             Thread.currentThread().setName(getClass().getSimpleName()+", tablet: "+tablet.tabletId()+" send: #"+message.number+", to: "+destinationTabletId);
             l.fine("call send to: "+destinationTabletId);
             if(message.type.equals(Type.ack)) l.warning(tablet+", sending ack: "+message+", to: "+destinationTabletId);
+            sendCalled=true;
             Group.this.send(tablet,message,destinationTabletId,timeout);
             return null;
         }
+        public boolean sendCalled;
         private final Tablet tablet;
         private final Message message;
-        private final Integer destinationTabletId;
+        private final Object destinationTabletId;
         private final Integer timeout;
+    }
+    public Future executeTaskAndCancelIfItTakesTooLong2(final SendCallable callable,final long timeoutMS,ScheduledExecutorService canceller) {
+        final Future<Void> future=executorService.submit(callable);
+        // awk this makes another thread!
+        Et et=new Et();
+        if(waitForSendCallable){
+        while(!callable.sendCalled)
+            Thread.yield();
+        l.warning("send called took: "+et);}
+        if(runCanceller) canceller.schedule(new Callable<Void>() {
+            public Void call() {
+                if(!future.isDone()) {
+                    l.warning("future: "+future+", callable: "+callable+" task is not finished after: "+timeoutMS);
+                    future.cancel(true);
+                }
+                return null;
+            }
+        },timeoutMS,TimeUnit.MILLISECONDS);
+        return future;
     }
     public <T> Future<T> executeTaskAndCancelIfItTakesTooLong(final Callable<T> callable,final long timeoutMS,ScheduledExecutorService canceller) {
         final Future<T> future=executorService.submit(callable);
@@ -144,7 +168,7 @@ public class Group implements Cloneable {
         @Override public Void call() throws Exception {
             Thread.currentThread().setName(getClass().getName()+" tablet: "+tablet.tabletId()+" broadcast");
             l.info("broadcast: "+message);
-            for(Integer destinationTabletId:tabletIds()) {
+            for(Object destinationTabletId:tabletIds()) {
                 l.info("broadcasting to: "+destinationTabletId);
                 // what should this wait really be?
                 executeTaskAndCancelIfItTakesTooLong(new SendCallable(tablet,message,destinationTabletId,connectTimeout),tablet.group.sendTimeout,canceller);
@@ -160,7 +184,7 @@ public class Group implements Cloneable {
         // move this to group?
         l.info("broadcasting: "+message);
         if(false) executorService.submit(new BroadcastCallable(tablet,message));
-        else for(Integer destinationTabletId:tabletIds())
+        else for(Object destinationTabletId:tabletIds())
             executeTaskAndCancelIfItTakesTooLong(new SendCallable(tablet,message,destinationTabletId,connectTimeout),tablet.group.sendTimeout,canceller);
         // no, it does not wait!
         // we only need this to be on a separate thread if it waits
@@ -171,22 +195,22 @@ public class Group implements Cloneable {
             if(histories.anyFailures()) l.warning("histories from client: "+histories(tablet));
         else l.warning("no failures in client (really?)&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
     }
-    public Tablet create(int tabletId) {
+    public Tablet create(Object tabletId) {
         return create(this,tabletId);
     }
-    public static Tablet create(Group group,int tabletId) {
+    public static Tablet create(Group group,Object tabletId) {
         return new Tablet(group.clone(),tabletId);
     }
     public Set<Tablet> create() { // mostly for testing
         Set<Tablet> tablets=new LinkedHashSet<>();
-        for(int tabletId:tabletIds())
+        for(Object tabletId:tabletIds())
             tablets.add(create(tabletId));
         return tablets;
     }
-    public static Set<Tablet> createGroupAndstartTablets(Map<Integer,Info> info) {
+    public static Set<Tablet> createGroupAndstartTablets(Map<Object,Info> info) {
         Set<Tablet> tablets=new LinkedHashSet<>();
         Group group=new Group(1,info,Model.mark1,false);
-        for(Integer tabletId:group.tabletIds()) {
+        for(Object tabletId:group.tabletIds()) {
             Tablet tablet=new Tablet(group.clone(),tabletId);
             tablets.add(tablet);
             tablet.model.addObserver(new AudioObserver(tablet.model)); // maybe not if testing?
@@ -196,7 +220,7 @@ public class Group implements Cloneable {
     }
     public Tablet getTablet(InetAddress inetAddress,Integer service) {
         p("host address: "+inetAddress.getHostAddress());
-        for(int i:tabletIds()) {
+        for(Object i:tabletIds()) {
             p("info: "+info(i));
             if(info(i)!=null) if(inetAddress.getHostAddress().equals(info(i).host)&&(service==null||service.equals(info(i).service))) return new Tablet(this,i);
             else p("info("+i+") is not us.");
@@ -204,7 +228,7 @@ public class Group implements Cloneable {
         }
         return null;
     }
-    public InetSocketAddress socketAddress(int destinationTabletId) {
+    public InetSocketAddress socketAddress(Object destinationTabletId) {
         Info info=info(destinationTabletId);
         if(info!=null) return new InetSocketAddress(info.host,info.service);
         return null;
@@ -212,40 +236,41 @@ public class Group implements Cloneable {
     public Model getModelClone() {
         return prototype.clone();
     }
-    public Set<Integer> tabletIds() {
+    public Set<Object> tabletIds() {
         synchronized(info) {
             return info.keySet();
         }
     }
-    public Info info(int tabletId) {
+    public Info info(Object tabletId) {
         synchronized(info) {
             return info.get(tabletId);
         }
     }
-    public String name(int tabletId) { // threw npe on nexus 4?
-        Info info=info(tabletId);
-        return info!=null?info(tabletId).name:"null";
+    public Object iD(Object iD) { // threw npe on nexus 4?
+        Info info=info(iD);
+        return info!=null?info(iD).iD:"null";
     }
     public void print(Integer tabletId) {
         l.info("group: "+groupId+"("+serialNumber+"):"+tabletId);
-        Map<Integer,Info> copy=info();
-        for(int i:copy.keySet())
+        Map<Object,Info> copy=info();
+        for(Object i:copy.keySet())
             l.info("\t"+i+": "+copy.get(i));
     }
     public String histories(Tablet tablet/* may be null*/) {
         // need to find the tablet to get the right history?
         // looks like the server history only makes sense for the driving tablet when testing.
         // so maybe check for that when driving and omit the print.
+        p("method: "+method()+" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         StringBuffer sb=new StringBuffer();
         sb.append("histories from tablet: "+tablet+" ------------------------------------");
-        for(int i:info.keySet()) {
+        for(Object i:info.keySet()) {
             Histories history=info.get(i).history;
             if(history.anyFailures()||history.client.client.attempts()!=0) sb.append("\nfor group ("+serialNumber+") tablet: "+i+" history: "+history);
             else sb.append("\nfor group ("+serialNumber+") tablet: "+i+" history: no failures.");
         }
-        Map<Integer,Float> failures=new TreeMap<>();
+        Map<Object,Float> failures=new LinkedHashMap<>();
         double sends=0;
-        for(int i:info.keySet()) {
+        for(Object i:info.keySet()) {
             Histories history=info.get(i).history;
             sends+=history.client.client.attempts();
             failures.put(i,(float)(1.*history.client.client.failures()/history.client.client.attempts()));
@@ -261,8 +286,8 @@ public class Group implements Cloneable {
         sb.append("\nend of histories from tablet: "+tablet+" ------------------------------------");
         return sb.toString();
     }
-    public Map<Integer,Info> info() {
-        Map<Integer,Info> copy=new TreeMap<>();
+    public Map<Object,Info> info() {
+        Map<Object,Info> copy=new LinkedHashMap<>();
         synchronized(info) { // may not need to sync anymore?
             copy.putAll(info);
         }
@@ -287,7 +312,7 @@ public class Group implements Cloneable {
         return "group: "+groupId+"("+serialNumber+"): "+info().keySet();
     }
     private Model prototype;
-    private final Map<Integer,Info> info; // usually 1-n
+    private final Map<Object,Info> info; // usually 1-n
     public final Messages messages;
     public final Integer serialNumber;
     public final Integer groupId;
@@ -297,12 +322,9 @@ public class Group implements Cloneable {
     public Toaster toaster;
     public Integer connectTimeout;
     public Integer sendTimeout;
-    public Integer reportPeriod=defaultReportPeriod;
-    public static Integer defaultReportPeriod=100;
-    public static Integer defaultConnectTimeout=200; // 40;
-    public static Integer defaultSendTimeout=250; // 60;
-    public static Integer driveWait=50; // 100;
-    public static boolean runCanceller=false;
+    public Integer reportPeriod=Histories.defaultReportPeriod;
+    public boolean waitForSendCallable;
+    public boolean runCanceller;
     private static int serialNumbers;
     public static final Integer defaultButtons=11;
     public static final Integer defaultTablets=defaultButtons+2;

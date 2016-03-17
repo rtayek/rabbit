@@ -7,9 +7,9 @@ import java.util.logging.Formatter;
 import javax.management.RuntimeErrorException;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Messages.Message;
-import com.tayek.tablet.Receiver.Model;
-import com.tayek.tablet.Sender.Client;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.IO.SocketHandlerCallable;
+import com.tayek.tablet.io.Sender.Client;
 import static com.tayek.tablet.io.IO.*;
 public class LoggingHandler {
     public static class MyFormatter extends Formatter {

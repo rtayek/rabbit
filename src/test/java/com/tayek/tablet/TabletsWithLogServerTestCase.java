@@ -1,5 +1,5 @@
 package com.tayek.tablet;
-import static com.tayek.tablet.io.IO.p;
+import static com.tayek.tablet.io.IO.*;
 import static org.junit.Assert.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -19,7 +19,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     @Before public void setUp() throws Exception {
         super.setUp();
         LogManager.getLogManager().reset();
-        //printThreads();
+        printThreads();
         logServer=new LogServer(host,++service,getClass().getName());
         thread=new Thread(new Runnable() {
             @Override public void run() {
@@ -35,7 +35,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         LoggingHandler.setLevel(Level.OFF);
         p("copiers: "+logServer.copiers);
         logServer.stop();
-        //printThreads();
+        printThreads();
         int big=2*Thread.activeCount();
         Thread[] threads=new Thread[big];
         Thread.enumerate(threads);

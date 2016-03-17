@@ -1,49 +1,50 @@
-package com.tayek.tablet;
+package com.tayek.tablet.io;
 import java.io.*;
 import java.net.*;
-import java.util.*;
 import java.util.logging.*;
-import com.tayek.tablet.Group.*;
-import com.tayek.tablet.Messages.*;
-import com.tayek.tablet.Receiver.Model;
-import com.tayek.tablet.io.*;
+import com.tayek.tablet.Histories;
 import static com.tayek.tablet.io.IO.*;
 import com.tayek.utilities.Et;
 public interface Sender {
-    boolean send(Message message,Histories.ClientHistory history);
+    boolean send(Object message,Histories.ClientHistory history);
     // maybe history belongs here?
+    // really, why here? 
+    // maybe sender history does belong here?
+    // maybe they should all stay together in histories?
     public static class Client implements Sender {
         public Client(SocketAddress socketAddress,boolean replying,int timeout) {
             this.socketAddress=socketAddress;
             this.replying=replying;
             this.timeout=timeout;
         }
-        public boolean send(Message message,Histories.ClientHistory history) {
+        @Override public boolean send(Object object,Histories.ClientHistory history) {
+            String string=object.toString();
             synchronized(history) {
+                if(string.contains("\n")) l.severe(string+" contains a linefeed!");
                 l.fine("#"+(history.client.attempts()+1)+", connecting to: "+socketAddress+", with timeout: "+timeout);
                 Et et=new Et();
                 Socket socket=connect(socketAddress,timeout,history);
                 if(socket!=null) try {
                     l.fine("#"+(history.client.attempts()+1)+", connect took: "+et);
                     Writer out=new OutputStreamWriter(socket.getOutputStream());
-                    out.write(message.toString()+"\n");
+                    out.write(string+"\n");
                     out.flush();
                     // add stuff from server for closing/shutting down input and output
                     //out.close();
                     //socket.shutdownOutput(); // closing the writer does this
                     history.client.success();
-                    l.fine("#"+history.client.attempts()+", sent: "+message+" at: "+System.currentTimeMillis()+" took: "+et);
+                    l.fine("#"+history.client.attempts()+", sent: "+object+" at: "+System.currentTimeMillis()+" took: "+et);
                     //Toaster.toaster.toast("sent: "+message+" at: "+System.currentTimeMillis());
                     if(replying) {
-                        l.fine("#"+history.client.attempts()+"reading reply to: "+message+" at: "+System.currentTimeMillis());
+                        l.fine("#"+history.client.attempts()+"reading reply to: "+object+" at: "+System.currentTimeMillis());
                         try {
                             BufferedReader in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                            String string=in.readLine();
-                            if(string!=null&&!string.isEmpty()) if(!string.equals(Server.ok)) l.warning("no ack!");
-                            else l.fine("#"+history.client.attempts()+", client received: "+string+", took: "+et);
-                            else l.warning("#"+history.client.attempts()+", string is null or empty!");
+                            String reply=in.readLine();
+                            if(reply!=null&&!reply.isEmpty()) if(!reply.equals(Server.ok)) l.warning("no ack!");
+                            else l.fine("#"+history.client.attempts()+", client received: "+reply+", took: "+et);
+                            else l.warning("#"+history.client.attempts()+", reply is null or empty!");
                             history.replies.success();
-                            l.fine("#"+history.client.attempts()+", got reply to: "+message+" at: "+System.currentTimeMillis());
+                            l.fine("#"+history.client.attempts()+", got reply to: "+object+" at: "+System.currentTimeMillis());
                         } catch(IOException e) {
                             l.warning("reading reply caught: "+e);
                             history.replies.failure(e.toString());
@@ -96,63 +97,6 @@ public interface Sender {
                 staticLogger.warning("#"+(history.client.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
             }
             return null;
-        }
-        // make another driver for pc tablets
-        public static void driveRealTabletsFromPcTablet() throws InterruptedException {
-            Map<Integer,Info> infos=new Groups().groups.get("g0");
-            infos.put(99,new Info("T99","localhost",Main.defaultReceivePort));
-            Group group=new Group(1,infos,Model.mark1,false);
-            Tablet tablet=group.create(99);
-            group=null; // tablet has a clone of group;
-            int n=100;
-            tablet.group.reportPeriod=n;
-            tablet.startListening();
-            tablet.server.reportPeriod=n;
-            tablet.drive(n,group.driveWait);
-            tablet.stopListening();
-            tablet.accumulateToAll();
-            tablet.l.severe("start histories()");
-            tablet.l.severe(tablet.group.histories(tablet));
-            tablet.l.severe("start histories()");
-            p("start histories()");
-            p(tablet.group.histories(tablet));
-            p("start histories()");
-        }
-        public static void drivePcTabletsFromPcTablet() throws InterruptedException {
-            Map<Integer,Info> infos=new Groups().groups.get("g6");
-            infos.put(99,new Info("T99","localhost",Main.defaultReceivePort));
-            Set<Tablet> tablets=Group.createGroupAndstartTablets(infos);
-            int n=100;
-            /*
-            tablet.reportPeriod=n;
-            tablet.startListening();
-            tablet.server.reportPeriod=n;
-            tablet.drive(n,tablet.driveWait);
-            tablet.stopListening();
-            tablet.accumulateToAll();
-            tablet.l.severe("start histories()");
-            tablet.l.severe(tablet.group.histories(tablet));
-            tablet.l.severe("start histories()");
-            p("start histories()");
-            p(tablet.group.histories(tablet));
-            p("start histories()");
-            */
-        }
-        public static void main(String[] arguments) throws IOException,InterruptedException {
-            LoggingHandler.init();
-            SocketHandler socketHandler=LoggingHandler.startSocketHandler(Main.networkHost,LogServer.defaultService);
-            LoggingHandler.addSocketHandler(socketHandler);
-            LoggingHandler.setLevel(Level.WARNING);
-            //tryConnect();
-            //driveTabletsFromClient();
-            int n=1;
-            for(int i=1;i<=n;i++) {
-                p("i: "+i);
-                driveRealTabletsFromPcTablet();
-                Thread.sleep(3_000);
-            }
-            printThreads();
-            LoggingHandler.stopSocketHandler(socketHandler);
         }
         private final SocketAddress socketAddress;
         private final int timeout;

@@ -1,17 +1,18 @@
 package com.tayek.tablet;
-import static com.tayek.tablet.io.IO.p;
+import static com.tayek.tablet.io.IO.*;
 import static org.junit.Assert.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import org.junit.*;
-import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
 import com.tayek.utilities.Et;
 public abstract class AbstractTabletTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {
-        //IO.printThreads();
+        if(staticPrintThreads)
+            printThreads();
     }
     @Before public void setUp() throws Exception {
         LoggingHandler.init();
@@ -25,14 +26,14 @@ public abstract class AbstractTabletTestCase {
         if(threads>this.threads) {
             p((threads-this.threads)+" extra threads!");
             if(printThreads) {
-                IO.printThreads();
+                printThreads();
                 p((threads-this.threads)+" extra threads!");
             }
         }
         LoggingHandler.setLevel(Level.OFF);
     }
     public Set<Tablet> createForTest(int n,int offset) {
-        Map<Integer,Group.Info> map=new TreeMap<>();
+        Map<Object,Group.Info> map=new LinkedHashMap<>();
         for(int i=1;i<=n;i++)
             map.put(i,new Group.Info("T"+i+" on PC",Main.testingHost,Main.defaultReceivePort+100+offset+i));
         return new Group(1,map,Model.mark1,false).create();
@@ -234,12 +235,13 @@ public abstract class AbstractTabletTestCase {
         assertEquals(zero,history.server.missing.failures());
     }
     protected void printStats() {
-        for(Tablet tablet:tablets) {
+        if(printStats) for(Tablet tablet:tablets)
             p("send time: "+tablet.group.info(tablet.tabletId()).history);
-        }
     }
     int threads;
     protected boolean printThreads;
+    static boolean staticPrintThreads;
+    protected boolean printStats;
     protected Set<Tablet> tablets;
     public static int serviceOffset=1_000; // too many places, fix!
     public static final Integer zero=new Integer(0),one=new Integer(1);

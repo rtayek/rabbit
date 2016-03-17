@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.Map;
 import org.junit.*;
 import com.tayek.tablet.Group.*;
-import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
 import static com.tayek.tablet.io.IO.p;
 public class ControllerTestCase {

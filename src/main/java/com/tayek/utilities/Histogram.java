@@ -54,6 +54,7 @@ public class Histogram {
         }
     }
     public void add(Histogram histogram) {
+        System.out.println("adding: "+histogram);
         if(histogram.bins!=bins||histogram.low!=low||histogram.high!=high) throw new RuntimeException(histogram+" is incompatablet with: "+this);
         synchronized(recent) {
             recent.putAll(histogram.recent);
@@ -148,7 +149,7 @@ public class Histogram {
         for(int i=0;i<bins;i++)
             sb.append(i>0?",":"").append(bin(i));
         sb.append("],").append(bin(bins));
-        sb.append(" missing: ").append(nans);
+        sb.append(" NaNs: ").append(nans);
         return sb.toString();
     }
     public String toStringFrequency() {

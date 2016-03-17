@@ -4,18 +4,20 @@ import static org.junit.Assert.*;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Group.*;
+import com.tayek.tablet.io.LoggingHandler;
 public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCase {
     @Before public void setUp() throws Exception {
         super.setUp();
-        Map<Integer,Info> infos=new Groups().groups.get("g1each");
-        Map<Integer,Info> infos2=new TreeMap<>();
+        Map<Object,Info> infos=new Groups().groups.get("g1each");
+        Map<Object,Info> infos2=new LinkedHashMap<>();
         p("info: "+infos);
-        for(int tabletId:infos.keySet()) {
+        for(Object tabletId:infos.keySet()) {
             Info info=infos.get(tabletId);
-            infos2.put(tabletId,new Info(info.name,info.host,info.service+serviceOffset));
+            infos2.put(tabletId,new Info(info.iD,info.host,info.service+serviceOffset));
         }
         p("service offset: "+serviceOffset);
         tablets=Group.createGroupAndstartTablets(infos2);
@@ -30,6 +32,7 @@ public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCas
             p(tablet.toString2());
     }
     @Test() public void testDummy2Brokem() throws InterruptedException,UnknownHostException,ExecutionException {
+        LoggingHandler.setLevel(Level.SEVERE);
         for(Tablet tablet:tablets)
             tablet.stopListening(); // so send will fail
         Thread.sleep(100);

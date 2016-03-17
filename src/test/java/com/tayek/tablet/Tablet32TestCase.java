@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Main;
-import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.Group.Info;
 import com.tayek.tablet.io.LoggingHandler;
 import com.tayek.utilities.*;
@@ -35,8 +35,8 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         }
     }
     private void justOneWithOneMessage() throws InterruptedException {
-        Map<Integer,Group.Info> map=new TreeMap<>();
-        for(int i=1;i<=32;i++) // hack address so it can't connect
+        Map<Object,Group.Info> map=new LinkedHashMap<>();
+        for(Integer i=1;i<=32;i++) // hack address so it can't connect
             map.put(i,new Group.Info("T"+i+" on PC",Main.testingHost,Main.defaultReceivePort+100+serviceOffset+i));
         tablets=new Group(1,map,Model.mark1,false).create();
         Tablet first=tablets.iterator().next();

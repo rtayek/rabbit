@@ -35,7 +35,6 @@ public class Histories {
             return string;
         }
     }
-
     public static class ClientHistory {
         @Override public String toString() {
             String string="client: ";
@@ -47,8 +46,8 @@ public class Histories {
             return string;
         }
         public final History client=new History(),replies=new History();
-        public final Histogram allSendTimes=new Histogram(10,0,1000);
-        public final Histogram allFailures=new Histogram(10,0,1000);
+        public final Histogram allSendTimes=new Histogram(client.successHistogram.bins(),client.successHistogram.low(),client.successHistogram.high());
+        public final Histogram allFailures=new Histogram(client.failureHistogram.bins(),client.failureHistogram.low(),client.failureHistogram.high());
     }
     public static class ServerHistory {
         @Override public String toString() {
@@ -71,7 +70,7 @@ public class Histories {
         public final History model=new History();
     }
     public int failures() {
-        return client.client.failures()+server.server.failures();
+        return client.client.failures()+client.replies.failures()+server.server.failures()+server.replies.failures()+model.model.failures();
         // need to add reply stats if doing replies!
     }
     public boolean anyAttempts() {
@@ -79,6 +78,7 @@ public class Histories {
         else if(client.replies.attempts()!=0) return true;
         else if(server.server.attempts()!=0) return true;
         else if(server.replies.attempts()!=0) return true;
+        else if(model.model.attempts()!=0) return true;
         return false;
     }
     public boolean anyFailures() {
@@ -87,13 +87,17 @@ public class Histories {
         else if(server.server.failures()!=0) return true;
         else if(server.replies.failures()!=0) return true;
         else if(server.missing.failures()!=0) return true;
+        else if(model.model.failures()!=0) return true;
         return false;
     }
-    // could be just: H client,clientReplies,server,serverReplies; ?
-    public final ClientHistory client=new ClientHistory();
-    public final ServerHistory server=new ServerHistory();
-    public final ModelHistory model=new ModelHistory();
     @Override public String toString() {
         return "\nclient: "+client+"\nserver: "+server+"\nmodel: "+model;
     }
+    // could be just: H client,clientReplies,server,serverReplies, ... ?
+    public final ClientHistory client=new ClientHistory();
+    public final ServerHistory server=new ServerHistory();
+    public final ModelHistory model=new ModelHistory();
+    public static Integer defaultConnectTimeout=200; // 40;
+    public static Integer defaultSendTimeout=250; // 60;
+    public static Integer defaultReportPeriod=100;
 }

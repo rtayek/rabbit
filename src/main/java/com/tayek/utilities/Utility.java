@@ -1,10 +1,11 @@
 package com.tayek.utilities;
-
 import java.io.*;
-
 public class Utility {
+    public static String method(int n) {
+        return Thread.currentThread().getStackTrace()[n].getMethodName()+"()";
+    }
     public static String method() {
-        return Thread.currentThread().getStackTrace()[2].getMethodName()+"()";
+        return method(2);
     }
     public static Integer toInteger(String argument) {
         Integer n=null;

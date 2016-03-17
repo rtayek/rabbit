@@ -85,14 +85,14 @@ public class Enums {
                         @Override public void run() {
                             int n=100;
                             tablet.group.reportPeriod=n;
-                            Tablet.drive(tablet,n);
+                            com.tayek.tablet.Drive.drive(tablet,n);
                         }
                     }).start();
                     break;
                 case Forever:
                     new Thread(new Runnable() {
                         @Override public void run() {
-                            Tablet.forever(tablet);
+                            com.tayek.tablet.Drive.forever(tablet);
                         }
                     }).start();
                     break;

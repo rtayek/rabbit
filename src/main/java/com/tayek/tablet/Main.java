@@ -1,7 +1,7 @@
 package com.tayek.tablet;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
+import java.net.*;
 import java.util.*;
 import java.util.logging.SocketHandler;
 import com.tayek.tablet.Main;
@@ -18,8 +18,8 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
     }
     public static class Instance {
         // maybe just put messages in group?
-        private Instance(int tabletId) {
-            this.tabletId=tabletId;
+        private Instance(Object iD) {
+            this.iD=iD;
         }
         public Instance create(int tabletId) {
             return new Instance(tabletId);
@@ -30,8 +30,10 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
                 instances.add(create(tabletId));
             return instances;
         }
-        final int tabletId;
+        final Object iD;
+        SocketAddress socketAddress;
         Messages messages=new Messages();
+        // looks like these two guys are the things we need
     }
     // install notes:
     // android project needs sdk location.
@@ -90,7 +92,7 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
         p("testing host: "+testingHost);
         p("log serverHost host: "+logServerHost);
     }
-    public static final Map<Integer,Instance> instances=new TreeMap<>();
+    public static final Map<Object,Instance> instances=new LinkedHashMap<>();
     public static final Map<String,SocketHandler> logServerHosts=new LinkedHashMap<>();
     static {
         logServerHosts.put("192.168.1.2",null); // static ip on my pc

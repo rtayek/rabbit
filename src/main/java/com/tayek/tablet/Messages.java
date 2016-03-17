@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import com.tayek.tablet.Receiver.Model;
+import com.tayek.tablet.MessageReceiver.Model;
 public class Messages {
     public enum Type { // add levels for logging?
         dummy,ping,ack,error,normal,reset,name,heartbeat,soundOn,soundOff,rolloverLogNow;
@@ -15,43 +15,43 @@ public class Messages {
             return !this.equals(normal);
         }
     }
-    public Message normal(int groupId,int tabletId,int buttonId,Model model) {
+    public Message normal(int groupId,Object tabletId,int buttonId,Model model) {
         return new Message(Type.normal,groupId,tabletId,buttonId,model.toCharacters(),++messages);
     }
-    public Message normal(int groupId,int tabletId,int buttonId,String states) {
+    public Message normal(int groupId,Object tabletId,int buttonId,String states) {
         return new Message(Type.normal,groupId,tabletId,buttonId,states,++messages);
     }
-    public Message reset(int groupId,int tabletId,int buttonId) {
+    public Message reset(int groupId,Object tabletId,int buttonId) {
         return new Message(Type.reset,groupId,tabletId,buttonId,Type.reset.name(),++messages); // put in some id's?
     }
     public Message error(String string) {
         return new Message(Type.error,0,0,0,string,++messages); // put in some id's?
     }
-    public Message dummy(int groupId,int tabletId) {
+    public Message dummy(int groupId,Object tabletId) {
         return new Message(Type.dummy,groupId,tabletId,0,Type.dummy.name(),++messages);
     }
-    public Message ping(int groupId,int tabletId) {
+    public Message ping(int groupId,Object tabletId) {
         return new Message(Type.ping,groupId,tabletId,0,Type.ping.name(),++messages);
     }
-    public Message ack(int groupId,int tabletId) {
+    public Message ack(int groupId,Object tabletId) {
         return new Message(Type.ack,groupId,tabletId,0,Type.ack.name(),++messages);
     }
-    public Message heartbeat(int groupId,int tabletId) {
+    public Message heartbeat(int groupId,Object tabletId) {
         return new Message(Type.heartbeat,groupId,tabletId,0,Type.heartbeat.name(),++messages);
     }
-    public Message soundOn(int groupId,int tabletId) {
+    public Message soundOn(int groupId,Object tabletId) {
         return new Message(Type.soundOn,groupId,tabletId,0,Type.soundOn.name(),++messages);
     }
-    public Message soundOff(int groupId,int tabletId) {
+    public Message soundOff(int groupId,Object tabletId) {
         return new Message(Type.soundOff,groupId,tabletId,0,Type.soundOff.name(),++messages);
     }
-    public Message rolloverLogNow(int groupId,int tabletId) {
+    public Message rolloverLogNow(int groupId,Object tabletId) {
         return new Message(Type.rolloverLogNow,groupId,tabletId,0,"rollover",++messages);
     }
     public class Message implements java.io.Serializable {
         // looks like i need to add a sequence number back in!
         // add message to add tablet to info, so he joins the group?
-        private Message(Type type,Integer groupId,Integer from,Integer button,String string,int number) {
+        private Message(Type type,Integer groupId,Object from,Integer button,String string,int number) {
             this.type=type;
             this.groupId=groupId;
             this.tabletId=from;
@@ -67,7 +67,7 @@ public class Messages {
         }
         public final Type type;
         public final Integer groupId;
-        public final Integer tabletId;
+        public final Object tabletId;
         public final Integer button;
         public final Integer number;
         public final String string;
@@ -95,6 +95,8 @@ public class Messages {
         }
         Integer groupId=new Integer(parts[1]);
         Integer fromId=new Integer(parts[2]);
+        // this will throw when id is not an integer
+        // so check for string also!
         Integer button=new Integer(parts[3]);
         Integer number=new Integer(parts[4]);
         String stringPart=parts[5];

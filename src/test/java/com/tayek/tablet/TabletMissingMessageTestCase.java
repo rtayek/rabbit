@@ -23,8 +23,7 @@ public class TabletMissingMessageTestCase extends AbstractTabletTestCase {
         tablets=createForTest(2,serviceOffset);
         startListening();
         Tablet first=tablets.iterator().next();
-        LoggingHandler.setLevel(Level.WARNING);
-        int n=1000;
+        int n=10;
         for(int i=1;i<=n;i++) {
             first.broadcast(first.group.messages.dummy(first.group.groupId,first.tabletId()),0);
             Thread.sleep(50); // fails if no sleep!
@@ -48,6 +47,7 @@ public class TabletMissingMessageTestCase extends AbstractTabletTestCase {
         tablets=createForTest(32,serviceOffset);
         startListening();
         Tablet first=tablets.iterator().next();
+        first.group.reportPeriod=0; // bug?
         int n=10;
         for(int i=1;i<=n;i++) {
             first.broadcast(first.group.messages.dummy(first.group.groupId,first.tabletId()),0);

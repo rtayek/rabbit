@@ -26,7 +26,7 @@ public class TwoTabletsTestCase extends AbstractTabletTestCase {
         }
     }
     @Test() public void testDummy2Brokem() throws InterruptedException,UnknownHostException,ExecutionException {
-        LoggingHandler.setLevel(Level.SEVERE); // so timeout warnings do not print out.
+        LoggingHandler.setLevel(Level.WARNING); // so timeout warnings do not print out.
         for(Tablet tablet:tablets)
             tablet.stopListening(); // so send will fail
         sendOneDummyMessageFromEachTablet();
