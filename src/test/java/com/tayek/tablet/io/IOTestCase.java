@@ -7,6 +7,7 @@ import org.junit.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.io.IO.*;
 import static com.tayek.tablet.io.IO.*;
+import static com.tayek.utilities.Utility.*;
 public class IOTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         LoggingHandler.init();

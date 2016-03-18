@@ -3,6 +3,7 @@ import java.util.*;
 import java.util.logging.Logger;
 import com.tayek.tablet.MessageReceiver.Model;
 import static com.tayek.tablet.io.IO.*;
+import static com.tayek.utilities.Utility.*;
 public interface View extends Observer {
     public class CommandLine implements View {
         public CommandLine(Model model) {

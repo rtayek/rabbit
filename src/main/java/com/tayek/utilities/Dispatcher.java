@@ -1,5 +1,5 @@
 package com.tayek.utilities;
-import static com.tayek.tablet.io.IO.*;
+import static com.tayek.utilities.Utility.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;

@@ -1,5 +1,5 @@
 package com.tayek.tablet;
-import static com.tayek.tablet.io.IO.p;
+import static com.tayek.utilities.Utility.*;
 import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;

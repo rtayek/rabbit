@@ -6,7 +6,7 @@ import org.junit.*;
 import com.tayek.tablet.Group.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
-import static com.tayek.tablet.io.IO.p;
+import static com.tayek.utilities.Utility.*;
 public class ControllerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         LoggingHandler.init();

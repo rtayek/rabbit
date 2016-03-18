@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.Callable;
 import java.util.logging.*;
+import static com.tayek.utilities.Utility.*;
 import com.tayek.tablet.Main;
 public class IO {
     public interface Callback<T> { // should be Consumer<T>
@@ -71,28 +72,6 @@ public class IO {
         }
         final String host;
         final int service;
-    }
-    public static void pn(PrintStream out,String string) {
-        out.print(string);
-        out.flush();
-    }
-    public static void p(String string) {
-        // i hope this can stay static :(
-        p(System.out,string);
-    }
-    public static void p(PrintStream out,String string) {
-        synchronized(out) {
-            pn(out,string);
-            pn(out,System.getProperty("line.separator"));
-        }
-    }
-    public static void printThreads() {
-        //this may need to be non static and filter tablets or groups!
-        int big=2*Thread.activeCount();
-        Thread[] threads=new Thread[big];
-        Thread.enumerate(threads);
-        for(Thread thread:threads)
-            if(thread!=null) p(thread.toString());
     }
     static void printNetworkInterface(NetworkInterface netint) {
         p("Display name: "+netint.getDisplayName()+", Name: "+netint.getName());

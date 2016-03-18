@@ -7,6 +7,7 @@ import com.tayek.tablet.Group.*;
 import com.tayek.tablet.Messages.Message;
 import com.tayek.tablet.MessageReceiver.Model;
 import static com.tayek.tablet.io.IO.*;
+import static com.tayek.utilities.Utility.*;
 public class Ping {
     public static void main(String[] args) throws InterruptedException {
         LoggingHandler.init();

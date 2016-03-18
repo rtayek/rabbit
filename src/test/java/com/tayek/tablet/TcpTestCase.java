@@ -1,5 +1,6 @@
 package com.tayek.tablet;
 import static com.tayek.tablet.io.IO.*;
+import static com.tayek.utilities.Utility.*;
 import static org.junit.Assert.*;
 import java.io.IOException;
 import java.net.*;

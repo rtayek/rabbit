@@ -9,6 +9,7 @@ import com.tayek.tablet.Messages.Message;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
 import com.tayek.utilities.*;
+import static com.tayek.utilities.Utility.*;
 public class Tablet {
     // no need for ip address really,
     // maybe set the tablet id after construction

@@ -1,5 +1,5 @@
 package com.tayek.tablet;
-import static com.tayek.tablet.io.IO.p;
+import static com.tayek.utilities.Utility.*;
 import java.util.*;
 import java.util.logging.Logger;
 import com.tayek.tablet.Messages.Message;

@@ -1,5 +1,5 @@
 package com.tayek.tablet.io;
-import static com.tayek.tablet.io.IO.p;
+import static com.tayek.utilities.Utility.*;
 import java.io.*;
 import java.net.*;
 import java.util.logging.Logger;
@@ -10,12 +10,6 @@ import static com.tayek.utilities.Utility.*;
 public class Server implements Runnable {
     public Server(Object iD,SocketAddress socketAddress,Receiver receiver,boolean replying,ServerHistory history) throws IOException {
         this(iD,serverSocket(socketAddress),receiver,replying,history);
-    }
-    public static ServerSocket serverSocket(SocketAddress socketAddress) throws IOException {
-        ServerSocket serverSocket=new ServerSocket();
-        staticLogger.info("binding to: "+socketAddress);
-        serverSocket.bind(socketAddress);
-        return serverSocket;
     }
     public Server(Object iD,ServerSocket serverSocket,Receiver receiver,boolean replying,ServerHistory history) {
         this.serverSocket=serverSocket;
@@ -174,8 +168,8 @@ public class Server implements Runnable {
     private final boolean replying;
     private final Receiver receiver;
     private final ServerHistory history;
-    boolean shutdownInput,shutdownOutput,closeInput,closeOutput,closeSocket=true;
     private volatile boolean isShuttingDown;
+    boolean shutdownInput,shutdownOutput,closeInput,closeOutput,closeSocket=true;
     public Integer reportPeriod=Histories.defaultReportPeriod;
     public final Logger l=Logger.getLogger(getClass().getName());
     public static final String ok="ok";

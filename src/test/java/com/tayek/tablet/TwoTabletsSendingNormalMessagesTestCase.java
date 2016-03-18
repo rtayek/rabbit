@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.tablet.io.LoggingHandler;
 import static com.tayek.tablet.io.IO.*;
+import static com.tayek.utilities.Utility.*;
 public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}

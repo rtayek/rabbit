@@ -1,5 +1,5 @@
 package com.tayek.tablet.io;
-import static com.tayek.tablet.io.IO.p;
+import static com.tayek.utilities.Utility.*;
 import java.util.logging.Logger;
 import com.tayek.tablet.io.IO.Callback;
 public interface Toaster {

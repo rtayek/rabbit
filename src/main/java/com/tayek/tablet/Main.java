@@ -7,6 +7,7 @@ import java.util.logging.SocketHandler;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.io.*;
 import static com.tayek.tablet.io.IO.*;
+import static com.tayek.utilities.Utility.*;
 import com.tayek.utilities.*;
 // http://cs.nyu.edu/~yap/prog/cygwin/FAQs.html
 // http://poppopret.org/2013/01/07/suterusu-rootkit-inline-kernel-function-hooking-on-x86-and-arm/
@@ -54,6 +55,7 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
                     remove(1);
                 add(Tablet.class);
                 add(LogServer.class);
+                add(com.tayek.conrad.Main.class);
             }
         }.run();
     }

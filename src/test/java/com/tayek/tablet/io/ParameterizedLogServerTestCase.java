@@ -1,5 +1,5 @@
 package com.tayek.tablet.io;
-import static com.tayek.tablet.io.IO.p;
+import static com.tayek.utilities.Utility.*;
 import static org.junit.Assert.assertTrue;
 import java.io.*;
 import java.net.*;
