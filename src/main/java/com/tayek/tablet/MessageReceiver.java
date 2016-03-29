@@ -1,7 +1,6 @@
 package com.tayek.tablet;
-import static com.tayek.utilities.Utility.*;
+import static com.tayek.io.IO.*;
 import java.util.*;
-import java.util.logging.Logger;
 import com.tayek.tablet.Messages.Message;
 import com.tayek.tablet.io.Audio;
 import com.tayek.tablet.io.Audio.Sound;
@@ -42,6 +41,8 @@ public interface MessageReceiver {
             if(1<=id&&id<=buttons) synchronized(states) {
                 states[id-1]=state;
                 setChangedAndNotify(id);
+                if(tablet!=null) if(state) Tablet.startChimer(tablet);
+                else tablet.stopChimer();
             }
             else l.warning("out of bounds: "+id);
         }
@@ -81,10 +82,10 @@ public interface MessageReceiver {
             // and save the state?
             int n=check(message.string,message.button-1);
             String failure=n+" other buttons are out of sync before";
-            if(history!=null) {
-                String more="#"+history.model.attempts()+", "+failure+", "+message.string+"!="+toCharacters();
-                if(n>0) history.model.failure(failure);
-                else history.model.success();
+            if(histories!=null) {
+                String more="#"+histories.model.model.attempts()+", "+failure+", "+message.string+"!="+toCharacters();
+                if(n>0) histories.model.model.failure(failure);
+                else histories.model.model.success();
                 if(n>0) l.warning(more);
             } else {
                 l.warning("history is null!");
@@ -106,7 +107,7 @@ public interface MessageReceiver {
             // so check should never find an error with button.
             for(int i=1;i<=Math.min(buttons,message.string.length());i++)
                 setState(i,message.state(i));
-            if(history!=null) l.info("#"+history.model.attempts()+", new state: "+toCharacters());
+            if(histories!=null) l.info("#"+histories.model.model.attempts()+", new state: "+toCharacters());
             return n==0;
         }
         @Override public void receive(Message message) {
@@ -128,6 +129,7 @@ public interface MessageReceiver {
                         break;
                     case reset:
                         reset();
+                        tablet.stopChimer(); // guard?
                         break;
                     case soundOn:
                         Audio.Instance.sound=true;
@@ -165,11 +167,11 @@ public interface MessageReceiver {
         public final int serialNumber;
         public final Integer buttons;
         public final Integer resetButtonId;
-        Histories.ModelHistory history;
+        Histories histories;
         Integer messages=0;
         private final Boolean[] states;
-        private final Map<Object,Object> idToLastOnFrom=new LinkedHashMap<>();        private final Random random=new Random();
-        public final Logger l=Logger.getLogger(getClass().getName());
+        private final Map<Object,Object> idToLastOnFrom=new LinkedHashMap<>();
+        private final Random random=new Random();
         static int ids=0;
         public static final Model mark1=new Model(11,11);
     }

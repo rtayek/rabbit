@@ -1,7 +1,6 @@
 package com.tayek.tablet.io;
-import static com.tayek.utilities.Utility.*;
-import java.util.logging.Logger;
-import com.tayek.tablet.io.IO.Callback;
+import com.tayek.io.IO.Callback;
+import static com.tayek.io.IO.*;
 public interface Toaster {
     void toast(String string);
     Toaster toaster=Factory_.Implementation.instance().create();
@@ -20,7 +19,6 @@ public interface Toaster {
         }
         public Callback<String> callback;
     }
-    Logger l=Logger.getLogger(Toaster.class.getName());
 }
 interface Factory_ {
     abstract Toaster create();

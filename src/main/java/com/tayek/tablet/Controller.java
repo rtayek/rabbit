@@ -1,15 +1,15 @@
 package com.tayek.tablet;
-import static com.tayek.tablet.io.IO.*;
-import static com.tayek.utilities.Utility.*;
+import static com.tayek.io.IO.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.*;
-import com.tayek.tablet.Group.Groups;
+import com.tayek.io.IO;
+import com.tayek.tablet.Main.Stuff;
+import static com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
-import javafx.scene.control.Toggle;
 public class Controller {
     Controller(Tablet tablet) {
         this(tablet,System.in,System.out);
@@ -88,10 +88,10 @@ public class Controller {
                 else tablet.stopHeartbeat();
                 break;
             case 'l':
-                if(IO.staticLogger.getLevel()==Level.OFF) LoggingHandler.setLevel(Level.ALL);
+                if(IO.l.getLevel()==Level.OFF) LoggingHandler.setLevel(Level.ALL);
                 else LoggingHandler.setLevel(Level.OFF);
                 break;
-            case 'L': 
+            case 'L':
                 LoggingHandler.toggleSockethandlers();
                 break;
             case 'p':
@@ -101,7 +101,8 @@ public class Controller {
                 tablet.model.reset();
                 break;
             case 's':
-                boolean ok=tablet.startListening();
+                SocketAddress socketAddress=tablet.stuff.socketAddress(tablet.tabletId());
+                boolean ok=tablet.startListening(socketAddress);
                 if(!ok) p(out,"badness");
                 break;
             case 't':
@@ -145,9 +146,10 @@ public class Controller {
         LoggingHandler.setLevel(Level.OFF);
         String host=InetAddress.getLocalHost().getHostName();
         p("host: "+host);
-        Group group=new Group(1,new Groups().groups.get("g2"),Model.mark1,false);
-        Integer service=arguments.length==0?null:group.info(5).service; // hack to get second tablet
-        Tablet tablet=group.getTablet(InetAddress.getByName(host),service);
+        Stuff stuff=new Stuff(1,new Groups().groups.get("g2"),Model.mark1);
+        Integer service=arguments.length==0?null:stuff.info("pc-5").service; // hack to get second tablet
+        String tabletId=stuff.getTabletIdFromInetAddress(InetAddress.getByName(host),service);
+        Tablet tablet=new Tablet(stuff,tabletId);
         p("tablet: "+tablet);
         return tablet;
     }

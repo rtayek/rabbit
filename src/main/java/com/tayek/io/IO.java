@@ -1,14 +1,27 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.Callable;
 import java.util.logging.*;
-import static com.tayek.utilities.Utility.*;
 import com.tayek.tablet.Main;
 public class IO {
-    public interface Callback<T> { // should be Consumer<T>
+    public static void pn(PrintStream out,String string) {
+        out.print(string);
+        out.flush();
+    }
+    public static void p(PrintStream out,String string) {
+        synchronized(out) {
+            pn(out,string);
+            pn(out,System.getProperty("line.separator"));
+        }
+    }
+    public static void p(String string) {
+        // i hope this can stay static :(
+        p(System.out,string);
+    }
+   public interface Callback<T> { // should be Consumer<T>
         void call(T t);
     }
     public static <T> T runAndWait(Callable<T> callable) throws InterruptedException,ExecutionException {
@@ -17,6 +30,9 @@ public class IO {
         while(!future.isDone())
             Thread.yield();
         return future.get();
+    }
+    public static class ShutdownOptions {
+        public boolean shutdownInput,shutdownOutput,closeInput,closeOutput,closeSocket=true;
     }
     public static class GetByNameCallable implements Callable<InetAddress> {
         public GetByNameCallable(String host) {
@@ -66,7 +82,7 @@ public class IO {
                 // socketHandler.setFormatter(new LoggingHandler());
                 socketHandler.setLevel(Level.ALL);
             } catch(IOException e) {
-               staticLogger.info("caught: '"+e+"' constructing socket handler on: "+host+":"+service);
+                l.info("caught: '"+e+"' constructing socket handler on: "+host+":"+service);
             }
             return socketHandler;
         }
@@ -107,7 +123,6 @@ public class IO {
         printInetAddresses(Main.networkHost);
         printInetAddresses(Main.testingHost);
     }
-    public final Logger l=Logger.getLogger(getClass().getName());
-    // put into instance
-    public static final Logger staticLogger=Logger.getLogger(IO.class.getName());
+    // get rid of all of the other loggers
+    public static final Logger l=Logger.getLogger(IO.class.getName());
 }

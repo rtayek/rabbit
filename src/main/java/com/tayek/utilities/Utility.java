@@ -1,27 +1,15 @@
 package com.tayek.utilities;
-import static com.tayek.utilities.Utility.p;
+import static com.tayek.io.IO.*;
 import java.io.*;
 import java.net.*;
+import com.tayek.io.IO;
 public class Utility {
     public static String method(int n) {
-        return Thread.currentThread().getStackTrace()[n].getMethodName()+"()";
+        //Thread.currentThread().dumpStack();
+        return Thread.currentThread().getStackTrace()[n].getMethodName()+"()"+Thread.currentThread().getStackTrace()[n].getClassName()+" "+Thread.currentThread().getStackTrace().length;
     }
     public static String method() {
         return method(2);
-    }
-    public static void pn(PrintStream out,String string) {
-        out.print(string);
-        out.flush();
-    }
-    public static void p(String string) {
-        // i hope this can stay static :(
-        p(System.out,string);
-    }
-    public static void p(PrintStream out,String string) {
-        synchronized(out) {
-            pn(out,string);
-            pn(out,System.getProperty("line.separator"));
-        }
     }
     public static Integer toInteger(String argument) {
         Integer n=null;
@@ -45,17 +33,44 @@ public class Utility {
             throw new RuntimeException(e);
         }
     }
-    public static ServerSocket serverSocket(SocketAddress socketAddress) throws IOException {
-        ServerSocket serverSocket=new ServerSocket();
-        serverSocket.bind(socketAddress);
+    public static ServerSocket serverSocket(SocketAddress socketAddress) {
+        Et et=new Et();
+        ServerSocket serverSocket=null;
+        try {
+            serverSocket=new ServerSocket();
+            serverSocket.bind(socketAddress);
+        } catch(IOException e) {
+            e.printStackTrace();
+            p("after: "+et+",  caught: '"+e+"'");
+        }
         return serverSocket;
     }
-    public static void printThreads() {
-        //this may need to be non static and filter tablets or groups!
+    public static Socket connect(SocketAddress socketAddress,int timeout) {
+        Et et=new Et();
+        Socket socket=new Socket();
+        try {
+            socket.connect(socketAddress,timeout);
+            return socket;
+        } catch(SocketTimeoutException e) {
+            IO.l.warning("after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+        } catch(IOException e) {
+            IO.l.warning("after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+        }
+        return null;
+    }
+    public static Thread[] getThreads() {
         int big=2*Thread.activeCount();
         Thread[] threads=new Thread[big];
         Thread.enumerate(threads);
+        return threads;
+    }
+
+    public static void printThreads() {
+        //this may need to be non static and filter tablets or groups!
+        Thread[] threads=getThreads();
         for(Thread thread:threads)
             if(thread!=null) p(thread.toString());
     }
+    public static final Boolean T=true,F=false;
+    public static final Integer zero=0,one=1,two=2;
 }

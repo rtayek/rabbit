@@ -54,7 +54,7 @@ public class Histogram {
         }
     }
     public void add(Histogram histogram) {
-        System.out.println("adding: "+histogram);
+        //System.out.println("adding: "+histogram);
         if(histogram.bins!=bins||histogram.low!=low||histogram.high!=high) throw new RuntimeException(histogram+" is incompatablet with: "+this);
         synchronized(recent) {
             recent.putAll(histogram.recent);

@@ -1,5 +1,4 @@
 package com.tayek.tablet.io;
-import static com.tayek.utilities.Utility.*;
 import static org.junit.Assert.assertTrue;
 import java.io.*;
 import java.net.*;
@@ -10,8 +9,9 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import com.tayek.io.IO;
+import static com.tayek.io.IO.*;
 import com.tayek.tablet.Main;
-import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
 import com.tayek.tablet.io.LogServer.Copier;
 import com.tayek.utilities.Utility;
 @RunWith(Parameterized.class) public class ParameterizedLogServerTestCase {
@@ -61,7 +61,7 @@ import com.tayek.utilities.Utility;
     }
     @Test public void test() throws IOException,InterruptedException {
         p("host: "+host);
-        IO.staticLogger.info(expected);
+        IO.l.info(expected);
         Thread.sleep(200); // need to wait a bit
         if(useWriter) {
             writer.flush();

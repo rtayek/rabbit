@@ -1,9 +1,7 @@
 package com.tayek.tablet;
 import java.util.*;
-import java.util.logging.Logger;
 import com.tayek.tablet.MessageReceiver.Model;
-import static com.tayek.tablet.io.IO.*;
-import static com.tayek.utilities.Utility.*;
+import static com.tayek.io.IO.*;
 public interface View extends Observer {
     public class CommandLine implements View {
         public CommandLine(Model model) {
@@ -20,7 +18,6 @@ public interface View extends Observer {
         }
         private final int id=++n;
         private final Model model;
-        public final Logger l=Logger.getLogger(getClass().getName());
         private static int n=0;
     }
 }

@@ -1,4 +1,4 @@
-package com.tayek.conrad;
+package com.tayek.speed;
 import java.util.*;
 import com.tayek.utilities.Histogram;
 public class Histories {
@@ -37,7 +37,7 @@ public class Histories {
     }
     public static class ClientHistory {
         @Override public String toString() {
-            String string="client: ";
+            String string="\tclient: ";
             if(client.attempts()!=0) string+=client.toString();
             else string+="no attempts";
             if(replies.attempts()!=0) string+="\nreplies: "+replies.toString();
@@ -47,7 +47,7 @@ public class Histories {
     }
     public static class ServerHistory {
         @Override public String toString() {
-            String string="server: ";
+            String string="\tserver: ";
             if(server.attempts()!=0) string+=server.toString();
             else string+="no attempts";
             if(replies.attempts()!=0) string+="\nreplies: "+replies.toString();
@@ -58,7 +58,7 @@ public class Histories {
     }
     public static class ModelHistory {
         @Override public String toString() {
-            String string="model: ";
+            String string="\tmodel: ";
             if(model.attempts()!=0) string+=model.toString();
             else string+="no attempts";
             return string;

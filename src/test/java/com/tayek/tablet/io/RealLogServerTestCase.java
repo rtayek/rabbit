@@ -2,6 +2,7 @@ package com.tayek.tablet.io;
 import static org.junit.Assert.*;
 import java.util.logging.*;
 import org.junit.*;
+import com.tayek.io.IO;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.io.*;
 public class RealLogServerTestCase {
@@ -18,7 +19,7 @@ public class RealLogServerTestCase {
         LoggingHandler.toggleSockethandlers();
     }
     @Test public void test() { // just testing that we can log.
-        IO.staticLogger.info("sample log message");
+        IO.l.info("sample log message");
     }
     SocketHandler socketHandler;
 }

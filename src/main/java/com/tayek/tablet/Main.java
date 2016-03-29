@@ -3,35 +3,222 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.SocketHandler;
+import com.tayek.io.IO;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.io.*;
-import static com.tayek.tablet.io.IO.*;
-import static com.tayek.utilities.Utility.*;
+import static com.tayek.io.IO.*;
 import com.tayek.utilities.*;
 // http://cs.nyu.edu/~yap/prog/cygwin/FAQs.html
 // http://poppopret.org/2013/01/07/suterusu-rootkit-inline-kernel-function-hooking-on-x86-and-arm/
 // http://angrytools.com/android/
+// http://stackoverflow.com/questions/36273115/android-app-freezing-after-few-days
 public class Main { // http://steveliles.github.io/invoking_processes_from_java.html
-    public static class K { // constants
-        // add p() here?
-        // and all constants
+    public static class Stuff implements Cloneable { // maybe this belongs in sender?
+        public static class Groups {
+            public Groups() {
+                // this needs to take testing prefix
+                // really? for socket logging or what?
+                boolean old=false;
+                if(!old) {
+                    int tablets=6;
+                    for(int tabletId=1;tabletId<=tablets;tabletId++)
+                        g0.put(aTabletId(tabletId),new Info(aTabletId(tabletId),Main.networkPrefix+(10+tabletId),Main.defaultReceivePort));
+                } else {
+                    g0.put(aTabletId(1),new Info("fire 1",Main.networkPrefix+21,Main.defaultReceivePort));
+                    g0.put(aTabletId(2),new Info("fire 2",Main.networkPrefix+22,Main.defaultReceivePort));
+                    g0.put(aTabletId(3),new Info("nexus 7",Main.networkPrefix+70,Main.defaultReceivePort));
+                    g0.put(aTabletId(4),new Info("pc-4",Main.networkPrefix+100,Main.defaultReceivePort+4));
+                    g0.put(aTabletId(5),new Info("pc-5",Main.networkPrefix+100,Main.defaultReceivePort+5));
+                    g0.put(aTabletId(6),new Info("azpen",Main.networkPrefix+33,Main.defaultReceivePort));
+                    g0.put(aTabletId(7),new Info("at&t",Main.networkPrefix+77,Main.defaultReceivePort));
+                    g0.put(aTabletId(8),new Info("conrad",Main.networkPrefix+88,Main.defaultReceivePort));
+                    //g0.put(99,new Info("nexus 4",99,IO.defaultReceivePort)));
+                }
+                groups.put("g0",g0);
+                g2.put("pc-4",new Info("pc-4",Main.testingHost,Main.defaultReceivePort+4));
+                g2.put("pc-5",new Info("pc-5",Main.testingHost,Main.defaultReceivePort+5));
+                groups.put("g2",g2);
+                //g1each.put(3,new Info("nexus 7",Main.networkPrefix+70,Main.defaultReceivePort));
+                // two fake tablets on pc, but on different networks.
+                // the 100 is dhcp'ed, so it may change once in a while.
+                g1each.put("pc-4",new Info("pc-4",Main.networkHost,Main.defaultReceivePort+4));
+                g1each.put("pc-5",new Info("pc-5",Main.testingHost,Main.defaultReceivePort+4));
+                groups.put("g1each",g1each);
+            }
+            private final Map<String,Info> g2=new TreeMap<>();
+            private final Map<String,Info> g0=new TreeMap<>();
+            private final Map<String,Info> g1each=new TreeMap<>();
+            public final Map<String,Map<String,Info>> groups=new TreeMap<>();
+            // hack, change the above before calling new Groups!
+        }
+        public static class Info {
+            public Info(String iD,String host,int port) {
+                this.iD=iD;
+                this.host=host;
+                this.service=port;
+                // add socketAddress?
+                histories=new Histories();
+            }
+            public Histories histories() {
+                return histories;
+            }
+            @Override public String toString() {
+                return iD+" "+host+" "+service;
+            }
+            public final String iD;
+            public final String host;
+            public final Integer service;
+            private final Histories histories;
+        }
+        public static String aTabletId(Integer tabletId) {
+            return "T"+tabletId;
+        }
+        public Stuff() {
+            this(0,Collections.<String,Info> emptyMap(),(Model)null);
+        }
+        public Stuff(int id,Map<String,Info> idToInfo,Model model) {
+            this(id,idToInfo,model,++serialNumbers);
+        }
+        private Stuff(int groupId,Map<String,Info> idToInfo,Model model,int serialNumber) {
+            this.serialNumber=serialNumber;
+            this.groupIdx=groupId;
+            this.idToInfo.putAll(idToInfo);
+            // these may all end up with the same ifo, hence histories!
+            int n=idToInfo.size();
+            executorService=Executors.newFixedThreadPool(4*n+2);
+            canceller=Executors.newScheduledThreadPool(4*n+2);
+            prototype=model;
+        }
+        private Stuff(Stuff stuff,int serialNumber) {
+            this.serialNumber=stuff.serialNumber;
+            this.groupIdx=stuff.groupIdx;
+            if(stuff.idToInfo!=null) this.idToInfo.putAll(stuff.idToInfo);
+            int n=stuff.idToInfo.size();
+            executorService=Executors.newFixedThreadPool(4*n+2);
+            canceller=Executors.newScheduledThreadPool(4*n+2);
+            prototype=stuff.prototype;
+            copyFrom(stuff);
+        }
+        @Override public Stuff clone() {
+            //super.clone();
+            Stuff stuff=new Stuff(this,serialNumber);
+            return stuff;
+        }
+        private void copyFrom(Stuff stuff) {
+            // fragile!
+            // find a better way.
+            useExecutorService=stuff.useExecutorService;
+            waitForSendCallable=stuff.waitForSendCallable;
+            runCanceller=stuff.runCanceller;
+            replying=stuff.replying;
+            connectTimeout=stuff.connectTimeout;
+            sendTimeout=stuff.sendTimeout;
+            reportPeriod=stuff.reportPeriod;
+        }
+        public Set<String> keys() {
+            return idToInfo!=null?idToInfo.keySet():null;
+        }
+        public Info info(String id) {
+            return id==null?null:idToInfo!=null?idToInfo.get(id):null;
+        }
+        public InetSocketAddress socketAddress(String destinationTabletId) {
+            Info info=info(destinationTabletId);
+            if(info!=null) return new InetSocketAddress(info.host,info.service);
+            return null;
+        }
+        public String getTabletIdFromInetAddress(InetAddress inetAddress,Integer service) {
+            for(String i:keys()) // fragile!
+                if(info(i)!=null) if(inetAddress.getHostAddress().equals(info(i).host)&&(service==null||service.equals(info(i).service))) return i;
+            return null;
+        }
+        public Model getModelClone() {
+            return prototype!=null?prototype.clone():null;
+        }
+        @Override public String toString() {
+            StringBuffer sb=new StringBuffer();
+            sb.append("stuff: group: ");
+            sb.append(groupIdx);
+            sb.append("(");
+            sb.append(serialNumber);
+            sb.append(")");
+            Info info;
+            for(String id:keys())
+                if((info=info(id))!=null) {
+                    sb.append("\nfor: "+id+": ");
+                    sb.append(info.histories());
+                }
+            sb.append("\nend of stuff: -------------------------------");
+            return sb.toString();
+        }
+        public String report(String id) {
+            // need to find the tablet to get the right history?
+            // looks like the server history only makes sense for the driving tablet when testing.
+            // so maybe check for that when driving and omit the print.
+            StringBuffer sb=new StringBuffer();
+            sb.append("histories from: "+id+" ------------------------------------");
+            for(String i:keys()) {
+                Histories history=info(i).histories();
+                if(history.anyFailures()||history.client.client.attempts()!=0) sb.append("\n\tfor "+id+" to: "+i+", history: "+history);
+                else sb.append("\n\tfrom "+id+" to: "+i+", history: no failures.");
+            }
+            Map<Object,Float> failures=new LinkedHashMap<>();
+            double sends=0;
+            for(String i:keys()) {
+                Histories history=info(i).histories();
+                sends+=history.client.client.attempts();
+                failures.put(i,(float)(1.*history.client.client.failures()/history.client.client.attempts()));
+                sb.append("\nsummary from: "+id+", to:"+i+" send failure rate: "+history.client.client.failures()+"/"+history.client.client.attempts()+"="
+                        +(1.*history.client.client.failures()/history.client.client.attempts()));
+            }
+            sb.append("\n failure rates from: "+id+" to others: "+failures);
+            int big=2*Thread.activeCount();
+            Thread[] threads=new Thread[big];
+            Thread.enumerate(threads);
+            for(Thread thread:threads)
+                if(thread!=null) sb.append("\n"+thread.toString());
+            sb.append("\nend of histories from: "+id+" ------------------------------------");
+            return sb.toString();
+        }
+
+        public final int groupIdx;
+        private final Model prototype;
+        public final Integer serialNumber;
+        private final Map<String,Info> idToInfo=new TreeMap<>();
+        public final Messages messages=new Messages();
+        public final ScheduledExecutorService canceller;
+        public final ExecutorService executorService;
+        public boolean useExecutorService;
+        public boolean waitForSendCallable=true;
+        public boolean runCanceller;
+        public boolean replying;
+        public Integer connectTimeout=Histories.defaultConnectTimeout; // set by tablet
+        public Integer sendTimeout=Histories.defaultSendTimeout; // set by tablet
+        public Integer reportPeriod=Histories.defaultReportPeriod;
+        private static int serialNumbers;
     }
     public static class Instance {
         // maybe just put messages in group?
-        private Instance(Object iD) {
+        // we did
+        // now we need to set options into group?
+        // or put them into the abstract test case and use
+        // how to get them into the 
+        // seems line each group needs it's own instance
+        private Instance(String iD) {
             this.iD=iD;
         }
-        public Instance create(int tabletId) {
+        public Instance create(String tabletId) {
             return new Instance(tabletId);
         }
-        public Set<Instance> create(Set<Integer> tabletIds) {
+        public Set<Instance> create(Set<String> tabletIds) { // maybe we don't need some much here
             Set<Instance> instances=new LinkedHashSet<>();
-            for(int tabletId:tabletIds)
+            for(String tabletId:tabletIds)
                 instances.add(create(tabletId));
             return instances;
         }
-        final Object iD;
+        final String iD;
         SocketAddress socketAddress;
         Messages messages=new Messages();
         // looks like these two guys are the things we need
@@ -55,7 +242,8 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
                     remove(1);
                 add(Tablet.class);
                 add(LogServer.class);
-                add(com.tayek.conrad.Main.class);
+                add(com.tayek.speed.Main.class);
+                add(com.tayek.speed.Service.class);
             }
         }.run();
     }

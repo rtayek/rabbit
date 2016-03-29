@@ -4,8 +4,7 @@ import java.net.*;
 import java.util.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Messages.*;
-import static com.tayek.tablet.io.IO.*;
-import static com.tayek.utilities.Utility.*;
+import static com.tayek.io.IO.*;
 public class LogServer implements Runnable {
     // need some way to end a log file when tablet stops
     // need some way to use a date or prefix.

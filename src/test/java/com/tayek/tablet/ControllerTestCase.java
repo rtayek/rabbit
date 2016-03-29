@@ -3,19 +3,19 @@ import static org.junit.Assert.*;
 import java.io.*;
 import java.util.Map;
 import org.junit.*;
-import com.tayek.tablet.Group.*;
+import com.tayek.tablet.Main.Stuff;
+import static com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
-import static com.tayek.utilities.Utility.*;
 public class ControllerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         LoggingHandler.init();
     }
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
-        group=new Group(1,new Groups().groups.get("g2"),Model.mark1,false);
-        tablet=group.create(group.tabletIds().iterator().next());
-        group=null; // this tablet has a clone of group!
+        Stuff stuff=new Stuff(1,new Groups().groups.get("g2"),Model.mark1);
+        tablet=Tablet.create(stuff,stuff.keys().iterator().next());
+        stuff=null; // this tablet has a clone of group!
     }
     @After public void tearDown() throws Exception {}
     @Test public void test() {}
@@ -33,6 +33,5 @@ public class ControllerTestCase {
     }
     Tablet tablet;
     Controller controller;
-    static Group group;
     static Map<Integer,Info> info;
 }

@@ -1,12 +1,14 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import static org.junit.Assert.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import org.junit.*;
+import com.tayek.io.IO;
+import com.tayek.io.IO.*;
 import com.tayek.tablet.*;
-import com.tayek.tablet.io.IO.*;
-import static com.tayek.tablet.io.IO.*;
+import com.tayek.tablet.io.LoggingHandler;
+import static com.tayek.io.IO.*;
 import static com.tayek.utilities.Utility.*;
 public class IOTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {

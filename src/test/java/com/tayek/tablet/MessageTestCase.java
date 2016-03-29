@@ -1,7 +1,7 @@
 package com.tayek.tablet;
 import static org.junit.Assert.*;
 import org.junit.*;
-import static com.tayek.tablet.io.IO.*;
+import static com.tayek.io.IO.*;
 import static com.tayek.utilities.Utility.*;
 import com.tayek.tablet.Messages.*;
 import com.tayek.tablet.MessageReceiver.Model;
@@ -25,21 +25,22 @@ public class MessageTestCase {
     }
     @Test public void testNormalMessageWithTrue() {
         model.setState(3,true);
-        Message message=messages.normal(1,2,3,model);
+        Message message=messages.normal("1","2",3,model);
+        assertEquals(one,message.number);
         String expected=message.toString();
         Message m=messages.from(expected);
         String actual=m.toString();
         assertEquals(expected,actual);
     }
     @Test public void testNormalMessageWithFalse() {
-        Message message=messages.normal(1,2,3,model);
+        Message message=messages.normal("1","2",3,model);
         String expected=message.toString();
         Message m=messages.from(expected);
         String actual=m.toString();
         assertEquals(expected,actual);
     }
     @Test public void testDummyMessage() {
-        Message message=messages.dummy(1,1);
+        Message message=messages.other(Type.dummy,"1","1");
         String expected=message.toString();
         Message m=messages.from(expected);
         String actual=m.toString();
@@ -56,7 +57,7 @@ public class MessageTestCase {
         // error message is very special!
     }
     @Test public void testResetMessage() {
-        Message message=messages.reset(1,1,11);
+        Message message=messages.other(Type.reset,"1","1");
         String expected=message.toString();
         Message m=messages.from(expected);
         String actual=m.toString();

@@ -1,5 +1,5 @@
-package com.tayek.tablet;
-import static com.tayek.tablet.io.IO.*;
+package com.tayek.failures;
+import static com.tayek.io.IO.*;
 import static com.tayek.utilities.Utility.*;
 import static org.junit.Assert.*;
 import java.io.IOException;
@@ -11,16 +11,21 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import com.tayek.io.IO;
+import com.tayek.io.IO.GetNetworkInterfacesCallable;
+import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Messages.Message;
+import com.tayek.tablet.Main.Stuff;
 import com.tayek.tablet.MessageReceiver.DummyReceiver;
+import com.tayek.tablet.Messages.*;
 import com.tayek.tablet.io.*;
-import com.tayek.tablet.io.IO.GetNetworkInterfacesCallable;
 import com.tayek.tablet.io.Sender.Client;
 @RunWith(Parameterized.class) public class TcpTestCase extends AbstractTabletTestCase {
-    public TcpTestCase(SocketAddress socketAddress,Boolean replying) {
-        this.socketAddress=socketAddress;
-        this.replying=replying;
+    @BeforeClass public static void setUpBeforeClass() throws Exception {
+        AbstractTabletTestCase.setUpBeforeClass();
+    }
+    @AfterClass public static void tearDownAfterClass() throws Exception {
+        AbstractTabletTestCase.tearDownAfterClass();
     }
     @Before public void setUp() throws Exception {
         super.setUp();
@@ -28,6 +33,10 @@ import com.tayek.tablet.io.Sender.Client;
     }
     @After public void tearDown() throws Exception {
         super.tearDown();
+    }
+    public TcpTestCase(SocketAddress socketAddress,Boolean replying) {
+        this.socketAddress=socketAddress;
+        stuff.replying=replying;
     }
     @Parameters public static Collection<Object[]> data() throws UnknownHostException,InterruptedException,ExecutionException {
         Set<InetAddress> inetAddresses=IO.runAndWait(new GetNetworkInterfacesCallable(Main.networkStub));
@@ -46,31 +55,32 @@ import com.tayek.tablet.io.Sender.Client;
         }
         return parameters;
     }
-    boolean sendAndReceiveOneMessage(SocketAddress socketAddress,boolean replying) throws UnknownHostException,IOException,InterruptedException {
+    boolean sendAndReceiveOneMessage(SocketAddress socketAddress,Stuff stuff) throws UnknownHostException,IOException,InterruptedException {
         Receiver.DummyReceiver receiver=new Receiver.DummyReceiver();
-        Histories history=new Histories();
-        Server server=new Server(null,socketAddress,receiver,replying,history.server);
+        Histories histories=new Histories();
+        Server server=new Server(null,socketAddress,receiver,stuff,histories);
         server.startServer();
         // where is client socket bound to?
-        Client client=new Client(socketAddress,replying,Histories.defaultConnectTimeout); 
-        Message dummy=messages.dummy(1,1);
-        client.l.info("sending: "+dummy);
-        client.send(dummy,history.client);
-        while(history.server.server.successes()+history.server.server.failures()==0)
+        Client client=new Client(socketAddress,stuff,histories);
+        Message dummy=messages.other(Type.dummy,"1","1");
+        l.info("sending: "+dummy);
+        client.send(dummy,stuff);
+        while(histories.server.server.successes()+histories.server.server.failures()==0)
             Thread.yield();
         server.stopServer();
         // p(receiver.t);
         if(receiver.message==null) p("null message!");
-        checkHistory(null,history,replying,1,replying);
+        checkHistory(null,histories,stuff.replying,1,true);
         boolean isOk=receiver.message!=null&&dummy.toString().equals(receiver.message.toString());
         return isOk;
     }
     @Test() public void testConnectAndClose() throws Exception {
         Histories history=new Histories();
         Receiver.DummyReceiver receiver=new Receiver.DummyReceiver();
+        Stuff stuff=new Stuff();
         Server server=null;
         try {
-            server=new Server(null,socketAddress,receiver,false,history.server);
+            server=new Server(null,socketAddress,receiver,stuff,history);
         } catch(Exception e) {
             p("socket address: "+socketAddress+" failed! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         }
@@ -91,22 +101,21 @@ import com.tayek.tablet.io.Sender.Client;
         // assert??
     }
     @Test(timeout=100) public void testOnce() throws Exception {
-        //LoggingHandler.setLevel(Level.ALL);
-        if(!sendAndReceiveOneMessage(socketAddress,replying)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
     }
     @Test(timeout=200) public void testTwice() throws Exception {
-        if(!sendAndReceiveOneMessage(socketAddress,replying)) fail("failed!");
-        if(!sendAndReceiveOneMessage(socketAddress,replying)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
     }
     @Test(timeout=300) public void testThrice() throws Exception {
-        if(!sendAndReceiveOneMessage(socketAddress,replying)) fail("failed!");
-        if(!sendAndReceiveOneMessage(socketAddress,replying)) fail("failed!");
-        if(!sendAndReceiveOneMessage(socketAddress,replying)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
     }
     @Test(timeout=1_500) public void testManyTimes() throws Exception {
         for(Integer i=1;i<=10;i++) {
             //p("i="+i);
-            if(!(sendAndReceiveOneMessage(socketAddress,replying))) {
+            if(!sendAndReceiveOneMessage(socketAddress,stuff)) {
                 p("oops");
                 fail("failed at: "+i);
             }
@@ -115,7 +124,7 @@ import com.tayek.tablet.io.Sender.Client;
         }
     }
     final SocketAddress socketAddress;
-    final boolean replying;
+    Stuff stuff=new Stuff();
     int service;
     int threads;
     Messages messages=new Messages();

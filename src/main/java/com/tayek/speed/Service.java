@@ -1,16 +1,17 @@
-package com.tayek.conrad;
+package com.tayek.speed;
 import static com.tayek.utilities.Utility.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.logging.*;
-import com.tayek.utilities.Et;
-import static com.tayek.utilities.Utility.*;
 public class Service extends Thread {
     public Service(SocketAddress socketAddress) throws IOException {
         this(serverSocket(socketAddress));
     }
     public Service(ServerSocket serverSocket) {
+        if(serverSocket==null) 
+            throw new RuntimeException("server socket is null!");
+        
         this.serverSocket=serverSocket;
     }
     @Override public void run() {
@@ -102,30 +103,21 @@ public class Service extends Thread {
             thread=null;
         }
     }
-    static Socket connect(SocketAddress socketAddress,int timeout) {
-        Socket socket=new Socket();
-        Et et=new Et();
-        try {
-            socket.connect(socketAddress,timeout);
-            return socket;
-        } catch(SocketTimeoutException e) {
-            l.info("after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-        } catch(IOException e) {
-            l.info("after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-        }
-        return null;
-    }
     enum L {
         Client,Server,Main;
     }
     public static void main(String[] args) throws UnknownHostException,IOException,InterruptedException {
-        Level level=Level.WARNING;
+        Level level=Level.ALL;
         Service.l.setLevel(level);
         Client.l.setLevel(level);
         Server.l.setLevel(level);
-        Main.l.setLevel(level);
         Histories.defaultReportPeriod=0;
+        SocketAddress socketAddress=new InetSocketAddress("192.168.0.101",Main.service);
+        Service acceptor=new Service(socketAddress);
+        acceptor.startServer();
+
     }
+    // move int service here!
     private Thread thread;
     private final ServerSocket serverSocket;
     private volatile boolean isShuttingDown;

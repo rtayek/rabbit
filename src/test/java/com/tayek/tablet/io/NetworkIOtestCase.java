@@ -1,10 +1,10 @@
 package com.tayek.tablet.io;
+import static com.tayek.io.IO.*;
 import static org.junit.Assert.*;
 import java.net.*;
 import java.util.Set;
 import org.junit.*;
 import com.tayek.tablet.*;
-import static com.tayek.tablet.io.IO.*;
 public class NetworkIOtestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}

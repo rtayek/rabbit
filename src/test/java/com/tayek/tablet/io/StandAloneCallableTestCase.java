@@ -18,10 +18,10 @@ public class StandAloneCallableTestCase {
         int threads=Thread.activeCount();
         if(threads>this.threads) p((threads-this.threads)+" extra threads!");
     }
-    public static void p(String string) {
+    public static void p(String string) { // duplicate!
         System.out.println(string);
     }
-    public static void printThreads() {
+    public static void printThreads() { // duplicate!
         int big=2*Thread.activeCount();
         Thread[] threads=new Thread[big];
         Thread.enumerate(threads);

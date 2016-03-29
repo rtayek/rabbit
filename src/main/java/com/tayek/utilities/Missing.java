@@ -2,13 +2,19 @@ package com.tayek.utilities;
 import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Logger;
+import static com.tayek.io.IO.*;
 @SuppressWarnings("serial") class MissingException extends RuntimeException {
     MissingException(String string) {
         super(string);
     }
 }
 public class Missing { // tracks missing messages from consecutive messages.
+    public Missing() {
+        this(0);
+    }
+    public Missing(int n) {
+        largest=n-1;
+    }
     public boolean isMissing(int n) {
         if(n<0) throw new MissingException("oops");
         return missing.contains(n);
@@ -16,7 +22,7 @@ public class Missing { // tracks missing messages from consecutive messages.
     public boolean isDuplicate(int n) {
         if(n<0) throw new MissingException("oops");
         if(n<largest&&!isMissing(n)) {
-            logger.severe("strange duplicate: "+this);
+            l.severe("strange duplicate: "+this);
             System.err.flush();
         }
         return n<largest&&!isMissing(n);
@@ -27,24 +33,24 @@ public class Missing { // tracks missing messages from consecutive messages.
             if(missing.contains(n)) {
                 missing.remove(n);
                 if(!outOfOrder.contains(n)) outOfOrder.add(n);
-                else logger.warning("duplicate out of oreder - may be missed if not in recent!");
+                else l.warning("duplicate out of oreder - may be missed if not in recent!");
             } else {
-                logger.warning("error: smaller is not in missing: "+n);
+                l.warning("error: smaller is not in missing: "+n);
                 if(outOfOrder.contains(n)) {
-                    logger.warning("but it is in out of order: "+n);
-                    logger.warning("so it is a duplicate that may be missed if not in recent!t"+n);
+                    l.warning("but it is in out of order: "+n);
+                    l.warning("so it is a duplicate that may be missed if not in recent!t"+n);
                 } else {
-                    logger.severe("error: so we will add it in: "+n);
+                    l.severe("error: so we will add it in: "+n);
                     outOfOrder.add(n);
                     // throw new MissingException("error: smaller is not in
                     // missing: "+n);
                 }
             }
-        } else if(n==largest) logger.fine("duplicat largest: "+n);
+        } else if(n==largest) l.fine("duplicat largest: "+n);
         else {
             for(int i=largest+1;i<n;i++)
                 if(!missing.add(i)) {
-                    logger.severe("error: set already contains: "+i);
+                    l.severe("error: set already contains: "+i);
                     throw new MissingException("error: set already contains: "+i);
                 }
             largest=n;
@@ -64,8 +70,7 @@ public class Missing { // tracks missing messages from consecutive messages.
     public Set<Integer> missing() {
         return missing;
     }
-    public int largest=-1;
+    public int largest;
     private final Set<Integer> missing=new TreeSet<>();
     public final Set<Integer> outOfOrder=new TreeSet<>();
-    Logger logger=Logger.getLogger(getClass().getName());
 }

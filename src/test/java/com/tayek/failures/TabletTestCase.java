@@ -1,25 +1,28 @@
-package com.tayek.tablet;
-import static com.tayek.tablet.io.IO.*;
+package com.tayek.failures;
+import static com.tayek.io.IO.*;
 import static org.junit.Assert.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
 import org.junit.*;
+import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Group.Info;
-import com.tayek.tablet.Messages.Message;
-import com.tayek.tablet.io.*;
-import com.tayek.utilities.Et;
+import com.tayek.tablet.Messages.*;
 public class TabletTestCase extends AbstractTabletTestCase {
-    @Before public void setUp() throws Exception {
+    @BeforeClass public static void setUpBeforeClass() throws Exception {
+        AbstractTabletTestCase.setUpBeforeClass();
+    }
+    @AfterClass public static void tearDownAfterClass() throws Exception {
+        AbstractTabletTestCase.tearDownAfterClass();
+    }
+  @Before public void setUp() throws Exception {
         super.setUp();
     }
     @After public void tearDown() throws Exception {
         super.tearDown();
     }
     void test(int n) throws InterruptedException {
-        tablets=createForTest(n,serviceOffset);
+        tablets=Tablet.createForTest(n,serviceOffset);
         startListening();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
         for(Tablet tablet:tablets)
@@ -56,29 +59,31 @@ public class TabletTestCase extends AbstractTabletTestCase {
         test(32);
     }
     @Test public void test2RealSimple() throws InterruptedException,UnknownHostException,ExecutionException {
-        tablets=createForTest(2,serviceOffset);
+        tablets=Tablet.createForTest(2,serviceOffset);
+        p("back in test");
+        for(Tablet tablet:tablets)
+            p("stuff id for "+tablet.tabletId()+" is "+tablet.stuff.info(tablet.tabletId()).histories().serialNumber+" "+tablet.histories().serialNumber);
         startListening();
-        LoggingHandler.setLevel(Level.WARNING);
         for(Tablet tablet:tablets) {
-            tablet.broadcast(tablet.group.messages.dummy(tablet.group.groupId,tablet.tabletId()),0);
+            tablet.broadcast(tablet.stuff.messages.other(Type.dummy,tablet.groupId,tablet.tabletId()),tablet.stuff);
         }
         Thread.sleep(200);
         Integer expected=2; // sending to self now
         Iterator<Tablet> i=tablets.iterator();
         Tablet t=i.next();
-        Histories history=t.group.info(t.tabletId()).history;
+        Histories history=t.histories(); // get history from tablet
         assertEquals(expected,history.server.server.successes());
         t=i.next();
-        history=t.group.info(t.tabletId()).history;
+        history=t.histories();
         assertEquals(expected,history.server.server.successes());
         Tablet first=tablets.iterator().next();
         for(int buttoneId=1;buttoneId<=first.model.buttons;buttoneId++) {
             first.model.setState(buttoneId,true);
-            Message message=first.group.messages.normal(first.group.groupId,first.tabletId(),buttoneId,first.model);
-            first.broadcast(message,0);
-            Thread.sleep(200);
+            Message message=first.stuff.messages.normal(first.groupId,first.tabletId(),buttoneId,first.model);
+            first.broadcast(message,first.stuff);
+            Thread.sleep(100);
             for(Tablet tablet:tablets)
-                if(tablet.group.info(tablet.tabletId()).history.server.missing.failures()>0) fail("badness");
+                if(tablet.histories().server.missing.failures()>0) fail("badness");
         }
         for(int buttoneId=1;buttoneId<=first.model.buttons;buttoneId++)
             assertTrue(first.model.state(buttoneId));
@@ -88,28 +93,35 @@ public class TabletTestCase extends AbstractTabletTestCase {
         first.model.reset();
         for(int buttoneId=1;buttoneId<=first.model.buttons;buttoneId++)
             assertFalse(first.model.state(buttoneId));
-        Message message=first.group.messages.reset(first.group.groupId,first.tabletId(),first.model.buttons);
-        first.broadcast(message,0);
+        Message message=first.stuff.messages.other(Type.reset,first.groupId,first.tabletId());
+        first.broadcast(message,first.stuff);
         Thread.sleep(100);
         for(Tablet tablet:tablets)
             for(int buttoneId=1;buttoneId<first.model.buttons;buttoneId++)
                 assertFalse(tablet.model.state(buttoneId));
         for(Tablet tablet:tablets) // fails because each tablet needs a messages class!
-            if(tablet.group.info(tablet.tabletId()).history.server.missing.failures()>0) fail("badness");
+            if(tablet.histories().server.missing.failures()>0) fail("badness");
         shutdown();
         //printStats();
     }
     @Test(timeout=2_000) public void test2Real() throws InterruptedException,UnknownHostException,ExecutionException {
-        tablets=createForTest(2,serviceOffset);
+        tablets=Tablet.createForTest(2,serviceOffset);
         startListening();
         for(Tablet tablet:tablets)
-            tablet.broadcast(tablet.group.messages.dummy(tablet.group.groupId,tablet.tabletId()),0);
+            tablet.broadcast(tablet.stuff.messages.other(Type.dummy,tablet.groupId,tablet.tabletId()),tablet.stuff);
+        if(true) {
+            Thread.sleep(200);
+            Histories histories;
+            for(Tablet tablet:tablets)
+                histories=tablet.histories();
+            printStats(""+getClass().getSimpleName());
+        }
         waitForEachTabletToReceiveAtLeastOneMessageFromEachTablet(false);
         Tablet first=tablets.iterator().next();
         for(int buttoneId=1;buttoneId<=first.model.buttons;buttoneId++) {
             first.model.setState(buttoneId,true);
-            Message message=first.group.messages.normal(first.group.groupId,first.tabletId(),buttoneId,first.model);
-            first.broadcast(message,0);
+            Message message=first.stuff.messages.normal(first.groupId,first.tabletId(),buttoneId,first.model);
+            first.broadcast(message,first.stuff);
             Thread.sleep(100);
         }
         for(int buttoneId=1;buttoneId<=first.model.buttons;buttoneId++)
@@ -120,8 +132,8 @@ public class TabletTestCase extends AbstractTabletTestCase {
         first.model.reset();
         for(int buttoneId=1;buttoneId<=first.model.buttons;buttoneId++)
             assertFalse(first.model.state(buttoneId));
-        Message message=first.group.messages.reset(first.group.groupId,first.tabletId(),first.model.buttons);
-        first.broadcast(message,0);
+        Message message=first.stuff.messages.other(Type.reset,first.groupId,first.tabletId());
+        first.broadcast(message,first.stuff);
         Thread.sleep(100);
         for(Tablet tablet:tablets)
             for(int buttoneId=1;buttoneId<tablet.model.buttons;buttoneId++)

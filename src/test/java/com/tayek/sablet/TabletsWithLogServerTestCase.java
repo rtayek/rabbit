@@ -1,11 +1,12 @@
-package com.tayek.tablet;
-import static com.tayek.tablet.io.IO.*;
+package com.tayek.sablet;
+import static com.tayek.io.IO.*;
 import static com.tayek.utilities.Utility.*;
 import static org.junit.Assert.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
 import org.junit.*;
+import com.tayek.io.IO;
 import com.tayek.tablet.*;
 import com.tayek.tablet.io.*;
 import com.tayek.tablet.io.LogServer.Copier;
@@ -28,12 +29,8 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
             }
         },"log server");
         thread.start();
-        LoggingHandler.setLevel(Level.INFO);
-        tablets=createForTest(2,serviceOffset);
     }
     @After public void tearDown() throws Exception {
-        shutdown();
-        LoggingHandler.setLevel(Level.OFF);
         p("copiers: "+logServer.copiers);
         logServer.stop();
         printThreads();
@@ -50,19 +47,17 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     @Test(timeout=5_000) public void test() throws InterruptedException {
         LoggingHandler.once=false;
         LoggingHandler.init();
-        LoggingHandler.setLevel(Level.WARNING);
         LoggingHandler.toggleSockethandlers();
-        p("hanlders; "+Arrays.asList(IO.staticLogger.getHandlers()));
+        p("hanlders; "+Arrays.asList(IO.l.getHandlers()));
         // start tablets
-        tablets=createForTest(2,serviceOffset);
+        tablets=Tablet.createForTest(2,serviceOffset);
         startListening();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
         for(Tablet tablet:tablets)
             checkHistory(tablet,tablets.size(),false);
-        printStats();
         Thread.sleep(200);
+        shutdown();
         // stop socket logging
-        LoggingHandler.setLevel(Level.OFF);
         for(Iterator<Copier> i=logServer.copiers.iterator();i.hasNext();) {
             Copier copier=i.next();
             StringBuffer stringBuffer=new StringBuffer();

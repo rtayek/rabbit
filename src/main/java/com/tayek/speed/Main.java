@@ -1,10 +1,11 @@
-package com.tayek.conrad;
+package com.tayek.speed;
 import static com.tayek.utilities.Utility.*;
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
 import java.util.logging.*;
 import com.tayek.utilities.Et;
+import static com.tayek.io.IO.*;
 public class Main {
     void waitForClientsToShutdown() throws InterruptedException,IOException {
         l.info("wait for: "+clients.size()+" clients to shutdown");
@@ -29,7 +30,7 @@ public class Main {
         threads=Thread.activeCount();
         //Client.messagesToSend=5_000;
         for(int i=1;i<=devices;i++)
-            clients.add(Client.createClientAndStart("device: "+i));
+            clients.add(Client.createClientAndStart("device: "+i,new InetSocketAddress(host,service)));
         p(clients.size()+" clients started at: "+et);
         if(acceptor!=null) {
             acceptor.waitForServersToStart(devices);
@@ -58,7 +59,7 @@ public class Main {
             p("main server shutdown completed at: "+et);
         }
         p("at: "+et);
-        p(devices+" devices, each sending: "+Client.messagesToSend+" "+Client.line.length()+" byte messages: "+Client.messagesToSend/et.etms()*1000+" messages/second");
+        p(devices+" devices, each sending: "+Client.messagesToSend+" "+Client.lineLength+" byte messages: "+Client.messagesToSend/et.etms()*1000+" messages/second");
         if(false) {
             for(Client client:clients)
                 p("histories for client: "+client.id+": "+client.histories);
@@ -94,7 +95,7 @@ public class Main {
     int threads;
     int devices=50;
     Set<Client> clients=new LinkedHashSet<>();
-    static String host="localhost";
-    static int service=12345;
+    static String host="192.168.0.101";
+    public static int service=12345;
     public static final Logger l=Logger.getLogger(Client.class.getName());
 }

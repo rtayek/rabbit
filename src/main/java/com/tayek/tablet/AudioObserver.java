@@ -1,8 +1,8 @@
 package com.tayek.tablet;
 import java.util.Observable;
-import java.util.logging.Logger;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
+import static com.tayek.io.IO.*;
 import com.tayek.tablet.io.Audio.Sound;
 public class AudioObserver implements View {
     // maybe have audio class implement this?
@@ -17,5 +17,4 @@ public class AudioObserver implements View {
         else l.warning("not a model!");
     }
     private final Model model;
-    public final Logger l=Logger.getLogger(getClass().getName());
 }

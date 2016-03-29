@@ -1,11 +1,14 @@
-package com.tayek.conrad;
-import static com.tayek.utilities.Utility.p;
+package com.tayek.speed;
+import static com.tayek.utilities.Utility.*;
 import java.io.*;
 import java.net.*;
 import java.util.logging.*;
 import com.tayek.utilities.Et;
+import static com.tayek.io.IO.*;
 abstract class Connection implements Runnable {
     Connection(Object id,Socket socket) {
+        if(socket==null)
+            throw new RuntimeException(id+", socket is null!");
         this.id=id;
         this.socket=socket;
     }
@@ -50,7 +53,10 @@ abstract class Connection implements Runnable {
     volatile boolean isShuttingDown;
     public static final Logger l=Logger.getLogger(Client.class.getName());
 }
-class Client extends Connection {
+public class Client extends Connection {
+    Client(Object id,SocketAddress socketAddress,Histories histories) throws IOException {
+        this(id,connect(socketAddress,timeout),histories);
+    }
     Client(Object id,Socket socket,Histories histories) throws IOException {
         super(id,socket);
         this.histories=histories;
@@ -72,7 +78,7 @@ class Client extends Connection {
             histories.client.replies.failure(e.toString());
         }
     }
-    public boolean send(String string) { // client
+    public boolean send(String string) { 
         l.fine("sending: "+string);
         synchronized(histories) {
             if(string.contains("\n")) l.severe(string+" contains a linefeed!");
@@ -117,7 +123,7 @@ class Client extends Connection {
                 l.warning(id+", caught: "+e);
             }
         }
-        l.info(id+", sent: "+messagesToSend+" messages in: "+et);
+        l.info(id+", sent: "+messagesToSend+" messages of length: "+lineLength+" in: "+et);
         try {
             stopThread();
         } catch(IOException e) {
@@ -125,11 +131,15 @@ class Client extends Connection {
         }
         l.info(id+", exit run()");
     }
-    static Client createClientAndStart(Object id) throws UnknownHostException,IOException {
-        Socket socket=new Socket(Main.host,Main.service);
-        Histories histories=new Histories();
-        Client client=new Client(id,socket,histories);
-        client.startThread();
+    public static Client createClientAndStart(Object id,SocketAddress socketAddress) {
+        Client client=null;
+        try {
+            Histories histories=new Histories();
+            client=new Client(id,socketAddress,histories);
+            client.startThread();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
         return client;
     }
     public static void main(String[] args) throws UnknownHostException,IOException,InterruptedException {
@@ -140,16 +150,20 @@ class Client extends Connection {
         Main.l.setLevel(level);
         Histories.defaultReportPeriod=0;
         SocketAddress socketAddress=new InetSocketAddress(Main.host,Main.service);
+        Client client=Client.createClientAndStart("a client",socketAddress);
+        p("client: "+client);
     }
     public Integer reportPeriod=Histories.defaultReportPeriod;
     final Histories histories;
     final boolean replying=false;
     final Writer out;
-    static int messagesToSend=1000;
-    static final String line;
-    static {
+    static int messagesToSend=1_000;
+    static int timeout=1_000;
+    static int lineLength=4096;
+    final String line;
+    {
         StringBuffer sb=new StringBuffer();
-        for(int i=0;i<1_024;i++)
+        for(int i=0;i<lineLength;i++)
             sb.append('1');
         line=sb.toString();
     }

@@ -1,7 +1,7 @@
-package com.tayek.conrad;
-import static com.tayek.utilities.Utility.p;
+package com.tayek.speed;
+import static com.tayek.io.IO.*;
 import java.io.*;
-import java.net.Socket;
+import java.net.*;
 import java.util.logging.Logger;
 import com.tayek.utilities.Et;
 class Server extends Connection {
@@ -39,20 +39,37 @@ class Server extends Connection {
             histories.server.server.success();
             histories.server.server.successHistogram.add(et.etms());
             histories.server.server.failureHistogram.add(Double.NaN);
+        } catch(SocketException e) {
+            // what do we do with these failures?
+            // how to handle?
+            histories.server.server.failure(e.toString());
+            histories.server.server.successHistogram.add(Double.NaN);
+            histories.server.server.failureHistogram.add(et.etms());
+            l.severe(id+", #"+(histories.server.server.attempts()+1)+", server caught: "+e);
+            e.printStackTrace();
         } catch(IOException e) {
             // what do we do with these failures?
             // how to handle?
             histories.server.server.failure(e.toString());
             histories.server.server.successHistogram.add(Double.NaN);
             histories.server.server.failureHistogram.add(et.etms());
-            l.severe(id+", #"+(histories.server.server.attempts()+1)+", 4 server caught: "+e);
+            l.severe(id+", #"+(histories.server.server.attempts()+1)+", server caught: "+e);
             e.printStackTrace();
         } catch(Exception e) {
+            histories.server.server.failure(e.toString());
+            histories.server.server.successHistogram.add(Double.NaN);
+            histories.server.server.failureHistogram.add(et.etms());
+            l.severe(id+", #"+(histories.server.server.attempts()+1)+", server caught: "+e);
             e.printStackTrace();
         }
-        if(histories.server.server.attempts()>0&&reportPeriod>0&&histories.server.server.attempts()%reportPeriod==0) l.warning("history from : "+id+": "+histories);
+        if(histories.server.server.attempts()>0&&reportPeriod>0&&histories.server.server.attempts()%reportPeriod==0) {
+            l.warning("history from : "+id+": "+histories);
+            if(histories.server.server.attempts()%(10*reportPeriod)==0)
+                ; // print report!
+            // can not since no stuff around!
+        }
         l.info(id+", exit read for #"+histories.server.server.attempts());
-        if(string==null||string.isEmpty()) l.severe(id+", return eof or empty string!");
+        if(string==null||string.isEmpty()) l.severe("server: "+id+", read eof or empty string!");
         return string;
     }
     @Override public void run() {
@@ -60,7 +77,7 @@ class Server extends Connection {
         while(true) {
             String string=read(socket);
             l.fine(id+", received: "+string);
-            if(string==null){
+            if(string==null) {
                 l.warning(id+", received eof!");
                 break;
             }

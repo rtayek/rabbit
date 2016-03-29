@@ -1,14 +1,19 @@
-package com.tayek.tablet;
+package com.tayek.sablet;
+import static com.tayek.io.IO.*;
 import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.io.LoggingHandler;
-import static com.tayek.tablet.io.IO.*;
 public class OneTabletTestCase extends AbstractTabletTestCase {
+    @BeforeClass public static void setUpBeforeClass() throws Exception {
+        AbstractTabletTestCase.setUpBeforeClass();
+    }
+    @AfterClass public static void tearDownAfterClass() throws Exception {
+        AbstractTabletTestCase.tearDownAfterClass();
+    }
     @Before public void setUp() throws Exception {
         super.setUp();
-        tablets=createForTest(1,serviceOffset);
         printThreads=true;
     }
     @After public void tearDown() throws Exception {
@@ -16,10 +21,12 @@ public class OneTabletTestCase extends AbstractTabletTestCase {
     }
     @Test public void testSetUpAndTearDown() {}
     @Test public void startupAndShutdown() {
+        tablets=Tablet.createForTest(1,serviceOffset);
         startListening();
         shutdown();
     }
     @Test(timeout=200) public void testSendOneMessage() throws InterruptedException {
+        tablets=Tablet.createForTest(1,serviceOffset);
         startListening();
         sendOneDummyMessageFromEachTabletAndWait(false);
         shutdown();

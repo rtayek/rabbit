@@ -1,10 +1,10 @@
 package com.tayek.tablet;
-import static com.tayek.utilities.Utility.*;
 import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.tablet.Messages.Message;
 import com.tayek.tablet.MessageReceiver.Model;
+import static com.tayek.io.IO.*;
 import com.tayek.tablet.io.LoggingHandler;
 public class ModelTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
@@ -13,25 +13,25 @@ public class ModelTestCase {
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
         LoggingHandler.setLevel(Level.OFF);
-        model.l.warning("setup");
+        l.warning("setup");
     }
     @After public void tearDown() throws Exception {
-        model.l.warning("teardown");
+        l.warning("teardown");
     }
     /*@Test*/ public void testShort() {
-        message=messages.normal(1,1,2,model);
+        message=messages.normal("1","1",2,model);
         model.receive(message);
         assertTrue(model.state(2));
     }
     @Test public void testJustRight() {
         Model m=model.clone();
         m.setState(2,true);
-        message=messages.normal(1,1,2,m);
+        message=messages.normal("1","1",2,m);
         model.receive(message);
         assertTrue(model.state(2));
     }
     /*@Test*/ public void testTooLong() {
-        message=messages.normal(1,1,2,model);
+        message=messages.normal("1","1",2,model);
         model.receive(message);
         assertTrue(model.state(2));
     }

@@ -1,17 +1,12 @@
 package com.tayek.tablet.io;
-import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
 import java.util.logging.Formatter;
-import javax.management.RuntimeErrorException;
+import com.tayek.io.IO;
+import com.tayek.io.IO.SocketHandlerCallable;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Messages.Message;
-import com.tayek.tablet.MessageReceiver.Model;
-import com.tayek.tablet.io.IO.SocketHandlerCallable;
-import com.tayek.tablet.io.Sender.Client;
-import static com.tayek.utilities.Utility.*;
-import static com.tayek.tablet.io.IO.*;
+import static com.tayek.io.IO.*;
 public class LoggingHandler {
     public static class MyFormatter extends Formatter {
         private MyFormatter() {}
@@ -93,7 +88,7 @@ public class LoggingHandler {
         try {
             socketHandler=runAndWait(task);
         } catch(InterruptedException|ExecutionException e) {
-            staticLogger.warning("caught: '"+e+"'");
+            l.warning("caught: '"+e+"'");
         }
         return socketHandler;
     }
@@ -105,7 +100,7 @@ public class LoggingHandler {
         new Thread(new Runnable() {
             @Override public void run() {
                 try {
-                    IO.staticLogger.info("start socket handler");
+                    IO.l.info("start socket handler");
                     SocketHandler socketHandler=startSocketHandler(host,LogServer.defaultService);
                     if(socketHandler!=null) {
                         p("got socket handler: "+socketHandler);
@@ -116,9 +111,9 @@ public class LoggingHandler {
                         Logger global=Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
                         global.addHandler(socketHandler);
                         global.severe("global with socket handler.");
-                    } else IO.staticLogger.warning("could not start socket handler to: "+host);
+                    } else IO.l.warning("could not start socket handler to: "+host);
                 } catch(Exception e) {
-                    IO.staticLogger.info("caught: "+e);
+                    IO.l.info("caught: "+e);
                 }
             }
         }).start();
@@ -142,19 +137,6 @@ public class LoggingHandler {
     private static Map<Class<?>,Logger> map;
     public static final Set<Class<?>> loggers=new LinkedHashSet<>();
     static /* wow! */ {
-        //p(" static init loggers");
-        loggers.add(Audio.class);
         loggers.add(IO.class);
-        loggers.add(Client.class);
-        loggers.add(Server.class);
-        loggers.add(Toaster.class);
-        loggers.add(AudioObserver.class);
-        loggers.add(Group.class);
-        loggers.add(Message.class);
-        loggers.add(Model.class);
-        loggers.add(Tablet.class);
-        loggers.add(View.class);
-        loggers.add(View.CommandLine.class);
-        loggers.add(LogServer.class);
     }
 }

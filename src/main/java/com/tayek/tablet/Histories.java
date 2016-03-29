@@ -1,7 +1,8 @@
 package com.tayek.tablet;
 import java.util.*;
-import com.tayek.utilities.Histogram;
+import com.tayek.utilities.*;
 public class Histories {
+    // make this a Map<String,History>
     public static class History {
         public synchronized void success() {
             successes++;
@@ -40,9 +41,9 @@ public class Histories {
             String string="client: ";
             if(client.attempts()!=0) string+=client.toString();
             else string+="no attempts";
-            if(replies.attempts()!=0) string+="\nreplies: "+replies.toString();
-            if(allSendTimes.n()!=0) string+="\nall send times: "+allSendTimes;
-            if(allFailures.n()!=0) string+="\nall failures: "+allFailures;
+            if(replies.attempts()!=0) string+="\n\treplies: "+replies.toString();
+            if(allSendTimes.n()!=0) string+="\n\tall send times: "+allSendTimes;
+            if(allFailures.n()!=0) string+="\n\tall failures: "+allFailures;
             return string;
         }
         public final History client=new History(),replies=new History();
@@ -54,11 +55,13 @@ public class Histories {
             String string="server: ";
             if(server.attempts()!=0) string+=server.toString();
             else string+="no attempts";
-            if(replies.attempts()!=0) string+="\nreplies: "+replies.toString();
-            if(missing.attempts()!=0) string+="\nmissing: "+missing.toString();
+            if(replies.attempts()!=0) string+="\n\treplies: "+replies.toString();
+            if(missing.attempts()!=0) string+="\n\tmissing: "+missing.toString();
+            if(missing.attempts()!=0) string+="\n\tmissed: "+missed;
             return string;
         }
         public final History server=new History(),replies=new History(),missing=new History();
+        public final Missing missed=new Missing(1);
     }
     public static class ModelHistory {
         @Override public String toString() {
@@ -91,13 +94,17 @@ public class Histories {
         return false;
     }
     @Override public String toString() {
-        return "\nclient: "+client+"\nserver: "+server+"\nmodel: "+model;
+        return toString("");
     }
-    // could be just: H client,clientReplies,server,serverReplies, ... ?
+    public String toString(String prefix) {
+        return prefix+"(#"+serialNumber+")"+":\n\tclient: "+client+"\n\tserver: "+server+"\n\tmodel: "+model;
+    }
     public final ClientHistory client=new ClientHistory();
     public final ServerHistory server=new ServerHistory();
     public final ModelHistory model=new ModelHistory();
+    public final int serialNumber=++serialNumbers;
     public static Integer defaultConnectTimeout=200; // 40;
     public static Integer defaultSendTimeout=250; // 60;
     public static Integer defaultReportPeriod=100;
+    public static int serialNumbers=0;
 }
