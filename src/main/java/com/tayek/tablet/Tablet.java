@@ -17,7 +17,7 @@ import com.tayek.tablet.io.Sender.Client;
 import com.tayek.tablet.io.Sender.Client.SendCallable;
 import com.tayek.utilities.Et;
 import static com.tayek.io.IO.*;
-public class Tablet implements T {
+public class Tablet {
     // no need for ip address really,
     // maybe set the tablet id after construction
     // or before broadcast
