@@ -5,7 +5,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.*;
-import com.tayek.io.IO;
+import com.tayek.io.*;
 import com.tayek.tablet.Main.Stuff;
 import static com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
@@ -147,7 +147,7 @@ public class Controller {
         String host=InetAddress.getLocalHost().getHostName();
         p("host: "+host);
         Stuff stuff=new Stuff(1,new Groups().groups.get("g2"),Model.mark1);
-        Integer service=arguments.length==0?null:stuff.info("pc-5").service; // hack to get second tablet
+        Integer service=arguments.length==0?null:stuff.required("pc-5").service; // hack to get second tablet
         String tabletId=stuff.getTabletIdFromInetAddress(InetAddress.getByName(host),service);
         Tablet tablet=new Tablet(stuff,tabletId);
         p("tablet: "+tablet);

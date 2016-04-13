@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 import org.junit.*;
 import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Messages.*;
+import com.tayek.tablet.Message.Type;
+import com.tayek.tablet.Main.Stuff;
+import com.tayek.*;
 import static com.tayek.io.IO.*;
 public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
@@ -22,15 +24,15 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
     void check(Integer n) {
         for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
-            assertEquals(n,histories.client.client.attempts());
-            assertEquals(n,histories.server.server.attempts());
-            assertEquals(n,histories.server.missing.attempts());
-            assertEquals(n,histories.client.client.successes());
-            assertEquals(n,histories.server.server.successes());
-            assertEquals(n,histories.server.missing.successes());
-            assertEquals(zero,histories.client.client.failures());
-            assertEquals(zero,histories.server.server.failures());
-            assertEquals(zero,histories.server.missing.failures());
+            assertEquals(n,histories.senderHistory.history.attempts());
+            assertEquals(n,histories.receiverHistory.history.attempts());
+            assertEquals(n,histories.receiverHistory.missing.attempts());
+            assertEquals(n,histories.senderHistory.history.successes());
+            assertEquals(n,histories.receiverHistory.history.successes());
+            assertEquals(n,histories.receiverHistory.missing.successes());
+            assertEquals(zero,histories.senderHistory.history.failures());
+            assertEquals(zero,histories.receiverHistory.history.failures());
+            assertEquals(zero,histories.receiverHistory.missing.failures());
         }
     }
     @Test(timeout=900) public void testNoneMissing() throws InterruptedException {
@@ -46,7 +48,7 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
         first.broadcast(message2,first.stuff);
         Thread.sleep(100);
         first.broadcast(message3,first.stuff);
-        while(first.histories().client.client.attempts()<2)
+        while(first.histories().senderHistory.history.attempts()<2)
             Thread.sleep(10);
         for(Tablet tablet:tablets)
         p(tablet.stuff.report(tablet.tabletId()));
@@ -64,7 +66,7 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
         //first.broadcast(message2,first.stuff);
         //Thread.sleep(100);
         first.broadcast(message3,first.stuff);
-        while(first.histories().client.client.attempts()<2)
+        while(first.histories().senderHistory.history.attempts()<2)
             Thread.sleep(10);
         for(Tablet tablet:tablets)
             p(tablet.stuff.report(tablet.tabletId()));
@@ -82,7 +84,7 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
         first.broadcast(message3,first.stuff);
         Thread.sleep(100);
         first.broadcast(message2,first.stuff);
-        while(first.histories().client.client.attempts()<2)
+        while(first.histories().senderHistory.history.attempts()<2)
             Thread.sleep(10);
         for(Tablet tablet:tablets)
             p(tablet.stuff.report(tablet.tabletId()));

@@ -2,10 +2,11 @@ package com.tayek.tablet;
 import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
-import com.tayek.tablet.Messages.Message;
+import com.tayek.io.LoggingHandler;
+import com.tayek.tablet.Message.Factory;
 import com.tayek.tablet.MessageReceiver.Model;
+import com.tayek.utilities.Single;
 import static com.tayek.io.IO.*;
-import com.tayek.tablet.io.LoggingHandler;
 public class ModelTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         LoggingHandler.init();
@@ -19,19 +20,19 @@ public class ModelTestCase {
         l.warning("teardown");
     }
     /*@Test*/ public void testShort() {
-        message=messages.normal("1","1",2,model);
+        message=messages.normal("1","1",2,model.toCharacters());
         model.receive(message);
         assertTrue(model.state(2));
     }
     @Test public void testJustRight() {
         Model m=model.clone();
         m.setState(2,true);
-        message=messages.normal("1","1",2,m);
+        message=messages.normal("1","1",2,m.toCharacters());
         model.receive(message);
         assertTrue(model.state(2));
     }
     /*@Test*/ public void testTooLong() {
-        message=messages.normal("1","1",2,model);
+        message=messages.normal("1","1",2,model.toCharacters());
         model.receive(message);
         assertTrue(model.state(2));
     }
@@ -85,6 +86,6 @@ public class ModelTestCase {
             assertFalse(model.state(i));
     }
     Model model=new Model(7,null);
-    Messages messages=new Messages();
+    Factory messages=Message.instance.create(new Single<Integer>(0));
     Message message;
 }

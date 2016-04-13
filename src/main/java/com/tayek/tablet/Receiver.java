@@ -2,12 +2,14 @@ package com.tayek.tablet;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.*;
-import com.tayek.tablet.Messages.*;
+import com.tayek.*;
+import com.tayek.tablet.Message.*;
+import com.tayek.tablet.Main.Stuff;
 import com.tayek.tablet.io.Sender.Client;
 import com.tayek.tablet.io.Sender.Client.SendCallable;
 import com.tayek.utilities.Et;
 import static com.tayek.io.IO.*;
-public interface Receiver {
+public interface Receiver { // Consumer<Object>
     void receive(Object message);
     public static class DummyReceiver implements Receiver {
         @Override public void receive(Object message) {
@@ -23,7 +25,7 @@ public interface Receiver {
             this.tablet=tablet;
             this.iDs=iDs;
             this.messageReceiver=messageReceiver;
-            history=tablet.histories().server;
+            reveiverHistory=tablet.histories().receiverHistory;
             if(iDs!=null) for(Object x:iDs)
                 lastMessageNumbers.put(x,null);
             this.messages=tablet.stuff.messages;
@@ -33,31 +35,35 @@ public interface Receiver {
             else processMessageObject(iD,message.toString());
         }
         void checkForMissing(Message message) {
-            if(!lastMessageNumbers.containsKey(message.tabletId)) l.severe("message from foreign tablet: "+message);
-            Integer lastMessageNumber=lastMessageNumbers.get(message.tabletId);
+            if(!lastMessageNumbers.containsKey(message.tabletId())) l.severe("message from foreign tablet: "+message);
+            Integer lastMessageNumber=lastMessageNumbers.get(message.tabletId());
+            boolean ignoreMissingOrOutOfOrder=true;
             if(lastMessageNumber!=null) {
-                l.info("last: "+lastMessageNumber+", current: "+message.number);
-                if(message.number==lastMessageNumber+1) history.missing.success();
+                l.info("last: "+lastMessageNumber+", current: "+message.number());
+                if(message.number()==lastMessageNumber+1) reveiverHistory.missing.success();
                 else {
-                    l.warning(iD+": got #"+history.server.attempts()+", expected number: "+(lastMessageNumber+1)+" from: "+message.tabletId+", but got: "+message.number);
-                    if(message.number<lastMessageNumber+1) {
-                        l.warning("#"+history.server.attempts()+", out of order!");
-                        history.missing.failure("out of order: "+(message.number-(lastMessageNumber+1)));
+                    l.warning(iD+": got #"+reveiverHistory.history.attempts()+", expected number: "+(lastMessageNumber+1)+" from: "+message.tabletId()+", but got: "+message.number());
+                    if(message.number()<lastMessageNumber+1) {
+                        l.warning("#"+reveiverHistory.history.attempts()+", out of order!");
+                        if(ignoreMissingOrOutOfOrder) reveiverHistory.missing.success(); // count first as success
+                        else reveiverHistory.missing.failure("out of order: "+(message.number()-(lastMessageNumber+1)));
                     } else {
-                        l.warning("#"+history.server.attempts()+", missing or out of order, expected number: "+(lastMessageNumber+1)+", but got: "+message.number);
-                        history.missing.failure("missing: "+(message.number-(lastMessageNumber+1)));
+                        l.warning("#"+reveiverHistory.history.attempts()+", missing or out of order, expected number: "+(lastMessageNumber+1)+", but got: "+message.number());
+                        if(ignoreMissingOrOutOfOrder) reveiverHistory.missing.success(); // count first as success
+                        else reveiverHistory.missing.failure("missing: "+(message.number()-(lastMessageNumber+1)));
                     }
                 }
             } else {
                 // maybe missed a whole bunch!
-                history.missing.success(); // count first as success
+                if(message.number()!=1) l.warning("first message is: #"+message.number());
+                reveiverHistory.missing.success(); // count first as success
             }
-            lastMessageNumbers.put(message.tabletId,message.number);
-            l.info(iD+" put last #"+message.number+" into: "+message.tabletId);
-            if(history.missed.isDuplicate(message.number)) {
-                l.severe(iD+": missing detected a duplicate!: "+history.missed);
+            lastMessageNumbers.put(message.tabletId(),message.number());
+            l.info(iD+" put last #"+message.number()+" into: "+message.tabletId());
+            if(reveiverHistory.missed.isDuplicate(message.number())) {
+                l.severe(iD+": missing detected a duplicate!: "+reveiverHistory.missed);
             }
-            history.missed.adjust(message.number);
+            reveiverHistory.missed.adjust(message.number());
         }
         // move this to messages?
         private void processMessageObject(Object iD,String string) {
@@ -66,14 +72,14 @@ public interface Receiver {
                 Message message=messages.from(string);
                 checkForMissing(message);
                 l.fine(iD+" received: "+message+" at: "+System.currentTimeMillis());
-                switch(message.type) {
+                switch(message.type()) {
                     case ping:
                         l.warning("i got a ping!");
                         Message ack=messages.other(Type.ack,tablet.groupId,tablet.tabletId());
                         ackEt=new Et();
-                        InetSocketAddress inetSocketAddress=tablet.stuff.socketAddress(message.tabletId);
+                        InetSocketAddress inetSocketAddress=tablet.stuff.socketAddress(message.tabletId());
                         Future<Void> future=Client.executeTaskAndCancelIfItTakesTooLong(tablet.stuff.executorService,
-                                new SendCallable(tablet.tabletId(),ack,message.tabletId,tablet.stuff,tablet.stuff.info(message.tabletId).histories(),inetSocketAddress),tablet.stuff.sendTimeout,
+                                new SendCallable(tablet.tabletId(),ack,message.tabletId(),tablet.stuff,tablet.stuff.required(message.tabletId()).histories(),inetSocketAddress),tablet.stuff.sendTimeout,
                                 tablet.stuff.runCanceller?tablet.stuff.canceller:null,tablet.stuff.waitForSendCallable);
                         break;
                     case ack:
@@ -86,24 +92,16 @@ public interface Receiver {
                         l.warning(iD+", received rollover: "+message);
                         break;
                     case drive:
-                        new Thread(new Runnable() {
-                            @Override public void run() {
-                                Driver.drive(tablet,100,Tablet.driveWait);
-                                l.severe("start drive histories.");
-                                l.severe("drive: "+tablet.histories());
-                                l.severe("end drive histories.");
-                            }
-                        }).start();
+                        tablet.driveInThread();
+                        break;
+                    case stopDriving:
+                        tablet.stopDriving=true;
                         break;
                     case forever:
-                        new Thread(new Runnable() {
-                            @Override public void run() {
-                                Driver.forever(tablet);
-                            }
-                        }).start();
+                        tablet.foreverInThread();
                         break;
                     default:
-                        if(!message.tabletId.equals(iD)) tablet.model.receive(message);
+                        if(!message.tabletId().equals(iD)) tablet.model.receive(message);
                         else l.fine("discarding message from self");
                 }
             }
@@ -114,10 +112,10 @@ public interface Receiver {
         final Object iD;
         final MessageReceiver messageReceiver;
         final Set<? extends Object> iDs;
-        final Histories.ServerHistory history; // change to histories
+        final Histories.ReceiverHistory reveiverHistory; // change to histories
         // 
         Et ackEt;
-        private final Messages messages;
+        private final Factory messages;
         private final Map<Object,Integer> lastMessageNumbers=new LinkedHashMap<>();
     }
 }

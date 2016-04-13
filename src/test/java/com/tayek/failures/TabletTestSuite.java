@@ -1,8 +1,7 @@
-package com.tayek;
+package com.tayek.failures;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-import com.tayek.failures.TabletTestCase;
 import com.tayek.sablet.*;
 import static com.tayek.io.IO.*;
 @RunWith(Suite.class) @Suite.SuiteClasses({TabletTestCase.class,TwoTabletsTestCase.class,HeartbeatTestCase.class,})

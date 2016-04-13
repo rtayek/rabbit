@@ -3,8 +3,8 @@ import static com.tayek.io.IO.*;
 import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
+import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
-import com.tayek.tablet.io.LoggingHandler;
 public class OneTabletTestCase extends AbstractTabletTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         AbstractTabletTestCase.setUpBeforeClass();

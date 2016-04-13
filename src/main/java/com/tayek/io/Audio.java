@@ -1,4 +1,4 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import static com.tayek.io.IO.*;
 import static com.tayek.utilities.Utility.*;
 import java.io.BufferedInputStream;
@@ -107,8 +107,4 @@ class Windows implements Audio {
     }
     boolean runOnSeparateThread=true,useFuture=false;
     ExecutorService executorService=Executors.newSingleThreadExecutor();
-    static {
-        LoggingHandler.init();
-        LoggingHandler.setLevel(Level.WARNING);
-    }
 }

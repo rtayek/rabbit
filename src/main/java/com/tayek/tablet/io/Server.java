@@ -2,6 +2,7 @@ package com.tayek.tablet.io;
 import static com.tayek.utilities.Utility.*;
 import java.io.*;
 import java.net.*;
+import com.tayek.*;
 import com.tayek.io.IO.ShutdownOptions;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Main.Stuff;
@@ -11,12 +12,12 @@ public class Server implements Runnable {
     public Server(Object iD,SocketAddress socketAddress,Receiver receiver,Stuff stuff,Histories history) throws IOException {
         this(iD,serverSocket(socketAddress),receiver,stuff,history);
     }
-    public Server(Object iD,ServerSocket serverSocket,Receiver receiver,Stuff stuff,Histories history) {
+    public Server(Object iD,ServerSocket serverSocket,Receiver receiver,Stuff stuff,Histories histories) {
         this.serverSocket=serverSocket;
         this.id=iD;
         this.receiver=receiver;
         this.stuff=stuff;
-        this.history=history;
+        this.histories=histories;
         //p("server ctor: "+method(3));
     }
     private Writer reply(Socket socket,String string) {
@@ -26,74 +27,75 @@ public class Server implements Runnable {
                 w=new PrintWriter(socket.getOutputStream());
                 w.write("ok");
                 w.flush();
-                history.server.replies.success();
+                histories.receiverHistory.replies.success();
                 return w;
             } catch(IOException e) {
-                history.server.replies.failure(e.toString());
+                histories.receiverHistory.replies.failure(e.toString());
             }
         } else l.warning("string is null or empty!");
         return null;
     }
     private String read(Object iD,Socket socket) {
         Et et=new Et();
-        l.info("enter read for #"+(history.server.server.attempts()+1));
+        l.info("enter read for #"+(histories.receiverHistory.history.attempts()+1));
         String string=null;
         boolean useTimeout=false;
         try {
             if(useTimeout) socket.setSoTimeout(200);
             BufferedReader in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            l.fine("#"+(history.server.server.attempts()+1)+", try to read");
+            l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", try to read");
             string=in.readLine();
             if(string==null||string.isEmpty()) {
                 p("1eof or empty string!");
                 throw new RuntimeException("eof or empty string");
             }
             if(shutdownOptions.closeInput) {
-                l.fine("#"+(history.server.server.attempts()+1)+", read, try to close input");
+                l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", read, try to close input");
                 in.close();
             }
             if(shutdownOptions.shutdownInput) {
-                l.fine("#"+(history.server.server.attempts()+1)+", read, try to shudown input");
+                l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", read, try to shudown input");
                 socket.shutdownInput();
             }
-            if(string!=null&&!string.isEmpty()) history.server.server.successes();
+            if(string!=null&&!string.isEmpty()) histories.receiverHistory.history.successes(); // ??
             else {
                 l.severe("received null or empty message!");
             }
             Writer writer=null;
+            l.info("read: "+string);
             if(stuff.replying) writer=reply(socket,string);
             if(shutdownOptions.closeOutput&&writer!=null) {
-                l.fine("#"+(history.server.server.attempts()+1)+", read, try to close output");
+                l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", read, try to close output");
                 writer.close();
             }
             if(shutdownOptions.shutdownOutput) {
-                l.fine("#"+(history.server.server.attempts()+1)+", read, try to shudown output");
+                l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", read, try to shudown output");
                 socket.shutdownOutput();
             }
-            l.fine("#"+(history.server.server.attempts()+1)+", read, try to close socket");
+            l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", read, try to close socket");
             if(shutdownOptions.closeSocket) {
-                l.fine("#"+(history.server.server.attempts()+1)+", read, try to close socket");
+                l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", read, try to close socket");
                 socket.close();
-                l.fine("#"+(history.server.server.attempts()+1)+", socket closed");
+                l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", socket closed");
             }
-            history.server.server.success();
-            history.server.server.successHistogram.add(et.etms());
-            history.server.server.failureHistogram.add(Double.NaN);
+            histories.receiverHistory.history.success();
+            histories.receiverHistory.history.successHistogram.add(et.etms());
+            histories.receiverHistory.history.failureHistogram.add(Double.NaN);
         } catch(IOException e) {
-            history.server.server.failure(e.toString());
-            history.server.server.successHistogram.add(Double.NaN);
-            history.server.server.failureHistogram.add(et.etms());
-            l.severe("#"+(history.server.server.attempts()+1)+", "+iD+", 4 server caught: "+e);
+            histories.receiverHistory.history.failure(e.toString());
+            histories.receiverHistory.history.successHistogram.add(Double.NaN);
+            histories.receiverHistory.history.failureHistogram.add(et.etms());
+            l.severe("#"+(histories.receiverHistory.history.attempts()+1)+", "+iD+", 4 server caught: "+e);
             e.printStackTrace();
         } catch(Exception e) {
-            history.server.server.failure(e.toString());
-            history.server.server.successHistogram.add(Double.NaN);
-            history.server.server.failureHistogram.add(et.etms());
-            l.severe("#"+(history.server.server.attempts()+1)+", "+iD+", 4 server caught: "+e);
+            histories.receiverHistory.history.failure(e.toString());
+            histories.receiverHistory.history.successHistogram.add(Double.NaN);
+            histories.receiverHistory.history.failureHistogram.add(et.etms());
+            l.severe("#"+(histories.receiverHistory.history.attempts()+1)+", "+iD+", 4 server caught: "+e);
             e.printStackTrace();
         }
         if(string==null||string.isEmpty()) p("return eof or empty string!");
-        l.info("exit read for #"+history.server.server.attempts());
+        l.info("exit read for #"+histories.receiverHistory.history.attempts());
         return string;
     }
     @Override public void run() {
@@ -102,15 +104,15 @@ public class Server implements Runnable {
             try {
                 l.fine(id+" is accepting on: "+serverSocket);
                 Socket socket=serverSocket.accept();
-                l.fine("#"+(history.server.server.attempts()+1)+", "+id+" accepted connection from: "+socket.getRemoteSocketAddress());
+                l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", "+id+" accepted connection from: "+socket.getRemoteSocketAddress());
                 Et et=new Et();
-                synchronized(history) { // try to find missing
-                    l.info("#"+(history.server.server.attempts()+1)+", "+id+" time to sync: "+et);
+                synchronized(histories) { // try to find missing
+                    l.info("#"+(histories.receiverHistory.history.attempts()+1)+", "+id+" time to sync: "+et);
                     String string=read(id,socket);
                     if(string==null||string.isEmpty()) l.severe("server: "+id+", read eof or empty string!");
                     if(receiver!=null) if(string!=null) receiver.receive(string);
-                    l.info("#"+history.server.server.attempts()+", "+id+" time to sync and read: "+et);
-                    if(history.server.server.attempts()>0&&reportPeriod>0&&history.server.server.attempts()%reportPeriod==0) l.warning(id+", history from server: "+history);
+                    l.info("#"+histories.receiverHistory.history.attempts()+", "+id+" time to sync and read: "+et);
+                    if(histories.receiverHistory.history.attempts()>0&&reportPeriod>0&&histories.receiverHistory.history.attempts()%reportPeriod==0) l.warning(id+", history from server: "+histories);
                 } // maybe we do not need to sync this?
             } catch(SocketException e) {
                 if(isShuttingDown) {
@@ -146,7 +148,7 @@ public class Server implements Runnable {
                 }
                 break;
             }
-            if(stuff.reportPeriod>0&&history.anyAttempts()&&history.server.server.attempts()%stuff.reportPeriod==0) l.warning("report history from server: "+id+": "+history);
+            if(histories.reportPeriod>0&&histories.anyAttempts()&&histories.receiverHistory.history.attempts()%histories.reportPeriod==0) l.warning("history from server: "+id+": "+histories);
         } // was in the wrong place!
         try {
             l.info(id+" is closing server socket.");
@@ -195,7 +197,7 @@ public class Server implements Runnable {
     private final ServerSocket serverSocket;
     private final Stuff stuff;
     private final Receiver receiver;
-    private final Histories history;
+    private final Histories histories;
     private volatile boolean isShuttingDown;
     public final ShutdownOptions shutdownOptions=new ShutdownOptions();
     public Integer reportPeriod=Histories.defaultReportPeriod;

@@ -1,4 +1,4 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import java.io.File;
 import com.tayek.utilities.Utility;
 public class ReadLogFiles {

@@ -4,12 +4,13 @@ import static org.junit.Assert.*;
 import java.net.SocketAddress;
 import java.util.*;
 import org.junit.*;
+import com.tayek.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.MessageReceiver.Model;
-import com.tayek.tablet.Messages.Type;
+import com.tayek.tablet.Message.Type;
 import com.tayek.tablet.Main.Stuff;
-import com.tayek.tablet.Main.Stuff.Info;
+import com.tayek.tablet.Main.Stuff.*;
 import static com.tayek.io.IO.*;
 import com.tayek.utilities.*;
 public class Tablet32TestCase extends AbstractTabletTestCase {
@@ -35,9 +36,9 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         }
     }
     private void justOneWithOneMessage() throws InterruptedException {
-        Map<String,Info> map=new LinkedHashMap<>();
+        Map<String,Required> map=new LinkedHashMap<>();
         for(Integer i=1;i<=32;i++) // hack address so it can't connect
-            map.put("T"+i+" on PC",new Info("T"+i+" on PC",Main.testingHost,Main.defaultReceivePort+100+serviceOffset+i));
+            map.put("T"+i+" on PC",new Required("T"+i+" on PC",testingHost,defaultReceivePort+100+serviceOffset+i));
         Stuff stuff=new Stuff(1,map,Model.mark1);
         p("map: "+map);
         tablets=Tablet.create(stuff);
@@ -50,14 +51,14 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         }
         first.broadcast(first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId()),first.stuff);
         Thread.sleep(700);
-        Histories history=first.histories();
-        assertEquals(one,history.server.server.successes());
-        assertEquals(first.stuff.replying?one:zero,history.server.replies.successes());
-        assertEquals(one,history.client.client.successes());
-        assertEquals(first.stuff.replying?one:zero,history.client.replies.successes());
-        assertEquals(zero,history.server.server.failures());
-        if(areAllLiestening) assertEquals(zero,history.client.client.failures());
-        else assertEquals(thirtyOne,history.client.client.failures());
+        Histories histories=first.histories();
+        assertEquals(one,histories.receiverHistory.history.successes());
+        assertEquals(first.stuff.replying?one:zero,histories.receiverHistory.replies.successes());
+        assertEquals(one,histories.senderHistory.history.successes());
+        assertEquals(first.stuff.replying?one:zero,histories.senderHistory.replies.successes());
+        assertEquals(zero,histories.receiverHistory.history.failures());
+        if(areAllLiestening) assertEquals(zero,histories.senderHistory.history.failures());
+        else assertEquals(thirtyOne,histories.senderHistory.history.failures());
         p("send time for all: "+sendTime);
     }
     // some of these will fail with not all sent.
@@ -74,7 +75,7 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         sendOneDummyMessageFromFirstTabletAndWaitAndShutdown(false);
         p("send time: "+et);
     }
-    Histogram sendTime=new Histogram(10,0,1000);
+    Histogram sendTime=new Histogram(10,0,1_000);
     static final Integer thirtyOne=new Integer(31);
     static final Integer thirtyTwo=new Integer(32);
 }

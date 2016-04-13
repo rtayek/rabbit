@@ -1,5 +1,4 @@
-package com.tayek.tablet.io;
-import com.tayek.io.IO.Callback;
+package com.tayek.io;
 import static com.tayek.io.IO.*;
 public interface Toaster {
     void toast(String string);

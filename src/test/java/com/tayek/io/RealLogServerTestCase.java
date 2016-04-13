@@ -1,8 +1,8 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import static org.junit.Assert.*;
 import java.util.logging.*;
 import org.junit.*;
-import com.tayek.io.IO;
+import com.tayek.io.*;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.io.*;
 public class RealLogServerTestCase {

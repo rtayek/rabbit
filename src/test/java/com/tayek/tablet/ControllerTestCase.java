@@ -3,6 +3,8 @@ import static org.junit.Assert.*;
 import java.io.*;
 import java.util.Map;
 import org.junit.*;
+import com.tayek.Required;
+import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.Main.Stuff;
 import static com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
@@ -33,5 +35,5 @@ public class ControllerTestCase {
     }
     Tablet tablet;
     Controller controller;
-    static Map<Integer,Info> info;
+    static Map<Integer,Required> required;
 }

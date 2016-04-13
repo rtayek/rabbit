@@ -4,6 +4,8 @@ import org.junit.*;
 import com.tayek.tablet.Main.Stuff;
 import static com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
+import com.tayek.Required;
+import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.Enums.MenuItem;
 import com.tayek.tablet.io.*;
 public class TabletMenuItemTestCase {
@@ -12,8 +14,8 @@ public class TabletMenuItemTestCase {
     }
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
-        Map<String,Info> infos=new Groups().groups.get("g2");
-        Stuff stuff=new Stuff(1,infos,Model.mark1);
+        Map<String,Required> requireds=new Groups().groups.get("g2");
+        Stuff stuff=new Stuff(1,requireds,Model.mark1);
         tablet=Tablet.create(stuff,stuff.keys().iterator().next());
         stuff=null; // tablet has a clone of group!
     }

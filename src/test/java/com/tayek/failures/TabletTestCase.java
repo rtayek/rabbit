@@ -5,9 +5,10 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import org.junit.*;
+import com.tayek.*;
 import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Messages.*;
+import com.tayek.tablet.Message.Type;
 public class TabletTestCase extends AbstractTabletTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         AbstractTabletTestCase.setUpBeforeClass();
@@ -62,7 +63,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
         tablets=Tablet.createForTest(2,serviceOffset);
         p("back in test");
         for(Tablet tablet:tablets)
-            p("stuff id for "+tablet.tabletId()+" is "+tablet.stuff.info(tablet.tabletId()).histories().serialNumber+" "+tablet.histories().serialNumber);
+            p("stuff id for "+tablet.tabletId()+" is "+tablet.stuff.required(tablet.tabletId()).histories().serialNumber+" "+tablet.histories().serialNumber);
         startListening();
         for(Tablet tablet:tablets) {
             tablet.broadcast(tablet.stuff.messages.other(Type.dummy,tablet.groupId,tablet.tabletId()),tablet.stuff);
@@ -71,19 +72,21 @@ public class TabletTestCase extends AbstractTabletTestCase {
         Integer expected=2; // sending to self now
         Iterator<Tablet> i=tablets.iterator();
         Tablet t=i.next();
-        Histories history=t.histories(); // get history from tablet
-        assertEquals(expected,history.server.server.successes());
+        Histories histories=t.histories(); // get history from tablet
+        assertEquals(expected,histories.receiverHistory.history.successes());
         t=i.next();
-        history=t.histories();
-        assertEquals(expected,history.server.server.successes());
+        histories=t.histories();
+        assertEquals(expected,histories.receiverHistory.history.successes());
         Tablet first=tablets.iterator().next();
         for(int buttoneId=1;buttoneId<=first.model.buttons;buttoneId++) {
             first.model.setState(buttoneId,true);
-            Message message=first.stuff.messages.normal(first.groupId,first.tabletId(),buttoneId,first.model);
+            Message message=first.stuff.messages.normal(first.groupId,first.tabletId(),buttoneId,first.model.toCharacters());
             first.broadcast(message,first.stuff);
             Thread.sleep(100);
-            for(Tablet tablet:tablets)
-                if(tablet.histories().server.missing.failures()>0) fail("badness");
+            for(Tablet tablet:tablets) {
+                //assert missing attenpts should be equal to messages
+                if(tablet.histories().receiverHistory.missing.failures()>0) fail("badness");
+            }
         }
         for(int buttoneId=1;buttoneId<=first.model.buttons;buttoneId++)
             assertTrue(first.model.state(buttoneId));
@@ -100,7 +103,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
             for(int buttoneId=1;buttoneId<first.model.buttons;buttoneId++)
                 assertFalse(tablet.model.state(buttoneId));
         for(Tablet tablet:tablets) // fails because each tablet needs a messages class!
-            if(tablet.histories().server.missing.failures()>0) fail("badness");
+            if(tablet.histories().receiverHistory.missing.failures()>0) fail("badness");
         shutdown();
         //printStats();
     }
@@ -120,7 +123,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
         Tablet first=tablets.iterator().next();
         for(int buttoneId=1;buttoneId<=first.model.buttons;buttoneId++) {
             first.model.setState(buttoneId,true);
-            Message message=first.stuff.messages.normal(first.groupId,first.tabletId(),buttoneId,first.model);
+            Message message=first.stuff.messages.normal(first.groupId,first.tabletId(),buttoneId,first.model.toCharacters());
             first.broadcast(message,first.stuff);
             Thread.sleep(100);
         }

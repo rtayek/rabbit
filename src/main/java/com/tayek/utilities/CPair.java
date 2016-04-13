@@ -1,11 +1,6 @@
 package com.tayek.utilities;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.net.ServerSocket;
-import java.net.Socket;
-public class Pair<First,Second> {
-    public Pair(First first,Second second) {
+public class CPair<First,Second> {
+    public CPair(First first,Second second) {
         this.first=first;
         this.second=second;
     }
@@ -20,7 +15,7 @@ public class Pair<First,Second> {
         if(this==obj) return true;
         if(obj==null) return false;
         if(getClass()!=obj.getClass()) return false;
-        @SuppressWarnings("unchecked") Pair<First,Second> other=(Pair<First,Second>)obj;
+        @SuppressWarnings("unchecked") CPair<First,Second> other=(CPair<First,Second>)obj;
         if(first==null) {
             if(other.first!=null) return false;
         } else if(!first.equals(other.first)) return false;
@@ -32,19 +27,6 @@ public class Pair<First,Second> {
     @Override public String toString() {
         return "["+first+","+second+"]";
     }
-    public static Pair<InetAddress,Integer> from(MulticastSocket socket) {
-        return new Pair<>(socket.getInetAddress(),socket.getLocalPort());
-    }
-    public static Pair<InetAddress,Integer> from(ServerSocket socket) {
-        return new Pair<>(socket.getInetAddress(),socket.getLocalPort());
-    }
-    public static Pair<InetAddress,Integer> from(Socket socket) {
-        return new Pair<>(socket.getInetAddress(),socket.getLocalPort());
-    }
-    public static Pair<InetAddress,Integer> from(DatagramPacket packet) {
-        return new Pair<>(packet.getAddress(),packet.getPort());
-    }
-    
     public final First first;
     public final Second second;
 }

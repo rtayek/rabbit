@@ -1,4 +1,4 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import static org.junit.Assert.assertTrue;
 import java.io.*;
 import java.net.*;
@@ -9,10 +9,8 @@ import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import com.tayek.io.IO;
 import static com.tayek.io.IO.*;
-import com.tayek.tablet.Main;
-import com.tayek.tablet.io.LogServer.Copier;
+import com.tayek.io.LogServer.Copier;
 import com.tayek.utilities.Utility;
 @RunWith(Parameterized.class) public class ParameterizedLogServerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
@@ -47,13 +45,13 @@ import com.tayek.utilities.Utility;
         this.useWriter=useWriter;
     }
     @Parameters public static Collection<Object[]> data() throws UnknownHostException,InterruptedException,ExecutionException {
-        List<String> list=new ArrayList<>();
-        list.add("127.0.0.1");
-        list.add("localhost");
-        list.add(Main.networkHost);
-        list.add(Main.testingHost);
+        Set<String> hosts=new TreeSet();
+        hosts.add("127.0.0.1");
+        hosts.add("localhost");
+        hosts.add(defaultHost);
+        hosts.add(testingHost);
         List<Object[]> parameters=new ArrayList<Object[]>();
-        for(String string:list) {
+        for(String string:hosts) {
             parameters.add(new Object[] {string,true});
             parameters.add(new Object[] {string,false});
         }

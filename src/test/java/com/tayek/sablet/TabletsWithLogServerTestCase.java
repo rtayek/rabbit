@@ -6,10 +6,10 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
 import org.junit.*;
-import com.tayek.io.IO;
+import com.tayek.io.*;
+import com.tayek.io.LogServer.Copier;
 import com.tayek.tablet.*;
 import com.tayek.tablet.io.*;
-import com.tayek.tablet.io.LogServer.Copier;
 import com.tayek.utilities.Utility;
 public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {

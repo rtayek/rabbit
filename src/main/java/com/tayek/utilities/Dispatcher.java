@@ -1,5 +1,6 @@
 package com.tayek.utilities;
 import static com.tayek.utilities.Utility.*;
+import static com.tayek.io.IO.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -17,7 +18,7 @@ public class Dispatcher {
         add(Main.class);
     }
     public void add(Class<?> clazz) {
-        entryPoints.put(new Integer(entryPoints.size()+1),new Pair<String,Class<?>>(clazz.getName(),clazz));
+        entryPoints.put(new Integer(entryPoints.size()+1),new CPair<String,Class<?>>(clazz.getName(),clazz));
     }
     public void remove(int i) {
         entryPoints.remove(i);
@@ -50,8 +51,8 @@ public class Dispatcher {
             /*final Pair<String,Class<?>> pair=*/run(number,string,parts);
         }
     }
-    Pair<String,Class<?>> run(Integer number,String string,String[] parts) {
-        final Pair<String,Class<?>> pair=entryPoints.get(number);
+    CPair<String,Class<?>> run(Integer number,String string,String[] parts) {
+        final CPair<String,Class<?>> pair=entryPoints.get(number);
         if(pair.equals(null)) {
             System.out.println(string+" is not a valid choice");
         } else {
@@ -79,5 +80,5 @@ public class Dispatcher {
         new Dispatcher(arguments).run();
     }
     public final String[] arguments; // given to main
-    public final Map<Integer,Pair<String,Class<?>>> entryPoints=new TreeMap<>();
+    public final Map<Integer,CPair<String,Class<?>>> entryPoints=new TreeMap<>();
 }

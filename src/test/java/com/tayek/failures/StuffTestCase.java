@@ -2,12 +2,12 @@ package com.tayek.failures;
 import static org.junit.Assert.*;
 import java.util.*;
 import org.junit.*;
-import com.tayek.tablet.Tablet;
 import static com.tayek.io.IO.*;
+import com.tayek.Required;
+import com.tayek.tablet.*;
 import com.tayek.tablet.Main.Stuff;
 import com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
-import com.tayek.tablet.Messages.Message;
 public class StuffTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
@@ -23,16 +23,16 @@ public class StuffTestCase {
         boolean foo=set.contains(null);
     }
     @Test(expected=NullPointerException.class) public void testNullWithTreeMap() {
-        TreeMap<String,Info> map=new TreeMap<>();
+        TreeMap<String,Required> map=new TreeMap<>();
         Set<String> set=map.keySet();
         boolean foo=set.contains(null);
     }
     @Test public void test() {
         Stuff stuff=new Stuff();
-        Tablet tablet=new Tablet(stuff.clone(),null);
+        Tablet tablet=new Tablet(stuff.clone(),"T1");
         tablet.startListening(null);
         String tabletId="1";
-        Message message=tablet.stuff.messages.normal(tablet.groupId,tabletId,1,tablet.model);
+        Message message=tablet.stuff.messages.normal(tablet.groupId,tabletId,1,tablet.model.toCharacters());
         tablet.broadcast(message,stuff);
         // check for something!
     }

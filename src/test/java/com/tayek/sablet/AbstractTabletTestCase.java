@@ -7,10 +7,10 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import org.junit.*;
-import com.tayek.io.IO;
+import com.tayek.*;
+import com.tayek.io.*;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Messages.Type;
-import com.tayek.tablet.io.*;
+import com.tayek.tablet.Message.Type;
 import com.tayek.utilities.Et;
 public abstract class AbstractTabletTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
@@ -67,30 +67,30 @@ public abstract class AbstractTabletTestCase {
         while(!done) {
             done=true;
             for(Tablet tablet:tablets) {
-                Histories history=tablet.histories();
+                Histories histories=tablet.histories();
                 // put history into tablet for convenience?
                 if(tablet.stuff.replying) {
-                    if(history.client.replies.successes()<tablets.size()) {
+                    if(histories.senderHistory.replies.successes()<tablets.size()) {
                         done=false;
                         break;
                     }
                 } else {
-                    if(history.server.server.successes()<tablets.size()) {
+                    if(histories.receiverHistory.history.successes()<tablets.size()) {
                         done=false;
                         break;
                     }
                     // check for sent also
-                    if(history.client.client.successes()<tablets.size()) {
+                    if(histories.senderHistory.history.successes()<tablets.size()) {
                         done=false;
                         break;
                     }
                 }
                 // fast fail: check history for any failures and return early.
                 // this should avoid timeouts and make the tests run faster.
-                if(history.failures()>0) {
+                if(histories.failures()>0) {
                     if(!once) {
                         once=true;
-                        p("failures: "+history);
+                        p("failures: "+histories);
                     }
                     // might cause some tests to fail if we return early
                     // maybe put a guard on this
@@ -110,8 +110,8 @@ public abstract class AbstractTabletTestCase {
         if(false) for(Tablet tablet:tablets)
             p("history: "+tablet.histories());
         for(Tablet tablet:tablets) {
-            Histories history=tablet.histories();
-            if(history.server.server.successes()>tablets.size()) l.warning(tablet+" received too many messages: "+history.server.server.successes());
+            Histories histories=tablet.histories();
+            if(histories.receiverHistory.history.successes()>tablets.size()) l.warning(tablet+" received too many messages: "+histories.receiverHistory.history.successes());
         }
     }
     void waitForEachTabletToReceiveAtLeastOneMessageFromFirstTablet(boolean sleepAndPrint) throws InterruptedException {
@@ -121,30 +121,30 @@ public abstract class AbstractTabletTestCase {
         while(!done) {
             done=true;
             for(Tablet tablet:tablets) {
-                Histories history=tablet.histories();
+                Histories histories=tablet.histories();
                 // put history into tablet for convenience?
                 if(tablet.stuff.replying) {
-                    if(history.client.replies.successes()<1) {
+                    if(histories.senderHistory.replies.successes()<1) {
                         done=false;
                         break;
                     }
                 } else {
-                    if(history.server.server.successes()<1) {
+                    if(histories.receiverHistory.history.successes()<1) {
                         done=false;
                         break;
                     }
                     // check for sent also
-                    if(tablet.equals(first)) if(history.client.client.successes()<1) {
+                    if(tablet.equals(first)) if(histories.senderHistory.history.successes()<1) {
                         done=false;
                         break;
                     }
                 }
                 // fast fail: check history for any failures and return early.
                 // this should avoid timeouts and make the tests run faster.
-                if(history.failures()>0) {
+                if(histories.failures()>0) {
                     if(!once) {
                         once=true;
-                        p("failures: "+history);
+                        p("failures: "+histories);
                     }
                     // might cause some tests to fail if we return early
                     // maybe put a guard on this
@@ -165,7 +165,7 @@ public abstract class AbstractTabletTestCase {
             p("history: "+tablet.histories());
         for(Tablet tablet:tablets) {
             Histories history=tablet.histories();
-            if(history.server.server.successes()>tablets.size()) l.warning(tablet+" received too many messages: "+history.server.server.successes());
+            if(history.receiverHistory.history.successes()>tablets.size()) l.warning(tablet+" received too many messages: "+history.receiverHistory.history.successes());
         }
     }
     void shutdownAndAwaitTermination(ExecutorService pool) {
@@ -197,7 +197,7 @@ public abstract class AbstractTabletTestCase {
         //p("wait for "+tablets.size()+" tablets, took: "+et);
         for(Tablet tablet:tablets) {
             Histories history=tablet.histories();
-            if(history.server.server.successes()!=tablets.size()) p(tablet+" received: "+history.server.server.successes()+" instead of "+tablets.size());
+            if(history.receiverHistory.history.successes()!=tablets.size()) p(tablet+" received: "+history.receiverHistory.history.successes()+" instead of "+tablets.size());
             checkHistory(tablet,tablets.size(),false);
         }
     }
@@ -207,8 +207,8 @@ public abstract class AbstractTabletTestCase {
         waitForEachTabletToReceiveAtLeastOneMessageFromFirstTablet(sleepAndPrint);
         p("wait for "+tablets.size()+" tablets, took: "+et);
         for(Tablet tablet:tablets) {
-            Histories history=tablet.histories();
-            if(history.server.server.successes()!=tablets.size()) p(tablet+" received: "+history.server.server.successes()+" instead of "+tablets.size());
+            Histories histories=tablet.histories();
+            if(histories.receiverHistory.history.successes()!=tablets.size()) p(tablet+" received: "+histories.receiverHistory.history.successes()+" instead of "+tablets.size());
             checkHistory(tablet,tablets.size(),true);
         }
     }
@@ -224,22 +224,22 @@ public abstract class AbstractTabletTestCase {
     public void checkHistory(Tablet tablet,Integer n,boolean oneTablet) {
         checkHistory(tablet,tablet.histories(),tablet.stuff.replying,n,oneTablet);
     }
-    public void checkHistory(Tablet tablet,Histories history,boolean replying,Integer n,boolean oneTablet) {
-        //p("history: "+history);
-        assertEquals(oneTablet?one:n,history.server.server.successes());
-        assertEquals(replying?n:zero,history.server.replies.successes());
+    public void checkHistory(Tablet tablet,Histories histories,boolean replying,Integer n,boolean oneTablet) {
+        //p("history: "+histories);
+        assertEquals(oneTablet?one:n,histories.receiverHistory.history.successes());
+        assertEquals(replying?n:zero,histories.receiverHistory.replies.successes());
         //p("sent "+history.clientHistory.sent);
         if(tablet!=null) {
-            if(oneTablet) assertEquals(one,history.client.client.successes());
-            else assertEquals(n,history.client.client.successes());
-        } else assertEquals(n,history.client.client.successes());
+            if(oneTablet) assertEquals(one,histories.senderHistory.history.successes());
+            else assertEquals(n,histories.senderHistory.history.successes());
+        } else assertEquals(n,histories.senderHistory.history.successes());
         // fails when sending in parallel since it does not wait?
         // but how?, since sent is incremented after send is complete
         // looks like received is ok. but sent is a bit late perhaps?
-        assertEquals("replying: "+replying,replying?n:zero,history.client.replies.successes());
-        assertEquals(zero,history.server.server.failures());
-        assertEquals(zero,history.client.client.failures());
-        assertEquals(zero,history.server.missing.failures());
+        assertEquals("replying: "+replying,replying?n:zero,histories.senderHistory.replies.successes());
+        assertEquals(zero,histories.receiverHistory.history.failures());
+        assertEquals(zero,histories.senderHistory.history.failures());
+        assertEquals(zero,histories.receiverHistory.missing.failures());
     }
     protected void printStats(String string) {
         p("print stats: "+string+" <<<<<<<");

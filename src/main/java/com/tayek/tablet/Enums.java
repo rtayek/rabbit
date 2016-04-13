@@ -1,8 +1,8 @@
 package com.tayek.tablet;
 import java.net.SocketAddress;
 import java.util.logging.Level;
-import com.tayek.io.IO;
-import com.tayek.tablet.Messages.Type;
+import com.tayek.io.*;
+import com.tayek.tablet.Message.Type;
 import static com.tayek.io.IO.*;
 import com.tayek.tablet.io.*;
 import com.tayek.utilities.Utility;
@@ -32,7 +32,7 @@ public class Enums {
         private final Level level;
     }
     public enum MenuItem {
-        ToggleLogging,Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,Forever,Level;
+        ToggleLogging,Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,StopDriving,Forever,Level;
         public void doItem(Tablet tablet) {
             doItem(this,tablet);
         }
@@ -86,23 +86,13 @@ public class Enums {
                     // System.exit(0); // how to test this?
                     break;
                 case Drive:
-                    new Thread(new Runnable() {
-                        @Override public void run() {
-                            Driver.drive(tablet,100,Tablet.driveWait);
-                            l.severe("start drive histories.");
-                            l.severe("drive: "+tablet.histories());
-                            l.severe("end drive histories.");
-
-                        }
-                    }).start();
+                    tablet.driveInThread();
+                    break;
+                case StopDriving:
+                    tablet.stopDriving=true;
                     break;
                 case Forever:
-                    // maybe check to see if thread is already running
-                    new Thread(new Runnable() {
-                        @Override public void run() {
-                            Driver.forever(tablet);
-                        }
-                    }).start();
+                    tablet.foreverInThread();
                     break;
                 default:
                     l.severe(tabletMenuItem+" was not handled!");

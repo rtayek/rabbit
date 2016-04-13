@@ -14,5 +14,5 @@ public abstract class GuiAdapterABC implements GuiAdapter,View {
             setButtonText(buttonId,tablet.getButtonText(buttonId));
         }
     }
-    final Tablet tablet;
+    public final Tablet tablet;
 }

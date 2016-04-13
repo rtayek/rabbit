@@ -3,10 +3,13 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.net.*;
 import org.junit.*;
+import com.tayek.*;
+import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Message.*;
 import com.tayek.tablet.Main.Stuff;
-import com.tayek.tablet.Messages.*;
 import com.tayek.tablet.io.Sender.Client;
+import com.tayek.utilities.Single;
 public class ClientServerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
@@ -25,13 +28,13 @@ public class ClientServerTestCase {
             Message message=messages.other(Type.dummy,"1","1");
             client.send(message,stuff);
         }
-        while(histories.client.client.attempts()<n)
+        while(histories.senderHistory.history.attempts()<n)
             Thread.yield();
-        while(histories.server.server.attempts()<n)
+        while(histories.receiverHistory.history.attempts()<n)
             Thread.yield();
         Thread.sleep(200);
-        assertEquals(n,histories.client.client.successes());
-        assertEquals(n,histories.server.server.successes());
+        assertEquals(n,histories.senderHistory.history.successes());
+        assertEquals(n,histories.receiverHistory.history.successes());
         server.stopServer();
     }
     @Test(timeout=500) public void testWithReply() throws IOException {
@@ -46,14 +49,14 @@ public class ClientServerTestCase {
             Message message=messages.other(Type.dummy,"1","1");
             client.send(message,stuff);
         }
-        while(histories.client.client.attempts()<n)
+        while(histories.senderHistory.history.attempts()<n)
             Thread.yield();
-        while(histories.server.server.attempts()<n)
+        while(histories.receiverHistory.history.attempts()<n)
             Thread.yield();
-        assertEquals(n,histories.client.client.successes());
-        assertEquals(n,histories.client.replies.successes());
-        assertEquals(n,histories.server.server.successes());
-        assertEquals(n,histories.server.replies.successes());
+        assertEquals(n,histories.senderHistory.history.successes());
+        assertEquals(n,histories.senderHistory.replies.successes());
+        assertEquals(n,histories.receiverHistory.history.successes());
+        assertEquals(n,histories.receiverHistory.replies.successes());
         server.stopServer();
     }
     @Test(timeout=200) public void testMissing() throws IOException,InterruptedException {
@@ -67,18 +70,18 @@ public class ClientServerTestCase {
             Message message=messages.other(Type.dummy,"1","1");
             if(i!=5) client.send(message,stuff);
         }
-        while(histories.client.client.attempts()<n-1)
+        while(histories.senderHistory.history.attempts()<n-1)
             Thread.yield();
-        while(histories.server.server.attempts()<n-1)
+        while(histories.receiverHistory.history.attempts()<n-1)
             Thread.yield();
-        assertEquals(Integer.valueOf(n-1),histories.client.client.successes());
-        assertEquals(Integer.valueOf(n-1),histories.server.server.successes());
+        assertEquals(Integer.valueOf(n-1),histories.senderHistory.history.successes());
+        assertEquals(Integer.valueOf(n-1),histories.receiverHistory.history.successes());
         server.stopServer();
     }
     SocketAddress socketAddress;
     Client client;
     Server server;
     Histories histories=new Histories();
-    Messages messages=new Messages();
+    Factory messages=Message.instance.create(new Single<Integer>(0));
     static int service=55555;
 }

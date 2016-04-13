@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import com.tayek.tablet.io.LoggingHandler;
+import com.tayek.io.LoggingHandler;
 import com.tayek.utilities.Missing;
 import static com.tayek.io.IO.*;
 public class MissingTestCase {

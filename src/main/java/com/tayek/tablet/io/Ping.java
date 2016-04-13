@@ -2,19 +2,22 @@ package com.tayek.tablet.io;
 import java.net.*;
 import java.util.Map;
 import java.util.logging.Level;
+import com.tayek.Required;
+import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Message.Type;
 import com.tayek.tablet.Main.Stuff;
 import static com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
-import com.tayek.tablet.Messages.*;
+import static com.tayek.io.IO.*;
 public class Ping {
     public static void main(String[] args) throws InterruptedException {
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.ALL);
-        Map<String,Info> infos=new Groups().groups.get("g0");
+        Map<String,Required> requireds=new Groups().groups.get("g0");
         String tabletId=Stuff.aTabletId(99);
-        infos.put(tabletId,new Info(tabletId,"localhost",Main.defaultReceivePort));
-        Stuff stuff=new Stuff(1,infos,Model.mark1);
+        requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
+        Stuff stuff=new Stuff(1,requireds,Model.mark1);
         Tablet tablet=Tablet.create(stuff,tabletId);
         stuff=null; // tablet has a clone of group.
         SocketAddress socketAddress=tablet.stuff.socketAddress(tablet.tabletId());

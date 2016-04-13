@@ -3,9 +3,10 @@ import static org.junit.Assert.*;
 import org.junit.*;
 import static com.tayek.io.IO.*;
 import static com.tayek.utilities.Utility.*;
-import com.tayek.tablet.Messages.*;
+import com.tayek.utilities.Single;
+import com.tayek.io.LoggingHandler;
+import com.tayek.tablet.Message.*;
 import com.tayek.tablet.MessageReceiver.Model;
-import com.tayek.tablet.io.LoggingHandler;
 public class MessageTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         LoggingHandler.init();
@@ -25,15 +26,15 @@ public class MessageTestCase {
     }
     @Test public void testNormalMessageWithTrue() {
         model.setState(3,true);
-        Message message=messages.normal("1","2",3,model);
-        assertEquals(one,message.number);
+        Message message=messages.normal("1","2",3,model.toCharacters());
+        assertEquals(one,message.number());
         String expected=message.toString();
         Message m=messages.from(expected);
         String actual=m.toString();
         assertEquals(expected,actual);
     }
     @Test public void testNormalMessageWithFalse() {
-        Message message=messages.normal("1","2",3,model);
+        Message message=messages.normal("1","2",3,model.toCharacters());
         String expected=message.toString();
         Message m=messages.from(expected);
         String actual=m.toString();
@@ -67,5 +68,5 @@ public class MessageTestCase {
         // how to do this without rolling up a tablet
     }
     Model model=Model.mark1.clone();
-    Messages messages=new Messages();
+    Factory messages=Message.instance.create(new Single<Integer>(0));
 }

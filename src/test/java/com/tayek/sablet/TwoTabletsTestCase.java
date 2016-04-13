@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ExecutionException;
 import org.junit.*;
 import com.tayek.tablet.*;
+import com.tayek.*;
 public class TwoTabletsTestCase extends AbstractTabletTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         AbstractTabletTestCase.setUpBeforeClass();
@@ -12,7 +13,7 @@ public class TwoTabletsTestCase extends AbstractTabletTestCase {
     @AfterClass public static void tearDownAfterClass() throws Exception {
         AbstractTabletTestCase.tearDownAfterClass();
     }
-   @Before public void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         super.setUp();
     }
     @After public void tearDown() throws Exception {
@@ -23,8 +24,8 @@ public class TwoTabletsTestCase extends AbstractTabletTestCase {
         startListening();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
         for(Tablet tablet:tablets) {
-            Histories history=tablet.histories();
-            assertEquals(new Integer(0),history.client.client.failures());
+            Histories histories=tablet.histories();
+            assertEquals(new Integer(0),histories.senderHistory.history.failures());
         }
     }
     @Test(timeout=500) public void testDummyWithEmptyMessage() throws InterruptedException,UnknownHostException,ExecutionException {
@@ -43,11 +44,11 @@ public class TwoTabletsTestCase extends AbstractTabletTestCase {
         tablets=Tablet.createForTest(2,serviceOffset);
         //startListening(); // so send will fail
         sendOneDummyMessageFromEachTablet();
-        Thread.sleep(500);
+        Thread.sleep(2_000);
         shutdown();
         for(Tablet tablet:tablets) {
             Histories history=tablet.histories();
-            assertEquals(new Integer(2),history.client.client.failures());
+            assertTrue(new Integer(2)<=history.senderHistory.history.failures());
         }
     }
 }

@@ -19,10 +19,16 @@ public class Missing { // tracks missing messages from consecutive messages.
         if(n<0) throw new MissingException("oops");
         return missing.contains(n);
     }
+    public boolean areAnyMissing() {
+        return missing.size()>0;
+    }
+    public boolean areAnyOutOfOrder() {
+        return outOfOrder.size()>0;
+    }
     public boolean isDuplicate(int n) {
         if(n<0) throw new MissingException("oops");
         if(n<largest&&!isMissing(n)) {
-            l.severe("strange duplicate: "+this);
+            l.severe("strange duplicate: "+this); // getting this on tablets
             System.err.flush();
         }
         return n<largest&&!isMissing(n);
@@ -57,7 +63,7 @@ public class Missing { // tracks missing messages from consecutive messages.
         }
     }
     @Override public String toString() {
-        return largest+"-"+missing+" "+outOfOrder;
+        return largest+"-"+missing+", ooo: "+outOfOrder;
     }
     public static void main(String[] args) throws IOException {
         Missing m=new Missing();

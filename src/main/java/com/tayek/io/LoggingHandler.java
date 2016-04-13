@@ -1,11 +1,8 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
 import java.util.logging.Formatter;
-import com.tayek.io.IO;
-import com.tayek.io.IO.SocketHandlerCallable;
-import com.tayek.tablet.*;
 import static com.tayek.io.IO.*;
 public class LoggingHandler {
     public static class MyFormatter extends Formatter {
@@ -105,12 +102,12 @@ public class LoggingHandler {
                     if(socketHandler!=null) {
                         p("got socket handler: "+socketHandler);
                         LoggingHandler.addSocketHandler(socketHandler);
-                        synchronized(Main.logServerHosts) {
-                            Main.logServerHosts.put(host,socketHandler);
+                        synchronized(logServerHosts) {
+                            logServerHosts.put(host,socketHandler);
                         }
                         Logger global=Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
                         global.addHandler(socketHandler);
-                        global.severe("global with socket handler.");
+                        global.warning("global with socket handler.");
                     } else IO.l.warning("could not start socket handler to: "+host);
                 } catch(Exception e) {
                     IO.l.info("caught: "+e);
@@ -120,15 +117,15 @@ public class LoggingHandler {
     }
     public static void toggleSockethandlers() {
         boolean wereAnyOn=false;
-        synchronized(Main.logServerHosts) {
-            for(String host:Main.logServerHosts.keySet())
-                if(Main.logServerHosts.get(host)!=null) {
-                    stopSocketHandler(Main.logServerHosts.get(host));
-                    Main.logServerHosts.put(host,null);
+        synchronized(logServerHosts) {
+            for(String host:logServerHosts.keySet())
+                if(logServerHosts.get(host)!=null) {
+                    stopSocketHandler(logServerHosts.get(host));
+                    logServerHosts.put(host,null);
                     wereAnyOn=true;
                 }
         }
-        if(!wereAnyOn) for(String host:Main.logServerHosts.keySet())
+        if(!wereAnyOn) for(String host:logServerHosts.keySet())
             startSocketHandler(host);
     }
     public static boolean once;

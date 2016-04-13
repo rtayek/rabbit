@@ -7,9 +7,19 @@ apply plugin: 'application'
 //apply plugin: "net.saliman.cobertura"
 // java -javaagent:tracer.jar 
 //https://blogs.oracle.com/sundararajan/entry/tracing_class_loading_1_5e
-sourceSets {
+//sourceSets {
+//    integrationTest {
+//        java.srcDir file('src/integration-test/java')
+//        resources.srcDir file('src/integration-test/resources')
+//    }
+//}
+sourceSets { // recently added - is this correct?
     integrationTest {
-        java.srcDir file('src/integration-test/java')
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/java')
+        }
         resources.srcDir file('src/integration-test/resources')
     }
 }

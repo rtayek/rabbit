@@ -1,6 +1,6 @@
 package com.tayek.tablet;
 import org.junit.*;
-import com.tayek.tablet.io.LoggingHandler;
+import com.tayek.io.LoggingHandler;
 public class LHTestCase {
     @Test public void test() {
         LoggingHandler.init();

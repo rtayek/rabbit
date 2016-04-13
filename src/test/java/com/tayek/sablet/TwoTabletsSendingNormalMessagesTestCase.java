@@ -3,6 +3,7 @@ import static org.junit.Assert.*;
 import java.net.UnknownHostException;
 import java.util.concurrent.ExecutionException;
 import org.junit.*;
+import com.tayek.*;
 import com.tayek.tablet.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import static com.tayek.io.IO.*;
@@ -38,9 +39,9 @@ public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestC
         shutdown();
         for(Tablet tablet:tablets) {
             Histories history=tablet.histories();
-            assertEquals(new Integer(0),history.client.client.failures());
-            assertEquals(new Integer(0),history.server.server.failures());
-            assertEquals(new Integer(0),history.server.missing.failures());
+            assertEquals(new Integer(0),history.senderHistory.history.failures());
+            assertEquals(new Integer(0),history.receiverHistory.history.failures());
+            assertEquals(new Integer(0),history.receiverHistory.missing.failures());
             //p("model: "+tablet.model);
             assertEquals(model.toCharacters(),tablet.model.toCharacters());
             assertEquals(model.toString(),tablet.model.toString());

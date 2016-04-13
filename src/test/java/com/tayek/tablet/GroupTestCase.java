@@ -23,7 +23,7 @@ public class GroupTestCase {
         assertTrue(id instanceof String);
     }
     @Test public void testGetTablet() throws UnknownHostException,InterruptedException,ExecutionException {
-        Set<InetAddress> inetAddresses=IO.runAndWait(new GetNetworkInterfacesCallable(Main.testingHost));
+        Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(testingHost));
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
@@ -33,12 +33,12 @@ public class GroupTestCase {
         assertEquals(tablet.tabletId(),stuff.keys().iterator().next());
     }
     @Test public void testGetTabletWithService() throws UnknownHostException,InterruptedException,ExecutionException {
-        Set<InetAddress> inetAddresses=IO.runAndWait(new GetNetworkInterfacesCallable(Main.testingHost));
+        Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(testingHost));
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
         Stuff stuff=new Stuff(1,new Groups().groups.get("g2"),Model.mark1);
-        String tabletId=stuff.getTabletIdFromInetAddress(inetAddress,stuff.info("pc-5").service);
+        String tabletId=stuff.getTabletIdFromInetAddress(inetAddress,stuff.required("pc-5").service);
         Tablet tablet=new Tablet(stuff,tabletId);
         Iterator<String> i=stuff.keys().iterator();
         i.next(); // skip the first tablet

@@ -1,4 +1,4 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import static com.tayek.io.IO.*;
 import static org.junit.Assert.*;
 import java.net.*;
@@ -11,15 +11,15 @@ public class NetworkIOtestCase {
     @Before public void setUp() throws Exception {}
     @After public void tearDown() throws Exception {}
     @Test public void testDefaultNetworkPrefix() throws UnknownHostException {
-        Set<InetAddress> x=myInetAddresses(Main.networkPrefix);
+        Set<InetAddress> x=addressesWith(tabletNetworkPrefix);
         assertTrue(x.size()>0);
         for(InetAddress y:x)
-            assertTrue(y.getHostAddress().contains(Main.networkPrefix));
+            assertTrue(y.getHostAddress().contains(tabletNetworkPrefix));
     }
     @Test public void testDefaultTestingHost() throws UnknownHostException {
-        Set<InetAddress> x=myInetAddresses(Main.testingHost);
+        Set<InetAddress> x=addressesWith(testingHost);
         assertTrue(x.size()>0);
         for(InetAddress y:x)
-            assertTrue(y.getHostAddress().contains(Main.testingHost));
+            assertTrue(y.getHostAddress().contains(testingHost));
     }
 }

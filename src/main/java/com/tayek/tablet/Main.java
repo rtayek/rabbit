@@ -4,10 +4,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.logging.SocketHandler;
-import com.tayek.io.IO;
+import com.tayek.*;
+import com.tayek.io.LogServer;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.Main;
+import com.tayek.tablet.Message.Factory;
 import com.tayek.tablet.io.*;
 import static com.tayek.io.IO.*;
 import com.tayek.utilities.*;
@@ -25,67 +26,48 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
                 if(!old) {
                     int tablets=6;
                     for(int tabletId=1;tabletId<=tablets;tabletId++)
-                        g0.put(aTabletId(tabletId),new Info(aTabletId(tabletId),Main.networkPrefix+(10+tabletId),Main.defaultReceivePort));
+                        g0.put(aTabletId(tabletId),new Required(aTabletId(tabletId),tabletNetworkPrefix+(10+tabletId),defaultReceivePort));
                 } else {
-                    g0.put(aTabletId(1),new Info("fire 1",Main.networkPrefix+21,Main.defaultReceivePort));
-                    g0.put(aTabletId(2),new Info("fire 2",Main.networkPrefix+22,Main.defaultReceivePort));
-                    g0.put(aTabletId(3),new Info("nexus 7",Main.networkPrefix+70,Main.defaultReceivePort));
-                    g0.put(aTabletId(4),new Info("pc-4",Main.networkPrefix+100,Main.defaultReceivePort+4));
-                    g0.put(aTabletId(5),new Info("pc-5",Main.networkPrefix+100,Main.defaultReceivePort+5));
-                    g0.put(aTabletId(6),new Info("azpen",Main.networkPrefix+33,Main.defaultReceivePort));
-                    g0.put(aTabletId(7),new Info("at&t",Main.networkPrefix+77,Main.defaultReceivePort));
-                    g0.put(aTabletId(8),new Info("conrad",Main.networkPrefix+88,Main.defaultReceivePort));
+                    g0.put(aTabletId(1),new Required("fire 1",tabletNetworkPrefix+21,defaultReceivePort));
+                    g0.put(aTabletId(2),new Required("fire 2",tabletNetworkPrefix+22,defaultReceivePort));
+                    g0.put(aTabletId(3),new Required("nexus 7",tabletNetworkPrefix+70,defaultReceivePort));
+                    g0.put(aTabletId(4),new Required("pc-4",tabletNetworkPrefix+100,defaultReceivePort+4));
+                    g0.put(aTabletId(5),new Required("pc-5",tabletNetworkPrefix+100,defaultReceivePort+5));
+                    g0.put(aTabletId(6),new Required("azpen",tabletNetworkPrefix+33,defaultReceivePort));
+                    g0.put(aTabletId(7),new Required("at&t",tabletNetworkPrefix+77,defaultReceivePort));
+                    g0.put(aTabletId(8),new Required("conrad",tabletNetworkPrefix+88,defaultReceivePort));
                     //g0.put(99,new Info("nexus 4",99,IO.defaultReceivePort)));
                 }
                 groups.put("g0",g0);
-                g2.put("pc-4",new Info("pc-4",Main.testingHost,Main.defaultReceivePort+4));
-                g2.put("pc-5",new Info("pc-5",Main.testingHost,Main.defaultReceivePort+5));
+                g2.put("pc-4",new Required("pc-4",testingHost,defaultReceivePort+4));
+                g2.put("pc-5",new Required("pc-5",testingHost,defaultReceivePort+5));
                 groups.put("g2",g2);
                 //g1each.put(3,new Info("nexus 7",Main.networkPrefix+70,Main.defaultReceivePort));
                 // two fake tablets on pc, but on different networks.
                 // the 100 is dhcp'ed, so it may change once in a while.
-                g1each.put("pc-4",new Info("pc-4",Main.networkHost,Main.defaultReceivePort+4));
-                g1each.put("pc-5",new Info("pc-5",Main.testingHost,Main.defaultReceivePort+4));
+                g1each.put("pc-4",new Required("pc-4",defaultHost,defaultReceivePort+4));
+                g1each.put("pc-5",new Required("pc-5",testingHost,defaultReceivePort+4));
                 groups.put("g1each",g1each);
             }
-            private final Map<String,Info> g2=new TreeMap<>();
-            private final Map<String,Info> g0=new TreeMap<>();
-            private final Map<String,Info> g1each=new TreeMap<>();
-            public final Map<String,Map<String,Info>> groups=new TreeMap<>();
+            private final Map<String,Required> g2=new TreeMap<>();
+            private final Map<String,Required> g0=new TreeMap<>();
+            private final Map<String,Required> g1each=new TreeMap<>();
+            public final Map<String,Map<String,Required>> groups=new TreeMap<>();
             // hack, change the above before calling new Groups!
-        }
-        public static class Info {
-            public Info(String iD,String host,int port) {
-                this.iD=iD;
-                this.host=host;
-                this.service=port;
-                // add socketAddress?
-                histories=new Histories();
-            }
-            public Histories histories() {
-                return histories;
-            }
-            @Override public String toString() {
-                return iD+" "+host+" "+service;
-            }
-            public final String iD;
-            public final String host;
-            public final Integer service;
-            private final Histories histories;
         }
         public static String aTabletId(Integer tabletId) {
             return "T"+tabletId;
         }
         public Stuff() {
-            this(0,Collections.<String,Info> emptyMap(),(Model)null);
+            this(0,Collections.<String,Required> emptyMap(),(Model)null);
         }
-        public Stuff(int id,Map<String,Info> idToInfo,Model model) {
+        public Stuff(int id,Map<String,Required> idToInfo,Model model) {
             this(id,idToInfo,model,++serialNumbers);
         }
-        private Stuff(int groupId,Map<String,Info> idToInfo,Model model,int serialNumber) {
+        private Stuff(int groupId,Map<String,Required> idToInfo,Model model,int serialNumber) {
             this.serialNumber=serialNumber;
             this.groupIdx=groupId;
-            this.idToInfo.putAll(idToInfo);
+            this.idToRequired.putAll(idToInfo);
             // these may all end up with the same ifo, hence histories!
             int n=idToInfo.size();
             executorService=Executors.newFixedThreadPool(4*n+2);
@@ -95,8 +77,8 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
         private Stuff(Stuff stuff,int serialNumber) {
             this.serialNumber=stuff.serialNumber;
             this.groupIdx=stuff.groupIdx;
-            if(stuff.idToInfo!=null) this.idToInfo.putAll(stuff.idToInfo);
-            int n=stuff.idToInfo.size();
+            if(stuff.idToRequired!=null) this.idToRequired.putAll(stuff.idToRequired);
+            int n=stuff.idToRequired.size();
             executorService=Executors.newFixedThreadPool(4*n+2);
             canceller=Executors.newScheduledThreadPool(4*n+2);
             prototype=stuff.prototype;
@@ -116,22 +98,21 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
             replying=stuff.replying;
             connectTimeout=stuff.connectTimeout;
             sendTimeout=stuff.sendTimeout;
-            reportPeriod=stuff.reportPeriod;
         }
         public Set<String> keys() {
-            return idToInfo!=null?idToInfo.keySet():null;
+            return idToRequired!=null?idToRequired.keySet():null;
         }
-        public Info info(String id) {
-            return id==null?null:idToInfo!=null?idToInfo.get(id):null;
+        public Required required(String id) {
+            return id==null?null:idToRequired!=null?idToRequired.get(id):null;
         }
         public InetSocketAddress socketAddress(String destinationTabletId) {
-            Info info=info(destinationTabletId);
-            if(info!=null) return new InetSocketAddress(info.host,info.service);
+            Required required=required(destinationTabletId);
+            if(required!=null) return new InetSocketAddress(required.host,required.service);
             return null;
         }
         public String getTabletIdFromInetAddress(InetAddress inetAddress,Integer service) {
             for(String i:keys()) // fragile!
-                if(info(i)!=null) if(inetAddress.getHostAddress().equals(info(i).host)&&(service==null||service.equals(info(i).service))) return i;
+                if(required(i)!=null) if(inetAddress.getHostAddress().equals(required(i).host)&&(service==null||service.equals(required(i).service))) return i;
             return null;
         }
         public Model getModelClone() {
@@ -144,11 +125,11 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
             sb.append("(");
             sb.append(serialNumber);
             sb.append(")");
-            Info info;
+            Required required;
             for(String id:keys())
-                if((info=info(id))!=null) {
+                if((required=required(id))!=null) {
                     sb.append("\nfor: "+id+": ");
-                    sb.append(info.histories());
+                    sb.append(required.histories());
                 }
             sb.append("\nend of stuff: -------------------------------");
             return sb.toString();
@@ -159,45 +140,60 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
             // so maybe check for that when driving and omit the print.
             StringBuffer sb=new StringBuffer();
             sb.append("histories from: "+id+" ------------------------------------");
+            sb.append("\nconfig: "+config());
             for(String i:keys()) {
-                Histories history=info(i).histories();
-                if(history.anyFailures()||history.client.client.attempts()!=0) sb.append("\n\tfor "+id+" to: "+i+", history: "+history);
+                Histories histories=required(i).histories();
+                if(histories.anyFailures()||histories.senderHistory.history.attempts()!=0) sb.append("\n\tfor "+id+" to: "+i+", history: "+histories);
                 else sb.append("\n\tfrom "+id+" to: "+i+", history: no failures.");
             }
             Map<Object,Float> failures=new LinkedHashMap<>();
             double sends=0;
             for(String i:keys()) {
-                Histories history=info(i).histories();
-                sends+=history.client.client.attempts();
-                failures.put(i,(float)(1.*history.client.client.failures()/history.client.client.attempts()));
-                sb.append("\nsummary from: "+id+", to:"+i+" send failure rate: "+history.client.client.failures()+"/"+history.client.client.attempts()+"="
-                        +(1.*history.client.client.failures()/history.client.client.attempts()));
+                Histories histories=required(i).histories();
+                sends+=histories.senderHistory.history.attempts();
+                failures.put(i,(float)(1.*histories.senderHistory.history.failures()/histories.senderHistory.history.attempts()));
+                sb.append("\nsummary from: "+id+", to:"+i+" send failure rate: "+histories.senderHistory.history.failures()+"/"+histories.senderHistory.history.attempts()+"="
+                        +(1.*histories.senderHistory.history.failures()/histories.senderHistory.history.attempts()));
             }
             sb.append("\n failure rates from: "+id+" to others: "+failures);
+            failures.clear();
+            for(String i:keys()) {
+                Histories hireceiverHistory=required(i).histories();
+                sends+=hireceiverHistory.senderHistory.retries.attempts();
+                failures.put(i,(float)(1.*hireceiverHistory.senderHistory.retries.failures()/hireceiverHistory.senderHistory.retries.attempts()));
+                sb.append("\nsummary from: "+id+", to:"+i+" retry failure rate: "+hireceiverHistory.senderHistory.retries.failures()+"/"+hireceiverHistory.senderHistory.retries.attempts()+"="
+                        +(1.*hireceiverHistory.senderHistory.retries.failures()/hireceiverHistory.senderHistory.retries.attempts()));
+            }
+            sb.append("\n retry failure rates from: "+id+" to others: "+failures);
             int big=2*Thread.activeCount();
             Thread[] threads=new Thread[big];
             Thread.enumerate(threads);
             for(Thread thread:threads)
                 if(thread!=null) sb.append("\n"+thread.toString());
-            sb.append("\nend of histories from: "+id+" ------------------------------------");
+            sb.append("\nend of report histories from: "+id+" ------------------------------------");
             return sb.toString();
         }
-
+        String config() {
+            return "connect: "+connectTimeout+", send: "+sendTimeout+", use: "+useExecutorService+", cancel: "+runCanceller+", replying: "+replying;
+        }
         public final int groupIdx;
         private final Model prototype;
         public final Integer serialNumber;
-        private final Map<String,Info> idToInfo=new TreeMap<>();
-        public final Messages messages=new Messages();
+        private final Map<String,Required> idToRequired=new TreeMap<>();
+        public final Factory messages=Message.instance.create(new Single<Integer>(0));
         public final ScheduledExecutorService canceller;
         public final ExecutorService executorService;
+        // split these into an options class and a constants class?
         public boolean useExecutorService;
         public boolean waitForSendCallable=true;
         public boolean runCanceller;
         public boolean replying;
-        public Integer connectTimeout=Histories.defaultConnectTimeout; // set by tablet
-        public Integer sendTimeout=Histories.defaultSendTimeout; // set by tablet
-        public Integer reportPeriod=Histories.defaultReportPeriod;
+        public Integer connectTimeout=defaultConnectTimeout; // set by tablet
+        public Integer sendTimeout=defaultSendTimeout; // set by tablet
         private static int serialNumbers;
+        public static Integer defaultConnectTimeout=500; // 40;
+        public static Integer defaultSendTimeout=defaultConnectTimeout+50; // 60;
+        public static Integer defaultDriveWait=200; // 100;
     }
     public static class Instance {
         // maybe just put messages in group?
@@ -220,7 +216,7 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
         }
         final String iD;
         SocketAddress socketAddress;
-        Messages messages=new Messages();
+        public final Factory messages=Message.instance.create(new Single<Integer>(0));
         // looks like these two guys are the things we need
     }
     // install notes:
@@ -242,60 +238,10 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
                     remove(1);
                 add(Tablet.class);
                 add(LogServer.class);
-                add(com.tayek.speed.Main.class);
-                add(com.tayek.speed.Service.class);
             }
         }.run();
     }
-    public static final boolean isRaysPc=System.getProperty("user.dir").contains("D:\\");
-    public static final boolean isLaptop=System.getProperty("user.dir").contains("C:\\Users\\");
-    public static final Integer defaultReceivePort=33000;
-    public static final String networkStub="192.168.";
-    public static final String networkPrefix="192.168.0.";
-    public static final String testingPrefix="192.168.1.";
-    public static final String logServerHost;
-    public static final String networkHost;
-    public static final String testingHost;
-    static {
-        if(isRaysPc||isLaptop) {
-            Set<InetAddress> myInetAddresses=IO.myInetAddresses(networkPrefix);
-            if(myInetAddresses.size()>0) {
-                InetAddress inetAddress=myInetAddresses.iterator().next();
-                networkHost=inetAddress.getHostAddress();
-            } else networkHost="localhost";
-            myInetAddresses=IO.myInetAddresses(testingPrefix);
-            if(myInetAddresses.size()>0) {
-                InetAddress inetAddress=myInetAddresses.iterator().next();
-                testingHost=inetAddress.getHostAddress();
-            } else testingHost="localhost";
-            logServerHost=isRaysPc?testingHost:networkHost;
-        } else {
-            networkHost="localhost"; // nothing but trouble :(
-            testingHost="localhost";
-            //logServerHost="192.168.1.2";
-            logServerHost="192.168.0.102"; // or the laptop's 192.68.0
-        }
-    }
-    static {
-        p("user dir: "+System.getProperty("user.dir"));
-        p("network host: "+networkHost);
-        p("testing host: "+testingHost);
-        p("log serverHost host: "+logServerHost);
-    }
+    // the above is used by tests a lot.
+    // maybe have the tests use something else, so as to not interfere with real tablets when testing?
     public static final Map<Object,Instance> instances=new LinkedHashMap<>();
-    public static final Map<String,SocketHandler> logServerHosts=new LinkedHashMap<>();
-    static {
-        logServerHosts.put("192.168.1.2",null); // static ip on my pc
-        logServerHosts.put("192.168.0.101",null); // my pc today
-        logServerHosts.put("192.168.0.100",null); // laptop today
-    }
-    public static final Map<Integer,String> tablets=new TreeMap<>();
-    static {
-        tablets.put(1,"0a9196e8"); // ab97465ca5e2af1a
-        tablets.put(2,"0ab62080");
-        tablets.put(3,"0ab63506"); // d0b9261d73d60b2c
-        tablets.put(4,"0ab62207");
-        tablets.put(5,"0b029b33"); // 3bcdcfbdd2cd4e42
-        tablets.put(6,"0ab61d9b"); // 7c513f24bfe99daa
-    }
 }

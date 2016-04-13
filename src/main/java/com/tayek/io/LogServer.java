@@ -1,9 +1,8 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import com.tayek.tablet.*;
-import com.tayek.tablet.Messages.*;
+import com.tayek.tablet.Message.Type;
 import static com.tayek.io.IO.*;
 public class LogServer implements Runnable {
     // need some way to end a log file when tablet stops
@@ -34,7 +33,10 @@ public class LogServer implements Runnable {
         private String name(int n) {
             InetAddress inetAddress=socket.getInetAddress();
             String address=inetAddress.getHostAddress();
+            long t=System.currentTimeMillis()-newMillenium;
+            t/=1000;
             String name=prefix!=null&&!prefix.equals("")?(prefix+"."):"";
+            name+=""+t+".";
             name+=address+"."+socket.getLocalPort()+".";
             name+=serverSocket.getInetAddress().getHostAddress()+".";
             name+=n;
@@ -60,6 +62,9 @@ public class LogServer implements Runnable {
             this.socket=socket;
             this.out=out;
             this.verbose=verbose;
+        }
+        public void flush() throws IOException {
+            out.flush();
         }
         public void close() {
             try {
@@ -87,7 +92,10 @@ public class LogServer implements Runnable {
                 p("end of file");
             } catch(IOException e) {
                 if(isShuttingdown) ;
-                else p("log copier caught: '"+e+"'");
+                else {
+                    p("log copier caught: '"+e+"'");
+                    e.printStackTrace();
+                }
             } finally {
                 close();
             }
@@ -177,7 +185,7 @@ public class LogServer implements Runnable {
     }
     public static void print() {}
     public static void main(String args[]) {
-        for(String host:Main.logServerHosts.keySet())
+        for(String host:logServerHosts.keySet())
             try {
                 new Thread(new LogServer(host,defaultService,null)).start();
             } catch(Exception e) {
@@ -194,4 +202,5 @@ public class LogServer implements Runnable {
     public static final String defaultHost="127.0.0.1";
     public static final int defaultService=5000;
     public static final int maxSize=1_000_000;
+    static final long newMillenium=978_307_200_000l;
 }

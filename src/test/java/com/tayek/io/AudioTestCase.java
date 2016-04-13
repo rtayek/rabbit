@@ -1,7 +1,8 @@
-package com.tayek.tablet.io;
+package com.tayek.io;
 import org.junit.Test;
-import com.tayek.tablet.io.Audio.Sound;
+import com.tayek.io.Audio.*;
 import static com.tayek.io.IO.*;
+import java.util.logging.Level;
 //import junit.framework.TestCase;
 //https://svn.apache.org/repos/asf/harmony/enhanced/java/trunk/classlib/modules/sound/src/test/java/org/apache/harmony/sound/tests/javax/sound/sampled/AudioSystemTest.java
 public class AudioTestCase /*extends TestCase*/ {

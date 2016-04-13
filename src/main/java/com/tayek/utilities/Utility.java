@@ -39,7 +39,13 @@ public class Utility {
         try {
             serverSocket=new ServerSocket();
             serverSocket.bind(socketAddress);
+        } catch(BindException e) {
+            e.printStackTrace();
+            p("after: "+et+",  caught: '"+e+"'");
         } catch(IOException e) {
+            e.printStackTrace();
+            p("after: "+et+",  caught: '"+e+"'");
+        } catch(Exception e) {
             e.printStackTrace();
             p("after: "+et+",  caught: '"+e+"'");
         }
@@ -52,24 +58,11 @@ public class Utility {
             socket.connect(socketAddress,timeout);
             return socket;
         } catch(SocketTimeoutException e) {
-            IO.l.warning("after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+            IO.l.warning(socketAddress+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
         } catch(IOException e) {
-            IO.l.warning("after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+            IO.l.warning(socketAddress+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
         }
         return null;
-    }
-    public static Thread[] getThreads() {
-        int big=2*Thread.activeCount();
-        Thread[] threads=new Thread[big];
-        Thread.enumerate(threads);
-        return threads;
-    }
-
-    public static void printThreads() {
-        //this may need to be non static and filter tablets or groups!
-        Thread[] threads=getThreads();
-        for(Thread thread:threads)
-            if(thread!=null) p(thread.toString());
     }
     public static final Boolean T=true,F=false;
     public static final Integer zero=0,one=1,two=2;

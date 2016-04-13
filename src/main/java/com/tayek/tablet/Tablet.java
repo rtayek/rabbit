@@ -4,23 +4,25 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
-import com.tayek.io.IO;
+import com.tayek.*;
+import com.tayek.io.*;
+import com.tayek.io.Audio.Sound;
+import com.tayek.tablet.Message.Type;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.Main.Stuff;
-import com.tayek.tablet.Main.Stuff.Info;
+import com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
-import com.tayek.tablet.Messages.*;
 import com.tayek.tablet.io.*;
-import com.tayek.tablet.io.Audio.Sound;
 import com.tayek.tablet.io.Sender.Client;
 import com.tayek.tablet.io.Sender.Client.SendCallable;
+import com.tayek.utilities.Et;
 import static com.tayek.io.IO.*;
-public class Tablet {
+public class Tablet implements T {
     // no need for ip address really,
     // maybe set the tablet id after construction
     // or before broadcast
     // and add "instance" stuff!
-    // like last mesage sent
+    // like last mesgage sent
     // and ip addresses
     // so let's try:
     // adding host:service to start listening
@@ -35,7 +37,7 @@ public class Tablet {
         if(stuff.keys()!=null) {
             if(tabletId!=null) {
                 if(stuff.keys().contains(tabletId)) {
-                    histories=stuff.info(tabletId()).histories();
+                    histories=stuff.required(tabletId()).histories();
                     p("tablet: "+tabletId()+" is using history from stuff: "+histories.serialNumber);
                 } else {
                     histories=new Histories();
@@ -49,36 +51,38 @@ public class Tablet {
             model.histories=histories;
         } else l.severe("model is null!");
     }
-    public void accumulateToAll() {
-        Histories history=histories();
-        p("before: "+history.client.allSendTimes);
+    public void accumulateToAll() { // adds send times for all tablets together
+        // not quite what we want accumulate to do.
+        // seems to be only used by driver.
+        Histories histories=histories();
+        p("before: "+histories.senderHistory.allSendTimes);
         for(String destinationTabletId:stuff.keys()) {
-            Histories h=stuff.info(destinationTabletId).histories();
+            Histories h=stuff.required(destinationTabletId).histories();
             //p("adding: "+h.clientHistory.client.successHistogram);
             //p("to: "+history.clientHistory.allSendTimes);
-            history.client.allSendTimes.add(h.client.client.successHistogram);
+            histories.senderHistory.allSendTimes.add(h.senderHistory.history.successHistogram);
             //p("result: "+history.clientHistory.allSendTimes);
-            history.client.allFailures.add(h.client.client.failureHistogram);
+            histories.senderHistory.allFailures.add(h.senderHistory.history.failureHistogram);
         }
-        p("after: "+history.client.allSendTimes);
+        p("after: "+histories.senderHistory.allSendTimes);
     }
     // continue to move these into sender!
     /*
     static class BroadcastCallable implements Callable<Void> {
-        BroadcastCallable(Tablet tablet,Message message,Map<String,Info> info,Stuff stuff) {
+        BroadcastCallable(Tablet tablet,Message message,Map<String,Required> required,Stuff stuff) {
             this.tablet=tablet;
             this.id=tablet.tabletId();
             this.message=message;
-            this.info=info;
+            this.required=required;
             this.stuff=stuff;
         }
         @Override public Void call() throws Exception {
             Thread.currentThread().setName(getClass().getName()+" "+id+" broadcast ing");
             staticLogger.info("broadcast: "+message);
-            for(String destinationId:info.keySet()) {
+            for(String destinationId:required.keySet()) {
                 staticLogger.info("broadcasting to: "+destinationId);
                 // what should this wait really be?
-                InetSocketAddress inetSocketAddress=Group.socketAddress(info,destinationId);
+                InetSocketAddress inetSocketAddress=Group.socketAddress(required,destinationId);
                 Future<Void> future=Client.executeTaskAndCancelIfItTakesTooLong(tablet.group.executorService,
                         new SendCallable(id,message,destinationId,stuff,tablet.group.idToInfo().get(destinationId).history,inetSocketAddress),stuff.sendTimeout,
                         stuff.runCanceller?tablet.group.canceller:null,stuff.waitForSendCallable);
@@ -88,7 +92,7 @@ public class Tablet {
         final Tablet tablet;
         final String id;
         final Message message;
-        final Map<String,Info> info;
+        final Map<String,Required> required;
         final Stuff stuff;
     }
     */
@@ -96,23 +100,25 @@ public class Tablet {
         l.info("broadcasting: "+message);
         for(String destinationTabletId:stuff.keys()) {
             InetSocketAddress inetSocketAddress=stuff.socketAddress(destinationTabletId);
-            SendCallable sendCallable=new SendCallable(tabletId(),message,destinationTabletId,stuff,stuff.info(destinationTabletId).histories(),inetSocketAddress);
+            SendCallable sendCallable=new SendCallable(tabletId(),message,destinationTabletId,stuff,stuff.required(destinationTabletId).histories(),inetSocketAddress);
             if(stuff.useExecutorService)
                 Client.executeTaskAndCancelIfItTakesTooLong(stuff.executorService,sendCallable,this.stuff.sendTimeout,stuff.runCanceller?stuff.canceller:null,stuff.waitForSendCallable);
-            else new Thread(new SendCallable(tabletId(),message,destinationTabletId,stuff,stuff.info(destinationTabletId).histories(),inetSocketAddress)).start();
+            else new Thread(new SendCallable(tabletId(),message,destinationTabletId,stuff,stuff.required(destinationTabletId).histories(),inetSocketAddress)).start();
+            Thread.yield();
         }
-        Histories.ClientHistory clientHistory=histories.client;
-        if(stuff.reportPeriod>0&&histories.anyAttempts()&&clientHistory.client.attempts()%stuff.reportPeriod==0) l.warning("report histories from client: "+histories());
-        if(stuff.reportPeriod>0&&histories.anyAttempts()&&clientHistory.client.attempts()%(10*stuff.reportPeriod)==0) l.warning("report histories from client: "+stuff.report(tabletId()));
+        Histories.SenderHistory clientHistory=histories.senderHistory;
+        // maybe sleep for a while here?
+        if(histories.reportPeriod>0&&histories.anyAttempts()&&clientHistory.history.attempts()%histories.reportPeriod==0) l.warning("histories from client: "+histories());
+        if(histories.reportPeriod>0&&histories.anyAttempts()&&clientHistory.history.attempts()%(10*histories.reportPeriod)==0) l.warning("report histories from client: "+stuff.report(tabletId()));
     }
     public void toggle(int id) {
         Boolean state=!model.state(id);
         model.setState(id,state);
-        Message message=stuff.messages.normal(groupId,tabletId(),id,model);
+        Message message=stuff.messages.normal(groupId,tabletId(),id,model.toCharacters());
         broadcast(message,stuff);
     }
     public void click(int id) {
-        synchronized(model) {
+        if(1<=id&&id<=model.buttons) synchronized(model) {
             if(model.resetButtonId!=null&&id==model.resetButtonId) {
                 model.reset();
                 Message message=stuff.messages.other(Type.reset,groupId,tabletId());
@@ -120,9 +126,12 @@ public class Tablet {
             } else {
                 Boolean state=!model.state(id);
                 model.setState(id,state);
-                Message message=stuff.messages.normal(groupId,tabletId(),id,model);
+                Message message=stuff.messages.normal(groupId,tabletId(),id,model.toCharacters());
                 broadcast(message,stuff);
             }
+        }
+        else {
+            l.warning(id+" is not a model button!");
         }
     }
     public static Tablet create(Stuff stuff,String tabletId) {
@@ -133,17 +142,13 @@ public class Tablet {
         Set<Tablet> tablets=new LinkedHashSet<>();
         for(String tabletId:stuff.keys())
             tablets.add(Tablet.create(stuff.clone(),tabletId));
-        for(Tablet tablet:tablets)
-            p("stuff history # for "+tablet.tabletId+" is "+tablet.stuff.info(tablet.tabletId()).histories().serialNumber);
-        p("created: "+tablets);
         return tablets;
     }
-    public static Set<Tablet> createGroupAndstartTablets(Map<String,Info> infos) {
+    public static Set<Tablet> createGroupAndstartTablets(Map<String,Required> requireds) {
         //Set<Tablet> tablets=new LinkedHashSet<>();
-        Stuff stuff=new Stuff(1,infos,Model.mark1);
+        Stuff stuff=new Stuff(1,requireds,Model.mark1);
         Set<Tablet> tablets=create(stuff);
         for(Tablet tablet:tablets) {
-            p("tablet id: "+tablet.tabletId+" "+tablet.histories().serialNumber);
             tablet.model.addObserver(new AudioObserver(tablet.model)); // maybe not if testing?
             SocketAddress socketAddress=tablet.stuff.socketAddress(tablet.tabletId());
             tablet.startListening(socketAddress);
@@ -151,18 +156,18 @@ public class Tablet {
         return tablets;
     }
     public static Set<Tablet> createForTest(int n,int offset) {
-        Map<String,Info> map=new TreeMap<>();
+        Map<String,Required> map=new TreeMap<>();
         // search for linked hash map and use tree map instead.
         for(int i=1;i<=n;i++)
-            map.put("T"+i+" on PC",new Info("T"+i+" on PC",Main.testingHost,Main.defaultReceivePort+100+offset+i));
+            map.put("T"+i+" on PC",new Required("T"+i+" on PC",testingHost,defaultReceivePort+100+offset+i));
         Stuff stuff=new Stuff(1,map,Model.mark1);
         Set<Tablet> tablets=create(stuff);
         return tablets;
     }
     public boolean historiesAreInconsitant() {
-        if(tabletId()!=null&&stuff.keys()!=null) if(!histories.equals(stuff.info(tabletId()).histories())) {
+        if(tabletId()!=null&&stuff.keys()!=null) if(!histories.equals(stuff.required(tabletId()).histories())) {
             p("tablet history in tablet: "+histories.serialNumber);
-            if(tabletId()!=null&&stuff.keys()!=null) p("stuff history in tablet: "+stuff.info(tabletId()).histories().serialNumber);
+            if(tabletId()!=null&&stuff.keys()!=null) p("stuff history in tablet: "+stuff.required(tabletId()).histories().serialNumber);
             l.severe("histories are not equal");
             return true;
         }
@@ -207,10 +212,10 @@ public class Tablet {
     public void print(String tabletId) {
         l.info("group: "+groupId+"("+stuff.serialNumber+"):"+tabletId());
         for(String i:stuff.keys())
-            l.info("\t"+i+": "+stuff.info(i));
+            l.info("\t"+i+": "+stuff.required(i));
     }
     public boolean startListening(SocketAddress socketAddress) {
-        // should need only enough info to bind to the correct interface 
+        // should need only enough information to bind to the correct interface 
         // but at this point we should know our ip address for the correct interface
         if(socketAddress==null) {
             l.severe("socket address is null!");
@@ -236,7 +241,73 @@ public class Tablet {
     }
     public static Message random(Tablet tablet) {
         int buttonId=random.nextInt(tablet.model.buttons)+1;
-        return tablet.stuff.messages.normal(tablet.groupId,tablet.tabletId(),buttonId,tablet.model);
+        return tablet.stuff.messages.normal(tablet.groupId,tablet.tabletId(),buttonId,tablet.model.toCharacters());
+    }
+    public void drive(int n,int wait) {
+        // try sending 3 real fast then waiting a while
+        // repeat a lot.
+        Random random=new Random();
+        int i=0;
+        click(model.resetButtonId);
+        try {
+            Thread.sleep(1_000);
+        } catch(InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        boolean sequential=true;
+        double lastToggle=Double.NaN;
+        Et et=new Et();
+        int j0=2;
+        for(int j=j0;j<=n&&!stopDriving;j++) {
+            if(lastToggle!=Double.NaN) ; //p((et.etms()-lastToggle)+" between toggles.");
+            if(sequential) i=(j-j0)%(model.buttons-1);
+            else i=random.nextInt(model.buttons-1); // omit reset button if any
+            toggle(i+1);
+            try {
+                Thread.sleep(wait);
+            } catch(InterruptedException e) {
+                l.warning("drive caught: '"+e+"'");
+                e.printStackTrace();
+            }
+            lastToggle=et.etms();
+        }
+        try {
+            Thread.sleep(5_000);
+        } catch(InterruptedException e1) {
+            e1.printStackTrace();
+        }
+    }
+    void driveInThread() {
+        new Thread(new Runnable() {
+            @Override public void run() {
+                drive(100,Stuff.defaultDriveWait);
+                l.severe("start drive histories.");
+                l.severe("drive: "+histories());
+                l.severe("end drive histories.");
+            }
+        }).start();
+    }
+    void forever() {
+        for(int k=1;k<1000&&!stopDriving;k++) {
+            for(int i=1;i<10&&!stopDriving;i++)
+                drive(100,Stuff.defaultDriveWait);
+            stuff.report(tabletId());
+            Message message=stuff.messages.other(Type.rolloverLogNow,groupId,tabletId());
+            broadcast(message,stuff);
+            try {
+                Thread.sleep(1_000);
+            } catch(InterruptedException e1) {
+                e1.printStackTrace();
+            }
+        }
+        stopDriving=false;
+    }
+    void foreverInThread() {
+        new Thread(new Runnable() {
+            @Override public void run() {
+                forever();
+            }
+        }).start();
     }
     // this seems to never send messages to itself
     // or it's not responding to them.
@@ -303,6 +374,7 @@ public class Tablet {
     Timer simulationTimer;
     Timer heartbeatTimer;
     Timer chimer;
+    boolean stopDriving;
     public String groupId;
     private String tabletId;
     private final Histories histories;
@@ -312,5 +384,4 @@ public class Tablet {
     public Stuff stuff;
     static final int length=10;
     public static final Random random=new Random();
-    public static Integer driveWait=60; // 100;
 }
