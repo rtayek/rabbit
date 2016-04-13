@@ -1,0 +1,79 @@
+    <message>report histories from client: histories from: T1 ------------------------------------
+config: connect: 500, send: 550, report: 100, use: false, cancel: false, replying: false
+	for T1 to: T1, history: (#11):
+	client: client: attempts: 540000, successes: 540000, failures: 0 {}
+	success times: 1.434326&lt;=25.313313/540000&lt;=115.53955 0,[479110,60869,21,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],0 NaNs: 0
+	server: server: attempts: 540000, successes: 540000, failures: 0 {}
+	success times: 0.518798&lt;=6.2818356/540000&lt;=96.221924 0,[539567,433,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],0 NaNs: 0
+	missing: attempts: 540000, successes: 540000, failures: 0 {}
+	missed: 540000-[], ooo: []
+	model: model: no attempts
+	for T1 to: T2, history: (#12):
+	client: client: attempts: 540084, successes: 539998, failures: 86 {java.net.SocketTimeoutException: failed to connect to /192.168.0.12 (port 33000) after 500ms=86}
+	success times: 3.051758&lt;=32.957996/539998&lt;=507.75146 0,[445238,63902,22962,7049,597,191,29,12,8,8,2,0,0,0,0,0,0,0,0,0],0 NaNs: 172
+	failure times: 500.1526&lt;=506.62958/172&lt;=547.11914 0,[0,0,0,0,0,0,0,0,0,0,172,0,0,0,0,0,0,0,0,0],0 NaNs: 539998
+	retries: attempts: 84, successes: 82, failures: 2 {second=2}
+	success times: 10.650635&lt;=150.6876/82&lt;=1106.3843 0,[8,31,23,9,1,0,3,2,1,0,0,0,0,2,0,1,0,0,0,0],1 NaNs: 2
+	server: server: no attempts
+	model: model: no attempts
+	for T1 to: T3, history: (#13):
+	client: client: attempts: 540087, successes: 540000, failures: 87 {java.net.SocketTimeoutException: failed to connect to /192.168.0.13 (port 33000) after 500ms=87}
+	success times: 2.807617&lt;=35.49686/540000&lt;=501.1902 0,[433904,76719,21693,6847,578,197,28,17,10,6,1,0,0,0,0,0,0,0,0,0],0 NaNs: 174
+	failure times: 500.3662&lt;=506.9568/174&lt;=543.64014 0,[0,0,0,0,0,0,0,0,0,0,174,0,0,0,0,0,0,0,0,0],0 NaNs: 540000
+	retries: attempts: 87, successes: 87, failures: 0 {}
+	success times: 12.969969&lt;=125.19222/87&lt;=508.02612 0,[7,29,28,16,2,2,0,1,0,1,1,0,0,0,0,0,0,0,0,0],0 NaNs: 0
+	server: server: no attempts
+	model: model: no attempts
+	for T1 to: T4, history: (#14):
+	client: client: attempts: 540073, successes: 539999, failures: 74 {java.net.SocketTimeoutException: failed to connect to /192.168.0.14 (port 33000) after 500ms=74}
+	success times: 2.990723&lt;=36.039467/539999&lt;=490.20386 0,[427504,82844,22372,6786,321,129,23,12,2,6,0,0,0,0,0,0,0,0,0,0],0 NaNs: 148
+	failure times: 500.39673&lt;=507.65125/148&lt;=552.8259 0,[0,0,0,0,0,0,0,0,0,0,146,2,0,0,0,0,0,0,0,0],0 NaNs: 539999
+	retries: attempts: 73, successes: 72, failures: 1 {second=1}
+	success times: 20.690918&lt;=178.69992/72&lt;=1062.2864 0,[6,25,20,8,3,1,1,0,0,2,0,0,3,0,0,0,0,0,1,0],2 NaNs: 1
+	server: server: no attempts
+	model: model: no attempts
+	for T1 to: T5, history: (#15):
+	client: client: attempts: 540084, successes: 539999, failures: 85 {java.net.SocketTimeoutException: failed to connect to /192.168.0.15 (port 33000) after 500ms=85}
+	success times: 2.929687&lt;=36.687813/539999&lt;=498.35205 0,[437219,62989,28163,8409,2206,847,84,37,24,21,0,0,0,0,0,0,0,0,0,0],0 NaNs: 170
+	failure times: 500.39673&lt;=506.35538/170&lt;=542.1753 0,[0,0,0,0,0,0,0,0,0,0,170,0,0,0,0,0,0,0,0,0],0 NaNs: 539999
+	retries: attempts: 84, successes: 83, failures: 1 {second=1}
+	success times: 17.700197&lt;=261.31393/83&lt;=1502.1973 0,[16,16,14,11,3,4,2,0,1,2,2,2,0,1,2,0,0,0,1,0],6 NaNs: 1
+	server: server: no attempts
+	model: model: no attempts
+	for T1 to: T6, history: (#16):
+	client: client: attempts: 540087, successes: 539998, failures: 89 {java.net.SocketTimeoutException: failed to connect to /192.168.0.16 (port 33000) after 500ms=89}
+	success times: 2.838134&lt;=35.481308/539998&lt;=499.75586 0,[439190,57863,36315,5745,703,139,21,8,6,8,0,0,0,0,0,0,0,0,0,0],0 NaNs: 178
+	failure times: 500.12207&lt;=507.9649/178&lt;=559.2041 0,[0,0,0,0,0,0,0,0,0,0,176,2,0,0,0,0,0,0,0,0],0 NaNs: 539998
+	retries: attempts: 87, successes: 85, failures: 2 {second=2}
+	success times: 20.29419&lt;=166.12262/85&lt;=1466.4917 0,[6,36,22,11,1,1,1,0,1,0,1,0,1,1,0,0,0,0,0,0],3 NaNs: 2
+	server: server: no attempts
+	model: model: no attempts
+summary from: T1, to:T1 send failure rate: 0/540001=0.0
+summary from: T1, to:T2 send failure rate: 86/540084=1.5923448944978928E-4
+summary from: T1, to:T3 send failure rate: 87/540087=1.610851585022413E-4
+summary from: T1, to:T4 send failure rate: 74/540073=1.37018514163826E-4
+summary from: T1, to:T5 send failure rate: 85/540084=1.5738292561897778E-4
+summary from: T1, to:T6 send failure rate: 89/540087=1.6478826559424684E-4
+ failure rates from: T1 to others: {T1=0.0, T2=1.5923449E-4, T3=1.6108516E-4, T4=1.3701852E-4, T5=1.5738292E-4, T6=1.6478826E-4}
+Thread[SendCallable, T1 send to: T6,5,main]
+Thread[SendCallable, T1 send to: T5,5,main]
+Thread[SendCallable, T1 send to: T4,5,main]
+Thread[SendCallable, T1 send to: T3,5,main]
+Thread[SendCallable, T1 send to: T2,5,main]
+Thread[Timer-26970,5,main]
+Thread[Thread-6338,5,main]
+Thread[hwuiTask2,5,main]
+Thread[hwuiTask1,5,main]
+Thread[RenderThread,5,main]
+Thread[T1 (1): {FFFFFFFFFFF} server,5,main]
+Thread[com.tayek.io.IO$SocketHandlerCallable,5,main]
+Thread[com.tayek.io.IO$SocketHandlerCallable,5,main]
+Thread[com.tayek.io.IO$SocketHandlerCallable,5,main]
+Thread[pool-1-thread-2,5,main]
+Thread[WifiManager,5,main]
+Thread[pool-1-thread-1,5,main]
+Thread[Binder_2,5,main]
+Thread[Binder_1,5,main]
+Thread[main,5,main]
+end of report histories from: T1 ------------------------------------</message>
+</record>
