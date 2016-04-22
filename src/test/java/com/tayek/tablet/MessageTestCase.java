@@ -4,6 +4,7 @@ import org.junit.*;
 import static com.tayek.io.IO.*;
 import static com.tayek.utilities.Utility.*;
 import com.tayek.utilities.Single;
+import com.tayek.Required;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.Message.*;
 import com.tayek.tablet.MessageReceiver.Model;
@@ -26,31 +27,33 @@ public class MessageTestCase {
     }
     @Test public void testNormalMessageWithTrue() {
         model.setState(3,true);
-        Message message=messages.normal("1","2",3,model.toCharacters());
+        Message message=factory.normal("1","2",3,model.toCharacters());
         assertEquals(one,message.number());
         String expected=message.toString();
-        Message m=messages.from(expected);
+        p("expected: "+expected);
+        Message m=factory.from(expected);
         String actual=m.toString();
+        p("actual  : "+actual);
         assertEquals(expected,actual);
     }
     @Test public void testNormalMessageWithFalse() {
-        Message message=messages.normal("1","2",3,model.toCharacters());
+        Message message=factory.normal("1","2",3,model.toCharacters());
         String expected=message.toString();
-        Message m=messages.from(expected);
+        Message m=factory.from(expected);
         String actual=m.toString();
         assertEquals(expected,actual);
     }
     @Test public void testDummyMessage() {
-        Message message=messages.other(Type.dummy,"1","1");
+        Message message=factory.other(Type.dummy,"1","1");
         String expected=message.toString();
-        Message m=messages.from(expected);
+        Message m=factory.from(expected);
         String actual=m.toString();
         assertEquals(expected,actual);
     }
     @Test public void testErrorMessage() {
-        Message message=messages.error("foo");
+        Message message=factory.error("foo");
         String expected=message.toString();
-        Message m=messages.from(expected);
+        Message m=factory.from(expected);
         //m.number=message.number;
         String actual=m.toString();
         p(expected+"=?="+actual);
@@ -58,9 +61,9 @@ public class MessageTestCase {
         // error message is very special!
     }
     @Test public void testResetMessage() {
-        Message message=messages.other(Type.reset,"1","1");
+        Message message=factory.other(Type.reset,"1","1");
         String expected=message.toString();
-        Message m=messages.from(expected);
+        Message m=factory.from(expected);
         String actual=m.toString();
         assertEquals(expected,actual);
     }
@@ -68,5 +71,7 @@ public class MessageTestCase {
         // how to do this without rolling up a tablet
     }
     Model model=Model.mark1.clone();
-    Factory messages=Message.instance.create(new Single<Integer>(0));
+    Required required=new Required("T0","localhost",++service);
+    Factory factory=Message.instance.create(required,new Single<Integer>(0));
+    static int service=1111;
 }

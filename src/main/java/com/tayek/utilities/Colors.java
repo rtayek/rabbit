@@ -1,4 +1,4 @@
-package com.tayek;
+package com.tayek.utilities;
 import static com.tayek.io.IO.*;
 import static java.lang.Math.*;
 public class Colors {

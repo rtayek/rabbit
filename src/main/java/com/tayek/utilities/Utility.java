@@ -4,6 +4,11 @@ import java.io.*;
 import java.net.*;
 import com.tayek.io.IO;
 public class Utility {
+    public static String pad(String string,int length) {
+        for(;string.length()<length;string+=' ')
+            ;
+        return string;
+    }
     public static String method(int n) {
         //Thread.currentThread().dumpStack();
         return Thread.currentThread().getStackTrace()[n].getMethodName()+"()"+Thread.currentThread().getStackTrace()[n].getClassName()+" "+Thread.currentThread().getStackTrace().length;

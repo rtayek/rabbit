@@ -8,44 +8,79 @@ import java.net.*;
 import java.util.*;
 import java.util.logging.Level;
 import org.junit.*;
+import com.tayek.*;
 import com.tayek.io.LoggingHandler;
+import com.tayek.tablet.Message.Type;
+import com.tayek.utilities.Et;
 public abstract class AbstractServerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.WARNING);
+        service+=1_000;
     }
     @After public void tearDown() throws Exception {}
-    static Set<SocketAddress> discoverTestTablets() {
-        int max=6;
-        Set<SocketAddress> socketAddresses=new LinkedHashSet<>();
-        for(int i=11;i<=11+max;i++)
-            socketAddresses.add(new InetSocketAddress(tabletNetworkPrefix+i,serviceBase));
-        for(int i=1;i<=max;i++)
-            socketAddresses.add(new InetSocketAddress(fakeNetworkPrefix,serviceBase+i));
-        for(int i=1;i<=max;i++)
-            socketAddresses.add(new InetSocketAddress("192.168.0.101",serviceBase+i));
-        Set<SocketAddress> good=new LinkedHashSet<>();
-        for(int i=1;i<3;i++)
-            for(SocketAddress socketAddress:socketAddresses) {
-                Socket socket=connect(socketAddress,200);
-                if(socket!=null) {
-                    try {
-                        socket.close();
-                    } catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                    good.add(socketAddress);
-                    p("added: "+socketAddress);
-                }
+    void createStartAndStop(int n) throws InterruptedException {
+        create(n);
+        startServers();
+        Thread.sleep(100);
+        stopServers();
+        Thread.sleep(200);
+        assertTrue(Thread.activeCount()<=threads);
+    }
+    // need a test to use discover and pass the addresses to the tablets
+    void run(int n,Integer messages) throws InterruptedException {
+        create(n);
+        startServers();
+        //Thread.sleep(100);
+        addSenders(n);
+        //Thread.sleep(200);
+        p("broadcasting -------------------------------------");
+        Et et=new Et();
+        for(int i=0;i<messages;i++) {
+            for(Server server:servers) {
+                server.broadcast(server.messageFactory().other(Type.dummy,"1","T1"));
             }
-        return good;
+            //Thread.sleep(10);
+        }
+        p((messages*servers.size()*servers.size())+" messages sent in: "+et+"="+(1000.*messages*messages*servers.size()/et.etms())+" messages/second");
+        Thread.sleep(20);
+        p((messages*servers.size()*servers.size())+" messages sent in: "+et+"="+(1000.*messages*messages*servers.size()/et.etms())+" messages/second");
+        if(true) {
+            p("reporting -----------------------------------------------------");
+            for(Server server:servers) {
+                p("---------\n"+server.report());
+            }
+        }
+        //new Thread(new Joiner(threads)).start();
+        Thread.sleep(1_000);
+        for(Server server:servers) {
+            //p(""+server);
+            Histories histories=server.histories();
+            //p("messages: "+messages+", sent: "+histories.senderHistory.history.attempts()+", received: "+histories.receiverHistory.history.attempts());
+            //p(""+histories.anyAttempts());
+            //p(""+histories.anyFailures());
+            //p(""+histories);
+            if(histories.senderHistory.history.attempts()<messages) {
+                p(""+server);
+                p("not all were sent!");
+            }
+            if(histories.receiverHistory.history.attempts()<messages) {
+                p(""+server);
+                p("not all were received!");
+            }
+            assertTrue(histories.anyAttempts());
+            assertFalse(histories.anyFailures());
+            assertEquals(Integer.valueOf(messages),histories.senderHistory.history.attempts());
+            assertEquals(Integer.valueOf(messages),histories.receiverHistory.history.attempts());
+        }
+        stopServers();
     }
     void create(int n) {
         for(Integer i=1;i<=n;i++)
-            if(i==1) servers.add(factory.create("T"+i,"192.168.0.101",service+i,null));
-            else servers.add(factory.create("T"+i,defaultHost,service+i,null));
+            if(i==1) servers.add(factory.create(new Required(aTabletId(i),testingHost,service+i)));
+            else servers.add(factory.create(new Required(aTabletId(i),defaultHost,service+i)));
     }
     void stopServers() throws InterruptedException {
         for(Server server:servers)
@@ -62,7 +97,8 @@ public abstract class AbstractServerTestCase {
                 for(Server server2:servers)
                     if(server!=server2) {
                         SocketAddress socketAddress=new InetSocketAddress(server2.host(),server2.service());
-                        server.createAndAddSender(server2.id(),socketAddress);
+                        Required required=new Required(server2.id(),server2.host(),server2.service());
+                        server.createAndAddSender(server2.id(),required);
                     }
         } else {
             Iterator<Server> i=servers.iterator();
@@ -71,12 +107,13 @@ public abstract class AbstractServerTestCase {
                 if(n>j) {
                     next=i.next();
                     p(first.id()+" is adding sender for: "+next.id());
-                    first.createAndAddSender(next.id(),new InetSocketAddress(next.host(),next.service()));
+                    Required required=new Required(next.id(),next.host(),next.service());
+
+                    first.createAndAddSender(next.id(),required);
                 }
         }
     }
-    int service=serviceBase++;
     int threads=Thread.activeCount();
     Set<Server> servers=new LinkedHashSet<>();
-    static int serviceBase=55555;
+    static int service=1_000;
 }

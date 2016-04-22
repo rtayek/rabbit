@@ -2,9 +2,8 @@ package com.tayek.speed;
 import java.io.*;
 import java.net.*;
 import static com.tayek.io.IO.*;
-import com.tayek.Histories;
-import com.tayek.Histories.History;
-import com.tayek.speed.Server.Message;
+import com.tayek.*;
+import com.tayek.tablet.Message;
 import com.tayek.utilities.*;
 class Reader extends Connection { // Supplier<Message>
     Reader(Server server,String id,String otherId,Socket socket,Histories histories) throws IOException {
@@ -62,13 +61,12 @@ class Reader extends Connection { // Supplier<Message>
         if(histories.receiverHistory.history.attempts()>0&&reportPeriod>0&&histories.receiverHistory.history.attempts()%reportPeriod==0) {
             l.warning("histories from: "+this+": "+histories);
             if(histories.receiverHistory.history.attempts()%(10*reportPeriod)==0) ; // print report!
-            // can not since no stuff around!
         }
         l.info(this+" exit read for #"+histories.receiverHistory.history.attempts());
         if(string==null||string.isEmpty()) l.info(this+" read eof or empty string!");
         return string;
     }
-    // how to get socket addrress?
+    // how to get socket address?
     // id, host, and service will be in each message
     // end of problem
     @Override public void run() {
@@ -83,24 +81,29 @@ class Reader extends Connection { // Supplier<Message>
                 l.warning(this+" received empty string!");
                 break;
             }
-            Message message=((Server.Message.Factory)server).from(string);
+            Message message=server.messageFactory().from(string);
             if(otherId==null) { // new connection?
                 String newId=message.from();
                 l.info(this+" adding: "+this);
+                try {
+                    Thread.sleep(1_000);
+                    // this sleep makes the one knows test case work
+                    // why exactly is that?
+                } catch(InterruptedException e1) {
+                    e1.printStackTrace();
+                }
                 server.addConnection(newId,this);
                 thread.setName(this.toString());
                 Pair<Sender,Reader> pair=server.idToPair().get(newId);
-                if(pair.first==null) {
-                    SocketAddress socketAddress=new InetSocketAddress(message.host(),message.service());
-                    Sender sender;
-                    try {
-                        sender=new Sender(id,newId,socketAddress,histories);
-                        l.info(this+" adding sender: "+sender);
-                        server.addConnection(newId,sender);
-                    } catch(IOException e) {
-                        e.printStackTrace();
-                    }
-                } else l.info(this+" not addding sender, pair is: "+pair);
+                if(pair.first==null) try {
+                    Required required=new Required(newId,message.host(),message.service());
+                    Sender sender=new Sender(id,newId,required);
+                    l.info(this+" adding sender: "+sender);
+                    server.addConnection(newId,sender);
+                } catch(IOException e) {
+                    e.printStackTrace();
+                }
+                else l.info(this+" not addding sender, pair is: "+pair);
             }
             l.info(this+" received: "+message);
         }
@@ -109,7 +112,7 @@ class Reader extends Connection { // Supplier<Message>
         l.info(this+" exit run()");
     }
     @Override public String toString() {
-        return "receiver:"+id+"<-"+otherId;
+        return "reader:"+id+"<-"+otherId;
     }
     Integer reportPeriod=Histories.defaultReportPeriod;
     final Server server;

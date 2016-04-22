@@ -16,8 +16,8 @@ import com.tayek.io.IO;
 import com.tayek.io.IO.AddressesWithCallable;
 import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Group.Config;
 import com.tayek.tablet.Message.*;
-import com.tayek.tablet.Main.Stuff;
 import com.tayek.tablet.MessageReceiver.DummyReceiver;
 import com.tayek.tablet.io.*;
 import com.tayek.tablet.io.Sender.Client;
@@ -38,7 +38,12 @@ import com.tayek.utilities.Single;
     }
     public TcpTestCase(SocketAddress socketAddress,Boolean replying) {
         this.socketAddress=socketAddress;
-        stuff.replying=replying;
+        config.replying=replying;
+        if(socketAddress instanceof InetSocketAddress) {
+            InetSocketAddress inetSocketAddress=(InetSocketAddress)socketAddress;
+            Required required=new Required("T0",inetSocketAddress.getHostName(),inetSocketAddress.getPort());
+            messages=Message.instance.create(required,new Single<Integer>(0));
+        } else throw new RuntimeException(socketAddress+" is not an InetSocketAddress!");
     }
     @Parameters public static Collection<Object[]> data() throws UnknownHostException,InterruptedException,ExecutionException {
         Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(networkStub));
@@ -57,32 +62,32 @@ import com.tayek.utilities.Single;
         }
         return parameters;
     }
-    boolean sendAndReceiveOneMessage(SocketAddress socketAddress,Stuff stuff) throws UnknownHostException,IOException,InterruptedException {
+    boolean sendAndReceiveOneMessage(SocketAddress socketAddress) throws UnknownHostException,IOException,InterruptedException {
         Receiver.DummyReceiver receiver=new Receiver.DummyReceiver();
         Histories histories=new Histories();
-        Server server=new Server(null,socketAddress,receiver,stuff,histories);
+        Server server=new Server(null,socketAddress,receiver,config,histories);
         server.startServer();
         // where is client socket bound to?
-        Client client=new Client(socketAddress,stuff,histories);
+        Client client=new Client(socketAddress,config,histories);
         Message dummy=messages.other(Type.dummy,"1","1");
         l.info("sending: "+dummy);
-        client.send(dummy,stuff);
+        client.send(dummy);
         while(histories.receiverHistory.history.successes()+histories.receiverHistory.history.failures()==0)
             Thread.yield();
         server.stopServer();
         // p(receiver.t);
         if(receiver.message==null) p("null message!");
-        checkHistory(null,histories,stuff.replying,1,true);
+        checkHistory(null,histories,config.replying,1,true);
         boolean isOk=receiver.message!=null&&dummy.toString().equals(receiver.message.toString());
         return isOk;
     }
     @Test() public void testConnectAndClose() throws Exception {
         Histories histories=new Histories();
         Receiver.DummyReceiver receiver=new Receiver.DummyReceiver();
-        Stuff stuff=new Stuff();
+        Config config=new Config();
         Server server=null;
         try {
-            server=new Server(null,socketAddress,receiver,stuff,histories);
+            server=new Server(null,socketAddress,receiver,config,histories);
         } catch(Exception e) {
             p("socket address: "+socketAddress+" failed! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         }
@@ -103,21 +108,21 @@ import com.tayek.utilities.Single;
         // assert??
     }
     @Test(timeout=100) public void testOnce() throws Exception {
-        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress)) fail("failed!");
     }
     @Test(timeout=200) public void testTwice() throws Exception {
-        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
-        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress)) fail("failed!");
     }
     @Test(timeout=300) public void testThrice() throws Exception {
-        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
-        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
-        if(!sendAndReceiveOneMessage(socketAddress,stuff)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress)) fail("failed!");
+        if(!sendAndReceiveOneMessage(socketAddress)) fail("failed!");
     }
     @Test(timeout=1_500) public void testManyTimes() throws Exception {
         for(Integer i=1;i<=10;i++) {
             //p("i="+i);
-            if(!sendAndReceiveOneMessage(socketAddress,stuff)) {
+            if(!sendAndReceiveOneMessage(socketAddress)) {
                 p("oops");
                 fail("failed at: "+i);
             }
@@ -126,8 +131,8 @@ import com.tayek.utilities.Single;
         }
     }
     final SocketAddress socketAddress;
-    Stuff stuff=new Stuff();
-    int service;
+    final Factory messages;
+    //int service;
     int threads;
-    Factory messages=Message.instance.create(new Single<Integer>(0));
+    Config config=new Config();
 }

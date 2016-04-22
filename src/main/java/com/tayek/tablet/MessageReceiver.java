@@ -1,9 +1,12 @@
 package com.tayek.tablet;
 import static com.tayek.io.IO.*;
+import static com.tayek.utilities.Utility.pad;
 import java.util.*;
 import com.tayek.*;
 import com.tayek.io.Audio;
 import com.tayek.io.Audio.Sound;
+import com.tayek.tablet.Group.TabletImpl2;
+import com.tayek.utilities.Colors;
 public interface MessageReceiver {
     void receive(Message message);
     public static class DummyReceiver implements MessageReceiver {
@@ -22,6 +25,7 @@ public interface MessageReceiver {
             this.buttons=buttons;
             states=new Boolean[buttons];
             this.resetButtonId=resetButtonId;
+            this.colors=new Colors();
             reset();
         }
         @Override public Model clone() {
@@ -41,7 +45,7 @@ public interface MessageReceiver {
             if(1<=id&&id<=buttons) synchronized(states) {
                 states[id-1]=state;
                 setChangedAndNotify(id);
-                if(tablet!=null) if(state) Tablet.startChimer(tablet);
+                if(tablet!=null) if(state) tablet.startChimer();
                 else tablet.stopChimer();
             }
             else l.warning("out of bounds: "+id);
@@ -62,6 +66,25 @@ public interface MessageReceiver {
                 return copy;
             }
         }
+        boolean doingLastOnFrom=false;
+        public String getButtonText(Integer buttonId,String tabletId) {
+            String text=null;
+            if(!doingLastOnFrom) {
+                if(buttonId.equals(resetButtonId)) text="R";
+                else if((buttonId-1)/colors.columns%2==0) text=""+(char)('0'+buttonId);
+            } else {
+                String ourName=tabletId+":B"+buttonId;
+                if(state(buttonId).equals(true)) {
+                    Object lastOnFrom=lastOnFrom(buttonId);
+                    if(lastOnFrom!=null) {
+                        String hisName=lastOnFrom+":B"+buttonId;
+                        text=pad(ourName+" ("+hisName+")",length);
+                    } else text=pad(ourName,length);
+                } else text=pad(ourName,length);
+            }
+            return text;
+        }
+
         public Object lastOnFrom(Integer id) {
             synchronized(idToLastOnFrom) {
                 return idToLastOnFrom.get(id);
@@ -95,7 +118,7 @@ public interface MessageReceiver {
             for(int i=1;i<=Math.min(buttons,message.string().length());i++) {
                 if(i==message.button()) if(message.state(i)) { // turn on?
                     synchronized(idToLastOnFrom) {
-                        idToLastOnFrom.put(i,message.tabletId());
+                        idToLastOnFrom.put(i,message.from());
                     }
                     if(!state(i).equals(message.state(i))) { // will turn on?
                         setChangedAndNotify(Sound.electronic_chime_kevangc_495939803);
@@ -163,16 +186,19 @@ public interface MessageReceiver {
             Model model=new Model(7,null);
             p(model.toString());
         }
-        Tablet tablet;
+        TabletImpl2 tablet;
+
         public final int serialNumber;
         public final Integer buttons;
         public final Integer resetButtonId;
+        public final Colors colors;
         Histories histories;
         Integer messages=0;
         private final Boolean[] states;
         private final Map<Object,Object> idToLastOnFrom=new LinkedHashMap<>();
         private final Random random=new Random();
         static int ids=0;
+        static final int length=10;
         public static final Model mark1=new Model(11,11);
     }
 }

@@ -6,8 +6,8 @@ import org.junit.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.tablet.Message.Type;
-import com.tayek.tablet.Main.Stuff;
 import static com.tayek.io.IO.*;
 import com.tayek.*;
 import com.tayek.utilities.Et;
@@ -26,7 +26,7 @@ public class TabletFastMissingMessageTestCase extends AbstractTabletTestCase {
         super.tearDown();
     }
     void check(Integer n) {
-        for(Tablet tablet:tablets) {
+        for(TabletImpl2 tablet:tablets) {
             Histories histories=tablet.histories();
             assertTrue(n<=histories.senderHistory.history.attempts());
             // strange, was 101
@@ -45,18 +45,18 @@ public class TabletFastMissingMessageTestCase extends AbstractTabletTestCase {
     }
     void test(int nTablets,int messages,int wait) throws InterruptedException {
         Histories.defaultReportPeriod=0;
-        tablets=Tablet.createForTest(nTablets,serviceOffset);
+        tablets=createForTest(nTablets,serviceOffset);
         startListening();
-        Tablet first=tablets.iterator().next();
+        TabletImpl2 first=tablets.iterator().next();
         for(int i=1;i<=messages;i++) {
-            first.broadcast(first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId()),first.stuff);
+            first.broadcast(first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId()));
             Thread.sleep(wait);
         }
         Thread.sleep(10*messages);
         Thread.sleep(30*nTablets);
         check(messages);
-        for(Tablet tablet:tablets)
-            p(tablet.stuff.report(method()));
+        for(TabletImpl2 tablet:tablets)
+            p(tablet.report(method()));
     }
     @Test public void test1WithoutWait() throws InterruptedException {
         test(1,10,0);
@@ -88,5 +88,5 @@ public class TabletFastMissingMessageTestCase extends AbstractTabletTestCase {
     @Test() public void test100WithWait() throws InterruptedException {
         test(100,100,wait1);
     }
-    int wait1=Stuff.defaultDriveWait;
+    int wait1=Group.Config.defaultDriveWait;
 }

@@ -3,11 +3,11 @@ import static org.junit.Assert.*;
 import java.io.*;
 import java.util.Map;
 import org.junit.*;
-import com.tayek.Required;
+import com.tayek.*;
 import com.tayek.io.LoggingHandler;
-import com.tayek.tablet.Main.Stuff;
-import static com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
+import com.tayek.tablet.Group.*;
+
 import com.tayek.tablet.io.*;
 public class ControllerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
@@ -15,9 +15,9 @@ public class ControllerTestCase {
     }
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
-        Stuff stuff=new Stuff(1,new Groups().groups.get("g2"),Model.mark1);
-        tablet=Tablet.create(stuff,stuff.keys().iterator().next());
-        stuff=null; // this tablet has a clone of group!
+        Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
+        tablet=(TabletImpl2)Tablet.factory.create2(group.keys().iterator().next(),group);
+        group=null; // this tablet has a clone of group!
     }
     @After public void tearDown() throws Exception {}
     @Test public void test() {}

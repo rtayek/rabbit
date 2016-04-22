@@ -4,8 +4,8 @@ import static org.junit.Assert.*;
 import org.junit.*;
 import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.tablet.Message.Type;
-import com.tayek.tablet.Main.Stuff;
 import com.tayek.*;
 import static com.tayek.io.IO.*;
 public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
@@ -22,7 +22,7 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
         super.tearDown();
     }
     void check(Integer n) {
-        for(Tablet tablet:tablets) {
+        for(TabletImpl2 tablet:tablets) {
             Histories histories=tablet.histories();
             assertEquals(n,histories.senderHistory.history.attempts());
             assertEquals(n,histories.receiverHistory.history.attempts());
@@ -37,56 +37,56 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
     }
     @Test(timeout=900) public void testNoneMissing() throws InterruptedException {
         Histories.defaultReportPeriod=0;
-        tablets=Tablet.createForTest(2,serviceOffset);
+        tablets=createForTest(2,serviceOffset);
         startListening();
-        Tablet first=tablets.iterator().next();
-        Message message1=first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId());
-        Message message2=first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId());
-        Message message3=first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId());
-        first.broadcast(message1,first.stuff);
+        TabletImpl2 first=tablets.iterator().next();
+        Message message1=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
+        Message message2=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
+        Message message3=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
+        first.broadcast(message1);
         Thread.sleep(100);
-        first.broadcast(message2,first.stuff);
+        first.broadcast(message2);
         Thread.sleep(100);
-        first.broadcast(message3,first.stuff);
+        first.broadcast(message3);
         while(first.histories().senderHistory.history.attempts()<2)
             Thread.sleep(10);
-        for(Tablet tablet:tablets)
-        p(tablet.stuff.report(tablet.tabletId()));
+        for(TabletImpl2 tablet:tablets)
+        p(tablet.report(tablet.tabletId()));
     }
     @Test(timeout=900) public void testOneMissing() throws InterruptedException {
         Histories.defaultReportPeriod=0;
-        tablets=Tablet.createForTest(2,serviceOffset);
+        tablets=createForTest(2,serviceOffset);
         startListening();
-        Tablet first=tablets.iterator().next();
-        Message message1=first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId());
-        Message message2=first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId());
-        Message message3=first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId());
-        first.broadcast(message1,first.stuff);
+        TabletImpl2 first=tablets.iterator().next();
+        Message message1=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
+        Message message2=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
+        Message message3=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
+        first.broadcast(message1);
         Thread.sleep(100);
         //first.broadcast(message2,first.stuff);
         //Thread.sleep(100);
-        first.broadcast(message3,first.stuff);
+        first.broadcast(message3);
         while(first.histories().senderHistory.history.attempts()<2)
             Thread.sleep(10);
-        for(Tablet tablet:tablets)
-            p(tablet.stuff.report(tablet.tabletId()));
+        for(TabletImpl2 tablet:tablets)
+            p(tablet.report(tablet.tabletId()));
     }
     @Test(timeout=900) public void testOneOutOfOrder() throws InterruptedException {
         Histories.defaultReportPeriod=0;
-        tablets=Tablet.createForTest(2,serviceOffset);
+        tablets=createForTest(2,serviceOffset);
         startListening();
-        Tablet first=tablets.iterator().next();
-        Message message1=first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId());
-        Message message2=first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId());
-        Message message3=first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId());
-        first.broadcast(message1,first.stuff);
+        TabletImpl2 first=tablets.iterator().next();
+        Message message1=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
+        Message message2=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
+        Message message3=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
+        first.broadcast(message1);
         Thread.sleep(100);
-        first.broadcast(message3,first.stuff);
+        first.broadcast(message3);
         Thread.sleep(100);
-        first.broadcast(message2,first.stuff);
+        first.broadcast(message2);
         while(first.histories().senderHistory.history.attempts()<2)
             Thread.sleep(10);
-        for(Tablet tablet:tablets)
-            p(tablet.stuff.report(tablet.tabletId()));
+        for(TabletImpl2 tablet:tablets)
+            p(tablet.report(tablet.tabletId()));
     }
 }

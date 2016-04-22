@@ -16,7 +16,7 @@ public class HeartbeatTestCase extends AbstractTabletTestCase {
         super.tearDown();
     }
     @Test public void test() {
-        tablets=Tablet.createForTest(2,serviceOffset);
+        tablets=createForTest(2,serviceOffset);
         startListening();
         // how do we test?
         // need to keep some history

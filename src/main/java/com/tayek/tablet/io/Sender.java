@@ -5,27 +5,27 @@ import java.net.*;
 import java.util.concurrent.*;
 import com.tayek.*;
 import com.tayek.io.IO.ShutdownOptions;
-import com.tayek.tablet.Main.Stuff;
+import com.tayek.tablet.Group.Config;
 import com.tayek.utilities.*;
 public interface Sender {
-    boolean send(Object message,Stuff stuff);
+    boolean send(Object message);
     public static class Client implements Sender {
-        public Client(SocketAddress socketAddress,Stuff stuff,Histories histories) {
+        public Client(SocketAddress socketAddress,Config config,Histories histories) {
             this.socketAddress=socketAddress;
-            this.stuff=stuff;
+            this.config=config;
             this.histories=histories;
         }
         // maybe send should take a socket as a parameter?
         // maybe we can reuse the socket?
-        @Override public boolean send(Object object,Stuff stuff) {
+        @Override public boolean send(Object object) {
             String string=object.toString();
             boolean wasSuccessful=false;
             synchronized(histories.senderHistory) {
                 l.info("locked: "+histories.senderHistory);
                 if(string.contains("\n")) l.severe(string+" contains a linefeed!");
-                l.fine("#"+(histories.senderHistory.history.attempts()+1)+", connecting to: "+socketAddress+", with timeout: "+stuff.connectTimeout);
+                l.fine("#"+(histories.senderHistory.history.attempts()+1)+", connecting to: "+socketAddress+", with timeout: "+config.connectTimeout);
                 Et et=new Et();
-                Socket socket=connect(socketAddress,stuff.connectTimeout,histories.senderHistory);
+                Socket socket=connect(socketAddress,config.connectTimeout,histories.senderHistory);
                 if(socket!=null) try {
                     l.fine("#"+(histories.senderHistory.history.attempts()+1)+", connect took: "+et);
                     Writer out=new OutputStreamWriter(socket.getOutputStream());
@@ -39,7 +39,7 @@ public interface Sender {
                     //Toaster.toaster.toast("sent: "+message+" at: "+System.currentTimeMillis());
                     wasSuccessful=true;
                     l.info("sent: "+object);
-                    if(stuff.replying) {
+                    if(config.replying) {
                         l.fine("#"+histories.senderHistory.history.attempts()+"reading reply to: "+object+" at: "+System.currentTimeMillis());
                         try {
                             BufferedReader in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -99,15 +99,16 @@ public interface Sender {
             }
             return null;
         }
-        public static void send(String id,final Object message,String destinationId,SocketAddress socketAddress,Stuff stuff,Histories histories) {
-            Client client=new Client(socketAddress,stuff,histories);
+        public static void send(String id,final Object message,String destinationId,SocketAddress socketAddress,Histories histories) {
+            Config config=new Config(); // maybe pass ths in?
+            Client client=new Client(socketAddress,config,histories);
             l.info(id+" sending: "+message+" to tablet "+destinationId);
             try {
-                boolean ok=client.send(message,stuff);
+                boolean ok=client.send(message);
                 if(!ok) {
                     l.warning("trying to send again to: "+socketAddress);
                     Et et=new Et();
-                    ok=client.send(message,stuff);
+                    ok=client.send(message);
                     if(ok) {
                         histories.senderHistory.retries.success();
                         histories.senderHistory.retries.successHistogram.add(et.etms());
@@ -128,11 +129,10 @@ public interface Sender {
         public static class SendCallable implements Callable<Void>,Runnable {
             // needs history for destination tablet.
             // and socket address of destination tablet.
-            public SendCallable(String id,Object message,String destinationTabletId,Stuff stuff,Histories histories,SocketAddress socketAddress) {
+            public SendCallable(String id,Object message,String destinationTabletId,Histories histories,SocketAddress socketAddress) {
                 this.id=id;
                 this.message=message;
                 this.destinationId=destinationTabletId;
-                this.stuff=stuff;
                 this.histories=histories;
                 this.socketAddress=socketAddress;
             }
@@ -140,7 +140,7 @@ public interface Sender {
                 Thread.currentThread().setName(getClass().getSimpleName()+", "+id+" send to: "+destinationId);
                 l.fine("call send to: "+destinationId);
                 sendCalled=true;
-                Client.send(id,message,destinationId,socketAddress,stuff,histories);
+                Client.send(id,message,destinationId,socketAddress,histories);
             }
             @Override public Void call() throws Exception {
                 run();
@@ -150,7 +150,6 @@ public interface Sender {
             private final String id;
             private final Object message;
             private final String destinationId;
-            private final Stuff stuff;
             private final Histories histories;
             private final SocketAddress socketAddress;
         }
@@ -176,7 +175,7 @@ public interface Sender {
             return future;
         }
         private final SocketAddress socketAddress;
-        private final Stuff stuff;
+        private final Config config;
         private final Histories histories;
         public final ShutdownOptions shutdownOptions=new ShutdownOptions();
         // use these options like the server does!

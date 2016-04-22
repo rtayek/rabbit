@@ -6,11 +6,10 @@ import java.util.*;
 import org.junit.*;
 import com.tayek.*;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.tablet.Main;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.Message.Type;
-import com.tayek.tablet.Main.Stuff;
-import com.tayek.tablet.Main.Stuff.*;
 import static com.tayek.io.IO.*;
 import com.tayek.utilities.*;
 public class Tablet32TestCase extends AbstractTabletTestCase {
@@ -26,36 +25,35 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
     @After public void tearDown() throws Exception {
         super.tearDown();
     }
-    @Test(timeout=10_000) public void testAll32WithOneMessage() throws InterruptedException {
-        tablets=Tablet.createForTest(32,serviceOffset);
+    @Test(timeout=12_000) public void testAll32WithOneMessage() throws InterruptedException {
+        tablets=createForTest(32,serviceOffset);
         startListening();
         Et et=new Et();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
-        for(Tablet tablet:tablets) {
+        for(TabletImpl2 tablet:tablets) {
             checkHistory(tablet,tablets.size(),false);
         }
     }
     private void justOneWithOneMessage() throws InterruptedException {
-        Map<String,Required> map=new LinkedHashMap<>();
+        Map<String,Required> map=new TreeMap<>();
         for(Integer i=1;i<=32;i++) // hack address so it can't connect
             map.put("T"+i+" on PC",new Required("T"+i+" on PC",testingHost,defaultReceivePort+100+serviceOffset+i));
-        Stuff stuff=new Stuff(1,map,Model.mark1);
+        Group group=new Group("1",map,Model.mark1);
         p("map: "+map);
-        tablets=Tablet.create(stuff);
-        Tablet first=tablets.iterator().next();
+        tablets=group.createAll();
+        TabletImpl2 first=tablets.iterator().next();
         boolean areAllLiestening=true;
         if(areAllLiestening) startListening();
         else {
-            SocketAddress socketAddress=first.stuff.socketAddress(first.tabletId());
-            if(!first.startListening(socketAddress)) fail(first+" startListening() retuns false!");
+            if(!first.startListening()) fail(first+" startListening() retuns false!");
         }
-        first.broadcast(first.stuff.messages.other(Type.dummy,first.groupId,first.tabletId()),first.stuff);
+        first.broadcast(first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId()));
         Thread.sleep(700);
         Histories histories=first.histories();
         assertEquals(one,histories.receiverHistory.history.successes());
-        assertEquals(first.stuff.replying?one:zero,histories.receiverHistory.replies.successes());
+        assertEquals(first.config.replying?one:zero,histories.receiverHistory.replies.successes());
         assertEquals(one,histories.senderHistory.history.successes());
-        assertEquals(first.stuff.replying?one:zero,histories.senderHistory.replies.successes());
+        assertEquals(first.config.replying?one:zero,histories.senderHistory.replies.successes());
         assertEquals(zero,histories.receiverHistory.history.failures());
         if(areAllLiestening) assertEquals(zero,histories.senderHistory.history.failures());
         else assertEquals(thirtyOne,histories.senderHistory.history.failures());
@@ -69,7 +67,7 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
             justOneWithOneMessage();
     }
     @Test(timeout=10_000) public void testSendOneDummyMessageFromFirstTabletAndWait() throws InterruptedException {
-        tablets=Tablet.createForTest(32,serviceOffset);
+        tablets=createForTest(32,serviceOffset);
         startListening();
         Et et=new Et();
         sendOneDummyMessageFromFirstTabletAndWaitAndShutdown(false);

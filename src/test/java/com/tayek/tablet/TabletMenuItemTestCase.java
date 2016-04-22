@@ -1,13 +1,12 @@
 package com.tayek.tablet;
 import java.util.Map;
 import org.junit.*;
-import com.tayek.tablet.Main.Stuff;
-import static com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
-import com.tayek.Required;
+import com.tayek.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.Enums.MenuItem;
 import com.tayek.tablet.io.*;
+import com.tayek.tablet.Group.*;
 public class TabletMenuItemTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         LoggingHandler.init();
@@ -15,9 +14,9 @@ public class TabletMenuItemTestCase {
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
         Map<String,Required> requireds=new Groups().groups.get("g2");
-        Stuff stuff=new Stuff(1,requireds,Model.mark1);
-        tablet=Tablet.create(stuff,stuff.keys().iterator().next());
-        stuff=null; // tablet has a clone of group!
+        Group group=new Group("1",requireds,Model.mark1);
+        tablet=(TabletImpl2)Tablet.factory.create2(group.keys().iterator().next(),group);
+        group=null; // tablet has a clone of group!
     }
     @After public void tearDown() throws Exception {}
     @Test public void test() {
@@ -28,5 +27,5 @@ public class TabletMenuItemTestCase {
             // also, getting socket closed exceptions
         }
     }
-    Tablet tablet;
+    TabletImpl2 tablet;
 }

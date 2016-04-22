@@ -3,7 +3,7 @@ import static com.tayek.utilities.Utility.*;
 import java.io.*;
 import java.net.*;
 import java.util.logging.*;
-import com.tayek.Histories;
+import com.tayek.*;
 import com.tayek.io.IO;
 import com.tayek.utilities.*;
 import static com.tayek.io.IO.*;
@@ -59,12 +59,13 @@ abstract class Connection implements Runnable {
     // maybe put histories here?
 }
 public class Sender extends Connection { // Consumer<Message>
-    Sender(String id,String otherId,SocketAddress socketAddress,Histories histories) throws IOException {
-        this(id,otherId,connect(socketAddress,timeout),histories);
+    Sender(String id,String otherId,Required required) throws IOException {
+        this(id,otherId,required,connect(new InetSocketAddress(required.host,required.service),timeout));
     }
-    private Sender(String id,String otherId,Socket socket,Histories histories) throws IOException {
-        super(id,socket,histories);
+    private Sender(String id,String otherId,Required required,Socket socket) throws IOException {
+        super(id,socket,required.histories());
         this.otherId=otherId;
+        this.required=required;
         out=new OutputStreamWriter(socket.getOutputStream());
     }
     private void readReply(Object message) {
@@ -129,6 +130,7 @@ public class Sender extends Connection { // Consumer<Message>
         return "sender:"+id+"->"+otherId;
     }
     public Integer reportPeriod=Histories.defaultReportPeriod;
+    public final Required required;
     final boolean replying=false;
     private final Writer out;
     static int messagesToSend=1_000;

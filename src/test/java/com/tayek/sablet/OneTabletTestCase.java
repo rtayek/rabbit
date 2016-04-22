@@ -21,12 +21,12 @@ public class OneTabletTestCase extends AbstractTabletTestCase {
     }
     @Test public void testSetUpAndTearDown() {}
     @Test public void startupAndShutdown() {
-        tablets=Tablet.createForTest(1,serviceOffset);
+        tablets=createForTest(1,serviceOffset);
         startListening();
         shutdown();
     }
     @Test(timeout=200) public void testSendOneMessage() throws InterruptedException {
-        tablets=Tablet.createForTest(1,serviceOffset);
+        tablets=createForTest(1,serviceOffset);
         startListening();
         sendOneDummyMessageFromEachTabletAndWait(false);
         shutdown();

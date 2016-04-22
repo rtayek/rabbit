@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutionException;
 import org.junit.*;
 import com.tayek.*;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.tablet.MessageReceiver.Model;
 import static com.tayek.io.IO.*;
 public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestCase {
@@ -21,14 +22,14 @@ public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestC
         super.tearDown();
     }
     void sendMessagesToTablets(int n) throws InterruptedException {
-        tablets=Tablet.createForTest(2,serviceOffset);
-        for(Tablet tablet:tablets)
-            p(tablet.stuff.useExecutorService+" "+tablet.stuff.runCanceller+" "+tablet.stuff.waitForSendCallable);
+        tablets=createForTest(2,serviceOffset);
+        for(TabletImpl2 tablet:tablets)
+            p("config: "+tablet.config);
         startListening();
-        Model model=tablets.iterator().next().model;
+        Model model=tablets.iterator().next().model();
         //p("model: "+model);
         int buttonId=model.buttons-1;
-        for(Tablet tablet:tablets) { // maybe have a version that just sends to first?
+        for(TabletImpl2 tablet:tablets) { // maybe have a version that just sends to first?
             for(int i=0;i<n;i++) {
                 tablet.click((++buttonId-1)%(model.buttons-1)+1);
                 Thread.sleep(20); // nobody can press buttons this fast
@@ -37,14 +38,14 @@ public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestC
         }
         Thread.sleep(100);
         shutdown();
-        for(Tablet tablet:tablets) {
+        for(TabletImpl2 tablet:tablets) {
             Histories history=tablet.histories();
             assertEquals(new Integer(0),history.senderHistory.history.failures());
             assertEquals(new Integer(0),history.receiverHistory.history.failures());
             assertEquals(new Integer(0),history.receiverHistory.missing.failures());
             //p("model: "+tablet.model);
-            assertEquals(model.toCharacters(),tablet.model.toCharacters());
-            assertEquals(model.toString(),tablet.model.toString());
+            assertEquals(model.toCharacters(),tablet.model().toCharacters());
+            assertEquals(model.toString(),tablet.model().toString());
         }
     }
     @Test() public void testOneNormalMessage() throws InterruptedException,UnknownHostException,ExecutionException {

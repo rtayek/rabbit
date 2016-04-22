@@ -9,6 +9,7 @@ import org.junit.*;
 import com.tayek.io.*;
 import com.tayek.io.LogServer.Copier;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.tablet.io.*;
 import com.tayek.utilities.Utility;
 public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
@@ -50,10 +51,10 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         LoggingHandler.toggleSockethandlers();
         p("hanlders; "+Arrays.asList(IO.l.getHandlers()));
         // start tablets
-        tablets=Tablet.createForTest(2,serviceOffset);
+        tablets=createForTest(2,serviceOffset);
         startListening();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
-        for(Tablet tablet:tablets)
+        for(TabletImpl2 tablet:tablets)
             checkHistory(tablet,tablets.size(),false);
         Thread.sleep(200);
         shutdown();

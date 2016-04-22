@@ -6,6 +6,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
+import com.tayek.utilities.Pair;
 public class IO {
     public static void pn(PrintStream out,String string) {
         out.print(string);
@@ -124,27 +125,47 @@ public class IO {
         Set<InetAddress> inetAddresses=addressesWith(prefix);
         p("addresses starting with: "+prefix+": "+inetAddresses);
     }
-    public static Set<SocketAddress> discoverReal(int n) {
-        Set<SocketAddress> socketAddresses=new LinkedHashSet<>();
-        for(int i=11;i<11+n;i++) // fragile!
-            socketAddresses.add(new InetSocketAddress(tabletNetworkPrefix+i,defaultReceivePort));
-        Set<SocketAddress> good=new LinkedHashSet<>();
-        int retries=2;
-        for(SocketAddress socketAddress:socketAddresses)
+    public static Set<Pair<Integer,SocketAddress>> discover(boolean real,int n,int service) {
+        Set<Pair<Integer,SocketAddress>> socketAddresses=new LinkedHashSet<>();
+        Set<Pair<Integer,SocketAddress>> good=new LinkedHashSet<>();
+        if(real) {
+            for(int i=11;i<11+n;i++) // fragile!
+                socketAddresses.add(new Pair<Integer,SocketAddress>(i-10,new InetSocketAddress(tabletNetworkPrefix+i,service)));
+        } else {
+            for(int i=1;i<=n;i++)
+                socketAddresses.add(new Pair<Integer,SocketAddress>(i,new InetSocketAddress(defaultHost,service+i)));
+            for(int i=1;i<=n;i++)
+                socketAddresses.add(new Pair<Integer,SocketAddress>(i,new InetSocketAddress(testingHost,service+i)));
+        }
+        int retries=3;
+        for(Pair<Integer,SocketAddress> pair:socketAddresses) {
+            p("trying : "+pair);
             for(int i=1;i<=1+retries;i++) {
-                Socket socket=connect(socketAddress,200);
+                Socket socket=connect(pair.second,real?1_000:200);
                 if(socket!=null) {
                     try {
                         socket.close();
                     } catch(IOException e) {
                         e.printStackTrace();
                     }
-                    good.add(socketAddress);
-                    p("added: "+socketAddress);
+                    p("adding: "+pair);
+                    if(good.contains(pair))
+                        p(good+" already contains: "+pair);
+                    good.add(pair);
                     break;
                 }
             }
+        }
         return good;
+    }
+    public static String aTabletId(Integer tabletId) {
+        return "T"+tabletId;
+    }
+    public static Set<Pair<Integer,SocketAddress>> discoverTestTablets(int n,int serviceBase) {
+        return discover(false,n,serviceBase);
+    }
+    public static Set<Pair<Integer,SocketAddress>> discoverRealTablets(int n) {
+        return discover(true,n,defaultReceivePort);
     }
     public static void main(String args[]) throws UnknownHostException {
         printNetworkInterfaces();
@@ -158,26 +179,33 @@ public class IO {
         printInetAddresses(tabletNetworkPrefix);
         printInetAddresses(defaultHost);
         if(!defaultHost.equals(testingHost)) printInetAddresses(testingHost);
+        Set<InetAddress> inetAddresses=addressesWith(tabletNetworkPrefix);
+        p("address on: "+tabletNetworkPrefix+" is: "+inetAddresses);
+        if(!inetAddresses.contains(InetAddress.getByName(raysPcOnTabletNetworkToday))) p("address has changed, expected: "+raysPcOnTabletNetworkToday+", but got: "+inetAddresses);
+        inetAddresses=addressesWith(raysNetworkPrefix);
+        p("address on: "+raysNetworkPrefix+" is: "+inetAddresses);
+        if(!inetAddresses.contains(InetAddress.getByName(raysPcOnRaysNetwork))) p("address has changed, expected: "+raysPcOnTabletNetworkToday+", but got: "+inetAddresses);
     }
     public static final boolean isRaysPc=System.getProperty("user.dir").contains("D:\\");
     public static final boolean isLaptop=System.getProperty("user.dir").contains("C:\\Users\\");
     public static final Integer defaultReceivePort=33000;
     public static final String networkStub="192.168.";
+    public static final String tabletNetworkPrefix="192.168.0.";
+    public static final String raysNetworkPrefix="192.168.1.";
     public static final String raysPcOnTabletNetworkToday="192.168.0.101";
+    public static final String defaultHost=raysPcOnTabletNetworkToday;
+    public static final String raysPcOnRaysNetwork="192.168.1.2";
     public static final String laptopToday="192.168.0.100";
-    public static String tabletNetworkPrefix="192.168.0.";
-    public static String fakeNetworkPrefix="192.168.1.2";
-    public static String defaultHost=tabletNetworkPrefix+101; // hack!
     // really need to find the above using a thread
-    public static String testingHost=fakeNetworkPrefix;
-    public static final Map<String,SocketHandler> logServerHosts=new LinkedHashMap<>();
+    public static final String testingHost=raysPcOnRaysNetwork;
+    public static final Map<String,SocketHandler> logServerHosts=new TreeMap<>();
     static {
         logServerHosts.put("192.168.1.2",null); // static ip on my pc
         logServerHosts.put("192.168.0.101",null); // my pc today
         logServerHosts.put("192.168.0.100",null); // laptop today
     }
     public static final Map<Integer,String> androidIds=new TreeMap<>();
-   static {
+    static {
         androidIds.put(1,"0a9196e8"); // ab97465ca5e2af1a
         androidIds.put(2,"0ab62080");
         androidIds.put(3,"0ab63506"); // d0b9261d73d60b2c

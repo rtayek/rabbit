@@ -2,12 +2,11 @@ package com.tayek.tablet.io;
 import java.net.*;
 import java.util.Map;
 import java.util.logging.Level;
-import com.tayek.Required;
+import com.tayek.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Group.*;
 import com.tayek.tablet.Message.Type;
-import com.tayek.tablet.Main.Stuff;
-import static com.tayek.tablet.Main.Stuff.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import static com.tayek.io.IO.*;
 public class Ping {
@@ -15,20 +14,19 @@ public class Ping {
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.ALL);
         Map<String,Required> requireds=new Groups().groups.get("g0");
-        String tabletId=Stuff.aTabletId(99);
+        String tabletId=aTabletId(99);
         requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
-        Stuff stuff=new Stuff(1,requireds,Model.mark1);
-        Tablet tablet=Tablet.create(stuff,tabletId);
-        stuff=null; // tablet has a clone of group.
-        SocketAddress socketAddress=tablet.stuff.socketAddress(tablet.tabletId());
-        tablet.startListening(socketAddress);
-        Message message=tablet.stuff.messages.other(Type.ping,tablet.groupId,tablet.tabletId());
+        Group group=new Group("1",requireds,Model.mark1);
+        Tablet tablet=Tablet.factory.create2(tabletId,group);
+        group=null; // tablet has a clone of group.
+        ((TabletImpl2)tablet).startListening();
+        Message message=tablet.messageFactory().other(Type.ping,tablet.groupId(),tablet.tabletId());
         // not working on the tablets
         // because they don't have a socket address for tablet 99
         // so how do we handle this?
         // really do not want to put in a hack for this.
         // maybe refactor client and send to use an ip address?
-        tablet.broadcast(message,stuff);
+        tablet.broadcast(message);
         // Client.report(tablet);
     }
 }

@@ -6,8 +6,7 @@ import java.util.concurrent.ExecutionException;
 import org.junit.*;
 import static com.tayek.io.IO.*;
 import com.tayek.io.IO;
-import com.tayek.tablet.Main.Stuff;
-import static com.tayek.tablet.Main.Stuff.*;
+import com.tayek.tablet.Group.*;
 import com.tayek.tablet.MessageReceiver.Model;
 public class GroupTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {
@@ -18,7 +17,7 @@ public class GroupTestCase {
     @After public void tearDown() throws Exception {}
     @Test public void testATabletId(){
         Integer i=123;
-        Object id=Stuff.aTabletId(i);
+        Object id=aTabletId(i);
         p("id: "+id+" "+id.getClass().getName());
         assertTrue(id instanceof String);
     }
@@ -27,20 +26,20 @@ public class GroupTestCase {
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
-        Stuff stuff=new Stuff(1,new Groups().groups.get("g2"),Model.mark1);
-        String tabletId=stuff.getTabletIdFromInetAddress(inetAddress,null);
-        Tablet tablet=new Tablet(stuff,tabletId);
-        assertEquals(tablet.tabletId(),stuff.keys().iterator().next());
+        Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
+        String tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
+        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId));
+        assertEquals(tablet.tabletId(),group.keys().iterator().next());
     }
     @Test public void testGetTabletWithService() throws UnknownHostException,InterruptedException,ExecutionException {
         Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(testingHost));
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
-        Stuff stuff=new Stuff(1,new Groups().groups.get("g2"),Model.mark1);
-        String tabletId=stuff.getTabletIdFromInetAddress(inetAddress,stuff.required("pc-5").service);
-        Tablet tablet=new Tablet(stuff,tabletId);
-        Iterator<String> i=stuff.keys().iterator();
+        Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
+        String tabletId=group.getTabletIdFromInetAddress(inetAddress,group.required("pc-5").service);
+        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId));
+        Iterator<String> i=group.keys().iterator();
         i.next(); // skip the first tablet
         assertEquals(tablet.tabletId(),i.next()); // fragile
     }

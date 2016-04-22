@@ -67,18 +67,19 @@ public class Histories implements Addable<Histories> {
             successHistogram.add(Double.NaN);
             failureHistogram.add(etms);
         }
-
         public String toString(String prefix) {
-            String string=prefix+": attempts: "+attempts+", successes: "+successes+", recent: "+recent+", failures: "+failures+" "+reasons;
-            if(successHistogram.n()!=0) string+="\n"+prefix+"success times: "+successHistogram;
-            if(failureHistogram.n()!=0) string+="\n"+prefix+"failure times: "+failureHistogram;
-            return string;
+            synchronized(this) {
+                String string=prefix+"attempts: "+attempts+", successes: "+successes+", failures: "+failures+" "+reasons+", recent: "+recent;
+                if(successHistogram.n()!=0) string+="\n"+prefix+"success times: "+successHistogram;
+                if(failureHistogram.n()!=0) string+="\n"+prefix+"failure times: "+failureHistogram;
+                return string;
+            }
         }
         @Override public String toString() {
-            return toString("");
+            return toString("\t");
         }
         private int attempts,successes,failures;
-        private final Map<String,Integer> reasons=new LinkedHashMap<>();
+        private final Map<String,Integer> reasons=new TreeMap<>();
         private LruMap<Integer,Boolean> recent=new LruMap<>(lruMax);
         public final Histogram successHistogram=new Histogram(10,0,1_000);
         public final Histogram failureHistogram=new Histogram(10,0,1_000);
@@ -90,13 +91,12 @@ public class Histories implements Addable<Histories> {
             history.add(senderHistory.replies);
         }
         @Override public String toString() {
-            String string="",prefix="\t";
-            if(history.attempts()!=0) string+=history.toString(prefix+"("+serialNumber+") sends: ");
-            else string+=prefix+"no attempts";
-            if(replies.attempts()!=0) string+="\nreplies: "+replies.toString(prefix+"replies: ");
-            if(retries.attempts()!=0) string+="\n\tretries: "+retries.toString();
-            if(allSendTimes.n()!=0) string+="\n\tall send times: "+allSendTimes;
-            if(allFailures.n()!=0) string+="\n\tall failures: "+allFailures;
+            String string="",prefix="\t\t";
+            if(history.attempts()!=0) string+="\n"+history.toString(prefix+"sends: ");
+            if(replies.attempts()!=0) string+="\n"+replies.toString(prefix+"replies: ");
+            if(retries.attempts()!=0) string+="\n"+retries.toString(prefix+"retries: ");
+            if(allSendTimes.n()!=0) string+="\n"+allSendTimes.toString(prefix+"all send times: ");
+            if(allFailures.n()!=0) string+="\n"+allFailures.toString(prefix+"all failures: ");
             return string;
         }
         public final History history=new History(),replies=new History(),retries=new History();
@@ -110,12 +110,11 @@ public class Histories implements Addable<Histories> {
             missing.add(receiverHistory.missing);
         }
         @Override public String toString() {
-            String string="",prefix="\t";
-            if(history.attempts()!=0) string+=history.toString(prefix+"("+serialNumber+") received: ");
-            else string+=prefix+"("+serialNumber+") no attempts";
-            if(replies.attempts()!=0) string+="\nreplies: "+replies.toString(prefix+"replies: ");
-            if(missing.attempts()!=0) string+="\nmissing: "+missing.toString(prefix+"missing: ");
-            if(missing.attempts()!=0) string+="\n\tmissed: "+missed;
+            String string="",prefix="\t\t";
+            if(history.attempts()!=0) string+="\n"+history.toString(prefix+"received: ");
+            if(replies.attempts()!=0) string+="\n"+replies.toString(prefix+"replies: ");
+            if(missing.attempts()!=0) string+="\n"+missing.toString(prefix+"missing: ");
+            if(missing.attempts()!=0) string+="\n"+prefix+"missed: "+missed;
             return string;
         }
         public final History history=new History(),replies=new History(),missing=new History();
@@ -126,8 +125,8 @@ public class Histories implements Addable<Histories> {
             history.add(modelHistory.history);
         }
         @Override public String toString() {
-            String string="\tmodel: ";
-            if(history.attempts()!=0) string+=history.toString();
+            String string="",prefix="\t\t";
+            if(history.attempts()!=0) string+="\n"+history.toString(prefix+"history: ");
             else string+="no attempts";
             return string;
         }
@@ -136,6 +135,7 @@ public class Histories implements Addable<Histories> {
     @Override public void add(Histories histories) {
         senderHistory.add(histories.senderHistory);
         receiverHistory.add(histories.receiverHistory);
+        modelHistory.add(histories.modelHistory);
     }
     public int failures() {
         return senderHistory.history.failures()+senderHistory.replies.failures()+receiverHistory.history.failures()+receiverHistory.replies.failures()+modelHistory.history.failures();
@@ -158,18 +158,49 @@ public class Histories implements Addable<Histories> {
         return false;
     }
     public String toString(String prefix) {
-        return prefix+'\t'+"sender("+serialNumber+"): "+senderHistory+"\n\treceiver("+serialNumber+"): "+receiverHistory;
+        return prefix+"\n\t"+"sender("+serialNumber+"): "+senderHistory+"\n\t"+"receiver("+serialNumber+"): "+receiverHistory+"\n\t"+"model("+serialNumber+"): "+modelHistory;
     }
     @Override public String toString() {
-        return "sender("+serialNumber+"): "+senderHistory+"\nreceiver("+serialNumber+"): "+receiverHistory;
+        return toString("no prefix");
+    }
+    public static void main(String[] args) {
+        Histories histories=new Histories();
+        histories.senderHistory.history.success();
+        histories.senderHistory.history.successHistogram.add(1);
+        histories.senderHistory.history.failureHistogram.add(Double.NaN);
+        histories.senderHistory.history.failure("foo");
+        histories.senderHistory.history.successHistogram.add(Double.NaN);
+        histories.senderHistory.history.failureHistogram.add(100);
+        histories.senderHistory.retries.success();
+        histories.senderHistory.retries.successHistogram.add(1);
+        histories.senderHistory.retries.failureHistogram.add(Double.NaN);
+        histories.senderHistory.retries.failure("bar");
+        histories.senderHistory.retries.successHistogram.add(Double.NaN);
+        histories.senderHistory.retries.failureHistogram.add(100);
+        histories.senderHistory.replies.success();
+        histories.senderHistory.replies.failure("baz");
+        histories.receiverHistory.history.success();
+        histories.receiverHistory.history.successHistogram.add(1);
+        histories.receiverHistory.history.failureHistogram.add(Double.NaN);
+        histories.receiverHistory.history.failure("qux");
+        histories.receiverHistory.history.successHistogram.add(Double.NaN);
+        histories.receiverHistory.history.failureHistogram.add(100);
+        histories.receiverHistory.replies.success();
+        histories.receiverHistory.replies.failure("quux");
+        histories.receiverHistory.missing.success();
+        histories.receiverHistory.missing.failure("corge");
+        histories.modelHistory.history.success();
+        histories.modelHistory.history.failure("grault");
+        p("'"+histories.toString("histories for Tx: ")+"'");
+        //qux, quux, corge, grault, garply, waldo, fred, plugh, xyzzy, thud
     }
     public final SenderHistory senderHistory=new SenderHistory();
     public final ReceiverHistory receiverHistory=new ReceiverHistory();
     public final ModelHistory modelHistory=new ModelHistory();
     public Integer reportPeriod=defaultReportPeriod;
-    public final int serialNumber=++serialNumbers;
+    public final Integer serialNumber=++serialNumbers;
     {
-        l.info("created "+getClass().getSimpleName()+"("+serialNumber+").");
+        l.fine("created "+getClass().getSimpleName()+"("+serialNumber+").");
     }
     static int serialNumbers=0;
     public static Integer defaultReportPeriod=100;

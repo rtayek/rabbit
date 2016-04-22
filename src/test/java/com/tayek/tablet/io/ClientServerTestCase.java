@@ -6,8 +6,8 @@ import org.junit.*;
 import com.tayek.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
+import com.tayek.tablet.Group.Config;
 import com.tayek.tablet.Message.*;
-import com.tayek.tablet.Main.Stuff;
 import com.tayek.tablet.io.Sender.Client;
 import com.tayek.utilities.Single;
 public class ClientServerTestCase {
@@ -19,14 +19,17 @@ public class ClientServerTestCase {
     @After public void tearDown() throws Exception {}
     @Test(timeout=500) public void test() throws IOException,InterruptedException {
         socketAddress=new InetSocketAddress("localhost",++service);
-        Stuff stuff=new Stuff();
-        server=new Server(null,socketAddress,null,stuff,histories);
+        Required required=new Required("T0","localhost",service);
+        factory=Message.instance.create(required,new Single<Integer>(0));
+        Group group=new Group("1");
+        Config config=new Config();
+        server=new Server(null,socketAddress,null,config,histories);
         server.startServer();
-        client=new Client(socketAddress,stuff,histories);
+        client=new Client(socketAddress,config,histories);
         Integer n=1;
         for(int i=1;i<=n;i++) {
-            Message message=messages.other(Type.dummy,"1","1");
-            client.send(message,stuff);
+            Message message=factory.other(Type.dummy,"1","1");
+            client.send(message);
         }
         while(histories.senderHistory.history.attempts()<n)
             Thread.yield();
@@ -38,16 +41,19 @@ public class ClientServerTestCase {
         server.stopServer();
     }
     @Test(timeout=500) public void testWithReply() throws IOException {
-        socketAddress=new InetSocketAddress("localhost",++service);
-        Stuff stuff=new Stuff();
-        stuff.replying=true;
-        server=new Server(null,socketAddress,null,stuff,histories);
+        Required required=new Required("T0","localhost",++service);
+        socketAddress=new InetSocketAddress(required.host,required.service);
+        factory=Message.instance.create(required,new Single<Integer>(0));
+        Group group=new Group("1");
+        Config config=new Config();
+        config.replying=true;
+        server=new Server(null,socketAddress,null,config,histories);
         server.startServer();
-        client=new Client(socketAddress,stuff,histories);
+        client=new Client(socketAddress,config,histories);
         Integer n=10;
         for(int i=1;i<=n;i++) {
-            Message message=messages.other(Type.dummy,"1","1");
-            client.send(message,stuff);
+            Message message=factory.other(Type.dummy,"1","1");
+            client.send(message);
         }
         while(histories.senderHistory.history.attempts()<n)
             Thread.yield();
@@ -60,15 +66,18 @@ public class ClientServerTestCase {
         server.stopServer();
     }
     @Test(timeout=200) public void testMissing() throws IOException,InterruptedException {
-        socketAddress=new InetSocketAddress("localhost",++service);
-        Stuff stuff=new Stuff();
-        server=new Server(null,socketAddress,null,stuff,histories);
+        Required required=new Required("T0","localhost",++service);
+        socketAddress=new InetSocketAddress(required.host,required.service);
+        factory=Message.instance.create(required,new Single<Integer>(0));
+        Group stuff=new Group("1");
+        Config config=new Config();
+        server=new Server(null,socketAddress,null,config,histories);
         server.startServer();
-        client=new Client(socketAddress,stuff,histories);
+        client=new Client(socketAddress,config,histories);
         Integer n=10;
         for(int i=1;i<=n;i++) {
-            Message message=messages.other(Type.dummy,"1","1");
-            if(i!=5) client.send(message,stuff);
+            Message message=factory.other(Type.dummy,"1","1");
+            if(i!=5) client.send(message);
         }
         while(histories.senderHistory.history.attempts()<n-1)
             Thread.yield();
@@ -82,6 +91,6 @@ public class ClientServerTestCase {
     Client client;
     Server server;
     Histories histories=new Histories();
-    Factory messages=Message.instance.create(new Single<Integer>(0));
+    Factory factory;
     static int service=55555;
 }

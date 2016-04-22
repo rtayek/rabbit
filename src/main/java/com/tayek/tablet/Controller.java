@@ -5,9 +5,10 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.*;
+import com.tayek.Tablet;
 import com.tayek.io.*;
-import com.tayek.tablet.Main.Stuff;
-import static com.tayek.tablet.Main.Stuff.*;
+import com.tayek.tablet.Group.*;
+
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
 public class Controller {
@@ -49,10 +50,10 @@ public class Controller {
                 break;
             case 'a':
                 if(audioObserver==null) {
-                    audioObserver=new AudioObserver(tablet.model);
-                    tablet.model.addObserver(audioObserver);
+                    audioObserver=new AudioObserver(tablet.model());
+                    tablet.model().addObserver(audioObserver);
                 } else {
-                    tablet.model.deleteObserver(audioObserver);
+                    tablet.model().deleteObserver(audioObserver);
                     audioObserver=null;
                 }
                 break;
@@ -74,18 +75,18 @@ public class Controller {
                 break;
             case 'c':
                 if(commandLineView==null) {
-                    commandLineView=new View.CommandLine(tablet.model);
-                    tablet.model.addObserver(commandLineView);
+                    commandLineView=new View.CommandLine(tablet.model());
+                    tablet.model().addObserver(commandLineView);
                     p(out,"added command line view: "+commandLineView);
                 } else {
-                    tablet.model.deleteObserver(commandLineView);
+                    tablet.model().deleteObserver(commandLineView);
                     p(out,"removed command line view: "+commandLineView);
                     commandLineView=null;
                 }
                 break;
             case 'H':
-                if(tablet.heartbeatTimer!=null) Tablet.startHeatbeat(tablet);
-                else tablet.stopHeartbeat();
+                if(((TabletImpl2)tablet).heartbeatTimer!=null) ((TabletImpl2)tablet).startHeatbeat();
+                else ((TabletImpl2)tablet).stopHeartbeat();
                 break;
             case 'l':
                 if(IO.l.getLevel()==Level.OFF) LoggingHandler.setLevel(Level.ALL);
@@ -95,18 +96,17 @@ public class Controller {
                 LoggingHandler.toggleSockethandlers();
                 break;
             case 'p':
-                p(out,tablet.model.toString());
+                p(out,tablet.model().toString());
                 break;
             case 'r':
-                tablet.model.reset();
+                tablet.model().reset();
                 break;
             case 's':
-                SocketAddress socketAddress=tablet.stuff.socketAddress(tablet.tabletId());
-                boolean ok=tablet.startListening(socketAddress);
+                boolean ok=((TabletImpl2)tablet).startListening();
                 if(!ok) p(out,"badness");
                 break;
             case 't':
-                tablet.stopListening();
+                ((TabletImpl2)tablet).stopListening();
                 break;
             case 'q':
                 return false;
@@ -141,20 +141,20 @@ public class Controller {
         out.print(lineSeparator+">");
         out.flush();
     }
-    static Tablet initialize(String[] arguments) throws UnknownHostException,InterruptedException,ExecutionException {
+    static TabletImpl2 initialize(String[] arguments) throws UnknownHostException,InterruptedException,ExecutionException {
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.OFF);
         String host=InetAddress.getLocalHost().getHostName();
         p("host: "+host);
-        Stuff stuff=new Stuff(1,new Groups().groups.get("g2"),Model.mark1);
-        Integer service=arguments.length==0?null:stuff.required("pc-5").service; // hack to get second tablet
-        String tabletId=stuff.getTabletIdFromInetAddress(InetAddress.getByName(host),service);
-        Tablet tablet=new Tablet(stuff,tabletId);
+        Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
+        Integer service=arguments.length==0?null:group.required("pc-5").service; // hack to get second tablet
+        String tabletId=group.getTabletIdFromInetAddress(InetAddress.getByName(host),service);
+        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId));
         p("tablet: "+tablet);
         return tablet;
     }
     public static void main(String[] arguments) throws UnknownHostException,InterruptedException,ExecutionException {
-        Tablet tablet=initialize(arguments);
+        TabletImpl2 tablet=initialize(arguments);
         new Controller(tablet).run();
     }
     protected final Tablet tablet;

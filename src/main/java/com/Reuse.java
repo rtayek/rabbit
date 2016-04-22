@@ -1,4 +1,4 @@
-package com.tayek;
+package com;
 class Reuse {
     Reuse Reuse(Reuse Reuse) {
         this.Reuse=Reuse;

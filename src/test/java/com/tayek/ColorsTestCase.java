@@ -1,6 +1,7 @@
 package com.tayek;
 import static org.junit.Assert.*;
 import org.junit.*;
+import com.tayek.utilities.Colors;
 import static com.tayek.io.IO.*;
 public class ColorsTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}

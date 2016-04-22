@@ -1,4 +1,4 @@
-package com.tayek;
+package com;
 class A {
     interface B {
       void f();

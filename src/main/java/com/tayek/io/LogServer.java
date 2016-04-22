@@ -25,10 +25,10 @@ public class LogServer implements Runnable {
             return 100;
         }
         private File file(int n) {
-            return new File("logs",name(n));
+            return new File("log",name(n));
         }
         File file() {
-            return new File("logs",name(sequenceNumber));
+            return new File("log",name(sequenceNumber));
         }
         private String name(int n) {
             InetAddress inetAddress=socket.getInetAddress();

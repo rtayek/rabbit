@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.net.*;
 import java.util.*;
 import java.util.logging.Level;
+import com.tayek.Required;
 import com.tayek.io.*;
+import com.tayek.tablet.Message.Type;
 import com.tayek.utilities.Et;
 import static com.tayek.speed.Server.*;
 public class Main {
@@ -14,8 +16,8 @@ public class Main {
         Set<Server> servers=new LinkedHashSet<>();
         // map<string,Pair<String,Integer> map again?
         for(Integer i=1;i<=n;i++)
-            if(i==1) servers.add(factory.create("T"+i,fakeNetworkPrefix,defaultReceivePort+i,null));
-            else servers.add(factory.create("T"+i,defaultHost,defaultReceivePort+i,null));
+            if(i==1) servers.add(factory.create(new Required("T"+i,raysPcOnRaysNetwork,defaultReceivePort+i)));
+            else servers.add(factory.create(new Required("T"+i,defaultHost,defaultReceivePort+i)));
         for(Server server:servers)
             p(""+server);
         for(Server tablet:servers)
@@ -27,8 +29,8 @@ public class Main {
             for(Server server:servers)
                 for(Server server2:servers)
                     if(server!=server2) {
-                        SocketAddress socketAddress=new InetSocketAddress(server2.host(),server2.service());
-                        server.createAndAddSender(server2.id(),socketAddress);
+                        Required required=new Required(server2.id(),server2.host(),server2.service());
+                        server.createAndAddSender(server2.id(),required);
                     }
         } else {
             Iterator<Server> i=servers.iterator();
@@ -36,7 +38,8 @@ public class Main {
             for(int j=1;j<=servers.size();j++)
                 if(n>j) {
                     next=i.next();
-                    first.createAndAddSender(next.id(),new InetSocketAddress(next.host(),next.service()));
+                    Required required=new Required(next.id(),next.host(),next.service());
+                    first.createAndAddSender(next.id(),required);
                 }
         }
         Thread.sleep(200);
@@ -45,7 +48,7 @@ public class Main {
         Et et=new Et();
         for(int i=0;i<messages;i++) {
             for(Server server:servers) {
-                server.broadcast(server.create("foo"));
+                server.broadcast(server.messageFactory().other(Type.dummy,"1","T1"));
             }
             Thread.sleep(10);
         }
@@ -72,7 +75,7 @@ public class Main {
         LoggingHandler.setLevel(Level.WARNING);
         if(true) run(4);
         else {
-            Server server=factory.create("T1","localhost",defaultReceivePort,null);
+            Server server=factory.create(new Required("T1","localhost",defaultReceivePort));
             Thread.sleep(100);
             server.broadcast("foo");
             Thread.sleep(100);

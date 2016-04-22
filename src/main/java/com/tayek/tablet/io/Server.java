@@ -5,18 +5,18 @@ import java.net.*;
 import com.tayek.*;
 import com.tayek.io.IO.ShutdownOptions;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Main.Stuff;
+import com.tayek.tablet.Group.Config;
 import com.tayek.utilities.Et;
 import static com.tayek.io.IO.*;
 public class Server implements Runnable {
-    public Server(Object iD,SocketAddress socketAddress,Receiver receiver,Stuff stuff,Histories history) throws IOException {
-        this(iD,serverSocket(socketAddress),receiver,stuff,history);
+    public Server(Object iD,SocketAddress socketAddress,Receiver receiver,Config config,Histories history) throws IOException {
+        this(iD,serverSocket(socketAddress),receiver,config,history);
     }
-    public Server(Object iD,ServerSocket serverSocket,Receiver receiver,Stuff stuff,Histories histories) {
+    public Server(Object iD,ServerSocket serverSocket,Receiver receiver,Config config,Histories histories) {
         this.serverSocket=serverSocket;
         this.id=iD;
         this.receiver=receiver;
-        this.stuff=stuff;
+        this.config=config;
         this.histories=histories;
         //p("server ctor: "+method(3));
     }
@@ -63,7 +63,7 @@ public class Server implements Runnable {
             }
             Writer writer=null;
             l.info("read: "+string);
-            if(stuff.replying) writer=reply(socket,string);
+            if(config.replying) writer=reply(socket,string);
             if(shutdownOptions.closeOutput&&writer!=null) {
                 l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", read, try to close output");
                 writer.close();
@@ -195,7 +195,7 @@ public class Server implements Runnable {
     private Thread thread;
     public final Object id;
     private final ServerSocket serverSocket;
-    private final Stuff stuff;
+    private final Config config;
     private final Receiver receiver;
     private final Histories histories;
     private volatile boolean isShuttingDown;

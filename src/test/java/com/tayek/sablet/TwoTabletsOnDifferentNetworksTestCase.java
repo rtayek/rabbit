@@ -6,20 +6,22 @@ import java.util.concurrent.ExecutionException;
 import org.junit.*;
 import com.tayek.*;
 import com.tayek.tablet.*;
-import static com.tayek.tablet.Main.Stuff.*;
+import com.tayek.tablet.Group.*;
+import com.tayek.tablet.MessageReceiver.Model;
 import static com.tayek.io.IO.*;
 public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCase {
     @Before public void setUp() throws Exception {
         super.setUp();
         Map<String,Required> requireds=new Groups().groups.get("g1each");
-        Map<String,Required> requireds2=new LinkedHashMap<>();
+        Map<String,Required> requireds2=new TreeMap<>();
         p("required: "+requireds);
         for(Object tabletId:requireds.keySet()) {
             Required required=requireds.get(tabletId);
-            requireds2.put(required.iD,new Required(required.iD,required.host,required.service+serviceOffset));
+            requireds2.put(required.id,new Required(required.id,required.host,required.service+serviceOffset));
         }
         p("service offset: "+serviceOffset);
-        tablets=Tablet.createGroupAndstartTablets(requireds2);
+        Group group=new Group("1",requireds2,Model.mark1); // why 2?
+        tablets=group.createGroupAndstartTablets(group.groupId,requireds2);
     }
     @After public void tearDown() throws Exception {
         shutdown();
@@ -29,17 +31,17 @@ public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCas
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
     }
     @Test() public void testDummy2Brokem() throws InterruptedException,UnknownHostException,ExecutionException {
-        for(Tablet tablet:tablets)
+        for(TabletImpl2 tablet:tablets)
             tablet.stopListening(); // so send will fail
         Thread.sleep(100);
         sendOneDummyMessageFromEachTablet();
         Thread.sleep(2_000);
-        for(Tablet tablet:tablets) {
+        for(TabletImpl2 tablet:tablets) {
             Histories histories=tablet.histories();
             p(tablet.tabletId()+": "+histories);
         }
         shutdown();
-        for(Tablet tablet:tablets) {
+        for(TabletImpl2 tablet:tablets) {
             Histories histories=tablet.histories();
             assertTrue(new Integer(2)<=histories.senderHistory.history.failures());
             // retries that fail get counted as failures!

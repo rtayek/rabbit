@@ -2,6 +2,7 @@ package com.tayek.tablet;
 import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
+import com.tayek.Required;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.Message.Factory;
 import com.tayek.tablet.MessageReceiver.Model;
@@ -20,19 +21,19 @@ public class ModelTestCase {
         l.warning("teardown");
     }
     /*@Test*/ public void testShort() {
-        message=messages.normal("1","1",2,model.toCharacters());
+        message=factory.normal("1","1",2,model.toCharacters());
         model.receive(message);
         assertTrue(model.state(2));
     }
     @Test public void testJustRight() {
         Model m=model.clone();
         m.setState(2,true);
-        message=messages.normal("1","1",2,m.toCharacters());
+        message=factory.normal("1","1",2,m.toCharacters());
         model.receive(message);
         assertTrue(model.state(2));
     }
     /*@Test*/ public void testTooLong() {
-        message=messages.normal("1","1",2,model.toCharacters());
+        message=factory.normal("1","1",2,model.toCharacters());
         model.receive(message);
         assertTrue(model.state(2));
     }
@@ -86,6 +87,8 @@ public class ModelTestCase {
             assertFalse(model.state(i));
     }
     Model model=new Model(7,null);
-    Factory messages=Message.instance.create(new Single<Integer>(0));
+    Required required=new Required("T0","localhost",++service);
+    Factory factory=Message.instance.create(required,new Single<Integer>(0));
     Message message;
+    static int service=2222;
 }

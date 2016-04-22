@@ -1,7 +1,9 @@
 package com.tayek.tablet;
 import java.net.SocketAddress;
 import java.util.logging.Level;
+import com.tayek.Tablet;
 import com.tayek.io.*;
+import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.tablet.Message.Type;
 import static com.tayek.io.IO.*;
 import com.tayek.tablet.io.*;
@@ -53,21 +55,20 @@ public class Enums {
                     LoggingHandler.toggleSockethandlers();
                     break;
                 case Reset:
-                    tablet.model.reset();
+                    tablet.model().reset();
                     break;
                 case Ping:
-                    tablet.broadcast(tablet.stuff.messages.other(Type.ping,tablet.groupId,tablet.tabletId()),tablet.stuff);
+                    tablet.broadcast(tablet.messageFactory().other(Type.ping,tablet.groupId(),tablet.tabletId()));
                     break;
                 case Heartbeat:
-                    if(tablet.heartbeatTimer!=null) Tablet.startHeatbeat(tablet);
-                    else tablet.stopHeartbeat();
+                    if(((TabletImpl2)tablet).heartbeatTimer!=null) ((TabletImpl2)tablet).startHeatbeat();
+                    else ((TabletImpl2)tablet).stopHeartbeat();
                     break;
                 case Disconnect:
-                    tablet.stopListening();
+                    ((TabletImpl2)tablet).stopListening();
                     break;
                 case Connect:
-                    SocketAddress socketAddress=tablet.stuff.socketAddress(tablet.tabletId());
-                    if(!tablet.startListening(socketAddress)) l.info(Utility.method()+" startListening() failed!");
+                    if(!((TabletImpl2)tablet).startListening()) l.info(Utility.method()+" startListening() failed!");
                     break;
                 case Log:
                     // gui.textView.setVisible(!gui.textView.isVisible());
@@ -79,20 +80,20 @@ public class Enums {
                     l.info("sound: "+Audio.Instance.sound);
                     break;
                 case Simulate:
-                    if(tablet.simulationTimer==null) Tablet.startSimulating(tablet);
-                    else tablet.stopSimulating();
+                    if(((TabletImpl2)tablet).simulationTimer==null) ((TabletImpl2)tablet).startSimulating();
+                    else ((TabletImpl2)tablet).stopSimulating();
                     break;
                 case Quit:
                     // System.exit(0); // how to test this?
                     break;
                 case Drive:
-                    tablet.driveInThread();
+                    ((TabletImpl2)tablet).driveInThread(true);
                     break;
                 case StopDriving:
-                    tablet.stopDriving=true;
+                    ((TabletImpl2)tablet).stopDriving=true;
                     break;
                 case Forever:
-                    tablet.foreverInThread();
+                    ((TabletImpl2)tablet).foreverInThread();
                     break;
                 default:
                     l.severe(tabletMenuItem+" was not handled!");

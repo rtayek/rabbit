@@ -2,7 +2,9 @@ package com.tayek.speed;
 import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
+import com.tayek.Required;
 import com.tayek.io.LoggingHandler;
+import com.tayek.tablet.Message.Type;
 import static com.tayek.io.IO.*;
 public class ConnectionTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
@@ -32,8 +34,10 @@ public class ConnectionTestCase {
     @Test public void testBroadcast() throws InterruptedException {
         printThreads();
         server.startServer();
+        p(""+server);
+        p(""+server.messageFactory());
         Thread.sleep(100);
-        server.broadcast(server.create("foo"));
+        server.broadcast(server.messageFactory().other(Type.dummy,"1","T1"));
         Thread.sleep(200);
         server.stopServer();
         Thread.sleep(200);
@@ -42,6 +46,6 @@ public class ConnectionTestCase {
     }
     int service=serviceBase++;
     int threads=Thread.activeCount();
-    Server server=Server.factory.create("test","localhost",service,null);
+    Server server=Server.factory.create(new Required("test","localhost",service));
     static int serviceBase=44444;
 }

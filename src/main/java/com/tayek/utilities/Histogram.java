@@ -152,15 +152,21 @@ public class Histogram {
         sb.append(" NaNs: ").append(nans);
         return sb.toString();
     }
-    public String toStringFrequency() {
+    public String toString(String prefix) {
         final StringBuffer sb=new StringBuffer();
-        sb.append((float)min()).append("<=").append((float)mean()).append("<=").append((float)max()).append(" ");
+        sb.append(prefix);
+        sb.append((float)min()).append("<=").append((float)mean());
+        sb.append('/').append(n);
+        sb.append("<=").append((float)max()).append(" ");
         sb.append(bin(-1)).append(",[");
         for(int i=0;i<bins;i++)
-            sb.append(i>0?",":"").append(bin(i)/(double)n);
+            sb.append(i>0?",":"").append(bin(i));
         sb.append("],").append(bin(bins));
         sb.append(" NaNs: ").append(nans);
         return sb.toString();
+    }
+    public String toStringFrequency() {
+        return toString("");
     }
     private int[] bin;
     private int n,bins,underflows,overflows,nans;
