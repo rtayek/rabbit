@@ -13,7 +13,7 @@ public class Nics {
             if(allMyIps!=null&&allMyIps.length>1) {
                 p(" Full list of IP addresses:");
                 for(int i=0;i<allMyIps.length;i++) {
-                    p("    "+allMyIps[i]);
+                    p("    '"+allMyIps[i]+"'");
                 }
             }
         } catch(UnknownHostException e) {

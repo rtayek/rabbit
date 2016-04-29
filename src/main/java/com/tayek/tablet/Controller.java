@@ -5,17 +5,27 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.*;
-import com.tayek.Tablet;
+import com.tayek.*;
 import com.tayek.io.*;
 import com.tayek.tablet.Group.*;
-
+import com.tayek.io.Audio.AudioObserver;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
 public class Controller {
-    Controller(Tablet tablet) {
-        this(tablet,System.in,System.out);
+    Controller(Group group,boolean other) throws UnknownHostException {
+        this(group,other,System.in,System.out);
     }
-    Controller(Tablet tablet,InputStream in,PrintStream out) {
+    Controller(Group group,boolean other,InputStream in,PrintStream out) throws UnknownHostException {
+        this.group=group;
+        Iterator<String> i=group.keys().iterator();
+        String id=i.next();
+        if(other) id=i.next();
+        Required required=group.required(id);
+        String host=required.host;
+        Integer service=other?group.required(id).service:null; // hack to get second tablet
+        String tabletId=group.getTabletIdFromInetAddress(InetAddress.getByName(host),service);
+        model=group.getModelClone();
+        Tablet tablet=Tablet.factory.create2(tabletId,group,model);
         this.tablet=tablet;
         this.in=in;
         this.out=out;
@@ -50,10 +60,10 @@ public class Controller {
                 break;
             case 'a':
                 if(audioObserver==null) {
-                    audioObserver=new AudioObserver(tablet.model());
-                    tablet.model().addObserver(audioObserver);
+                    audioObserver=new AudioObserver(model);
+                    model.addObserver(audioObserver);
                 } else {
-                    tablet.model().deleteObserver(audioObserver);
+                    model.deleteObserver(audioObserver);
                     audioObserver=null;
                 }
                 break;
@@ -75,11 +85,11 @@ public class Controller {
                 break;
             case 'c':
                 if(commandLineView==null) {
-                    commandLineView=new View.CommandLine(tablet.model());
-                    tablet.model().addObserver(commandLineView);
+                    commandLineView=new CommandLine(model);
+                    model.addObserver(commandLineView);
                     p(out,"added command line view: "+commandLineView);
                 } else {
-                    tablet.model().deleteObserver(commandLineView);
+                    model.deleteObserver(commandLineView);
                     p(out,"removed command line view: "+commandLineView);
                     commandLineView=null;
                 }
@@ -96,10 +106,10 @@ public class Controller {
                 LoggingHandler.toggleSockethandlers();
                 break;
             case 'p':
-                p(out,tablet.model().toString());
+                p(out,model.toString());
                 break;
             case 'r':
-                tablet.model().reset();
+                model.reset();
                 break;
             case 's':
                 boolean ok=((TabletImpl2)tablet).startListening();
@@ -141,27 +151,21 @@ public class Controller {
         out.print(lineSeparator+">");
         out.flush();
     }
-    static TabletImpl2 initialize(String[] arguments) throws UnknownHostException,InterruptedException,ExecutionException {
+    public static void main(String[] arguments) throws UnknownHostException,InterruptedException,ExecutionException {
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.OFF);
         String host=InetAddress.getLocalHost().getHostName();
         p("host: "+host);
         Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
-        Integer service=arguments.length==0?null:group.required("pc-5").service; // hack to get second tablet
-        String tabletId=group.getTabletIdFromInetAddress(InetAddress.getByName(host),service);
-        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId));
-        p("tablet: "+tablet);
-        return tablet;
+        new Controller(group,false).run();
     }
-    public static void main(String[] arguments) throws UnknownHostException,InterruptedException,ExecutionException {
-        TabletImpl2 tablet=initialize(arguments);
-        new Controller(tablet).run();
-    }
+    protected final Group group;
+    protected final Model model;
     protected final Tablet tablet;
     protected final InputStream in;
     protected final PrintStream out;
     protected SocketHandler socketHandler;
-    private View.CommandLine commandLineView;
+    private CommandLine commandLineView;
     private Observer audioObserver;
     public static final String lineSeparator=System.getProperty("line.separator");
 }

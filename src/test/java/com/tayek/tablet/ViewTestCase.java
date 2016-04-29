@@ -13,13 +13,13 @@ public class ViewTestCase {
     @After public void tearDown() throws Exception {}
     @Test public void test() {
         Model model=new Model(5,null);
-        /*View view=*/new View.CommandLine(model);
+        /*View view=*/new CommandLine(model);
         model.setState(1,true);
         assertTrue(model.state(1)); // does not really test the view :(
     }
     @Test public void testWhenWeSeeAnotherModelLikeOurs() {
         Model model=new Model(5,null);
-        View view=new View.CommandLine(model);
+        CommandLine view=new CommandLine(model);
         model.addObserver(view);
         Model model2=new Model(7,null);
         model2.addObserver(view);
@@ -33,7 +33,7 @@ public class ViewTestCase {
     }
     @Test public void testWhenWeSeeAnotherModelUnlikeOurs() {
         Model model=new Model(5,null);
-        View view=new View.CommandLine(model);
+        CommandLine view=new CommandLine(model);
         TestObservable testObservable=new TestObservable();
         testObservable.addObserver(view);
         testObservable.setChangedAndNotify(new Object());

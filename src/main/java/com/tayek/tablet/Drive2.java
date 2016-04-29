@@ -15,7 +15,8 @@ public class Drive2 {
         requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
         Group group=new Group("1",requireds,Model.mark1);
         p("group: "+group);
-        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(tabletId,group);
+        Model model=group.getModelClone();
+        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(tabletId,group,model);
         group=null; // tablet has a clone of group;
         BufferedReader r=new BufferedReader(new InputStreamReader(System.in));
         while(true) {

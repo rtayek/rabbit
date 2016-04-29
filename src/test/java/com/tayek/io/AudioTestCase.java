@@ -10,13 +10,19 @@ public class AudioTestCase /*extends TestCase*/ {
     protected void tearDown() throws Exception {
         //super.tearDown();
     }
-    @Test public void test() throws InterruptedException {
+    @Test public void testOne() throws InterruptedException {
+        Audio.Instance.sound=true;
+        p("sound: "+Audio.Instance.sound);
+        Audio.audio.play(Sound.electronic_chime_kevangc_495939803);
+        Thread.sleep(5_000);
+    }
+    @Test public void testAll() throws InterruptedException {
         Audio.Instance.sound=true;
         p("sound: "+Audio.Instance.sound);
         for(Sound sound:Sound.values()) {
             p("sound: "+sound);
             Audio.audio.play(sound);
+            Thread.sleep(3_000);
         }
-        Thread.sleep(5_000);
     }
 }

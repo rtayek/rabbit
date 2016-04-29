@@ -2,6 +2,9 @@ package com.tayek.utilities;
 import static com.tayek.io.IO.*;
 import static java.lang.Math.*;
 public class Colors {
+    // this wants to be a map <widgetId,Info>
+    // sort of a layout!
+    
     public int color(int index,boolean state) {
         if(index==rows*columns) // reset
             return state?resetOn:resetOff;

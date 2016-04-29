@@ -1,12 +1,11 @@
 package com.tayek.io;
 import static com.tayek.io.IO.*;
-import static com.tayek.utilities.Utility.connect;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
-import com.tayek.utilities.Pair;
+import com.tayek.utilities.*;
 public class IO {
     public static void pn(PrintStream out,String string) {
         out.print(string);
@@ -75,6 +74,10 @@ public class IO {
         }
         return set;
     }
+    public static InetAddress addressWith(String networkPrefix) {
+        Set<InetAddress> inetAddresses=addressesWith(networkPrefix);
+        return inetAddresses.size()>0?inetAddresses.iterator().next():null;
+    }
     public static class AddressesWithCallable implements java.util.concurrent.Callable<java.util.Set<java.net.InetAddress>> {
         public AddressesWithCallable(String networkPrefix) {
             this.networkPrefix=networkPrefix;
@@ -125,6 +128,44 @@ public class IO {
         Set<InetAddress> inetAddresses=addressesWith(prefix);
         p("addresses starting with: "+prefix+": "+inetAddresses);
     }
+    public static Socket silentConnect(SocketAddress socketAddress,int timeout) {
+        Et et=new Et();
+        Socket socket=new Socket();
+        try {
+            socket.connect(socketAddress,timeout);
+            return socket;
+        } catch(Exception e) {}
+        return null;
+    }
+    public static Socket connect(SocketAddress socketAddress,int timeout) {
+        Et et=new Et();
+        Socket socket=new Socket();
+        try {
+            socket.connect(socketAddress,timeout);
+            return socket;
+        } catch(SocketTimeoutException e) {
+            IO.l.warning(socketAddress+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+        } catch(IOException e) {
+            IO.l.warning(socketAddress+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+        }
+        return null;
+    }
+    public static boolean canConnect(String host,int service,int timeout) {
+        boolean canConnect=false;
+        InetSocketAddress inetSocketAddress=new InetSocketAddress(host,80);
+        Socket socket=silentConnect(inetSocketAddress,timeout);
+        if(socket!=null) {
+            p("connected to router: "+host);
+            canConnect=true;
+            try {
+                socket.close();
+            } catch(IOException e) {}
+        } else {
+            p("can not connect to router: "+host);
+            canConnect=false;
+        }
+        return canConnect;
+    }
     public static Set<Pair<Integer,SocketAddress>> discover(boolean real,int n,int service) {
         Set<Pair<Integer,SocketAddress>> socketAddresses=new LinkedHashSet<>();
         Set<Pair<Integer,SocketAddress>> good=new LinkedHashSet<>();
@@ -149,8 +190,7 @@ public class IO {
                         e.printStackTrace();
                     }
                     p("adding: "+pair);
-                    if(good.contains(pair))
-                        p(good+" already contains: "+pair);
+                    if(good.contains(pair)) p(good+" already contains: "+pair);
                     good.add(pair);
                     break;
                 }
@@ -168,6 +208,7 @@ public class IO {
         return discover(true,n,defaultReceivePort);
     }
     public static void main(String args[]) throws UnknownHostException {
+        final Et et=new Et();
         printNetworkInterfaces();
         InetAddress localHost=InetAddress.getLocalHost();
         p("local: "+localHost);
@@ -180,18 +221,42 @@ public class IO {
         printInetAddresses(defaultHost);
         if(!defaultHost.equals(testingHost)) printInetAddresses(testingHost);
         Set<InetAddress> inetAddresses=addressesWith(tabletNetworkPrefix);
-        p("address on: "+tabletNetworkPrefix+" is: "+inetAddresses);
+        p("addresses on: "+tabletNetworkPrefix+" are: "+inetAddresses);
         if(!inetAddresses.contains(InetAddress.getByName(raysPcOnTabletNetworkToday))) p("address has changed, expected: "+raysPcOnTabletNetworkToday+", but got: "+inetAddresses);
         inetAddresses=addressesWith(raysNetworkPrefix);
-        p("address on: "+raysNetworkPrefix+" is: "+inetAddresses);
+        p("addresses on: "+raysNetworkPrefix+" are: "+inetAddresses);
         if(!inetAddresses.contains(InetAddress.getByName(raysPcOnRaysNetwork))) p("address has changed, expected: "+raysPcOnTabletNetworkToday+", but got: "+inetAddresses);
+        p(raysRouter+" "+canConnect(raysRouter,80,1_000));
+        p(tabletRouter+" "+canConnect(tabletRouter,80,1_000));
+        p("ping at: "+et);
+        int rc=Exec.exec("ping "+tabletRouter);
+        p("ping returns: "+rc+" at: "+et);
+        p("exec ping at: "+et);
+        rc=Exec.ping(tabletRouter);
+        p("exec ping returns: "+rc+" at: "+et);
+        new Thread(new Runnable() {
+            @Override public void run() {
+                p("ping in thread at: "+et);
+                int rc=Exec.exec("ping "+tabletRouter);
+                p("ping in thread returns: "+rc+" at: "+et);
+            }
+        }).start();
+        new Thread(new Runnable() {
+            @Override public void run() {
+                p("exec ping in thread at: "+et);
+                int rc=Exec.ping(tabletRouter);
+                p("exec ping in thread returns: "+rc+" at: "+et);
+            }
+        }).start();
     }
     public static final boolean isRaysPc=System.getProperty("user.dir").contains("D:\\");
     public static final boolean isLaptop=System.getProperty("user.dir").contains("C:\\Users\\");
     public static final Integer defaultReceivePort=33000;
     public static final String networkStub="192.168.";
     public static final String tabletNetworkPrefix="192.168.0.";
+    public static final String tabletRouter="192.168.0.1";
     public static final String raysNetworkPrefix="192.168.1.";
+    public static final String raysRouter="192.168.1.1";
     public static final String raysPcOnTabletNetworkToday="192.168.0.101";
     public static final String defaultHost=raysPcOnTabletNetworkToday;
     public static final String raysPcOnRaysNetwork="192.168.1.2";

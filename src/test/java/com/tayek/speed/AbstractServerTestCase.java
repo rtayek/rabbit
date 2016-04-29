@@ -1,7 +1,6 @@
 package com.tayek.speed;
 import static com.tayek.io.IO.*;
 import static com.tayek.speed.Server.factory;
-import static com.tayek.utilities.Utility.connect;
 import static org.junit.Assert.*;
 import java.io.IOException;
 import java.net.*;

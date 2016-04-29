@@ -16,7 +16,8 @@ public class ControllerTestCase {
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
         Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
-        tablet=(TabletImpl2)Tablet.factory.create2(group.keys().iterator().next(),group);
+        Model model=group.getModelClone();
+        tablet=(TabletImpl2)Tablet.factory.create2(group.keys().iterator().next(),group,model);
         group=null; // this tablet has a clone of group!
     }
     @After public void tearDown() throws Exception {}
@@ -26,7 +27,8 @@ public class ControllerTestCase {
         InputStream bais=new ByteArrayInputStream(input.getBytes());
         ByteArrayOutputStream baos=new ByteArrayOutputStream();
         PrintStream ps=new PrintStream(baos);
-        controller=new Controller(tablet,bais,ps);
+        Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
+        controller=new Controller(group,false,bais,ps);
         controller.run();
         Thread.sleep(10);
         ps.flush();

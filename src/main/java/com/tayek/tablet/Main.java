@@ -17,13 +17,15 @@ import com.tayek.utilities.*;
 // http://poppopret.org/2013/01/07/suterusu-rootkit-inline-kernel-function-hooking-on-x86-and-arm/
 // http://angrytools.com/android/
 // http://stackoverflow.com/questions/36273115/android-app-freezing-after-few-days
+// https://www.bignerdranch.com/blog/splash-screens-the-right-way/
+// http://blog.iangclifton.com/2011/01/01/android-splash-screens-done-right/
 public class Main { // http://steveliles.github.io/invoking_processes_from_java.html
     // install notes:
     // password for tablets network is: i am a duck 2
     // android project needs sdk location.
     // android studio project is Cb7: https://github.com/rtayek/Cb7.git
     // core java project is in rabbit: https://github.com/rtayek/rabbit.git
-    // swing guu is in 
+    // swing gui is in rabitgui2/ 
     // core fails to find gradle wrapper main. fix: run gradle wrapper directly (gradlew).
     // http://stackoverflow.com/questions/23081263/adb-android-device-unauthorized
     // G0K0H404542514AX - fire 1 with factory reset. (ray's 3'rd fire)
@@ -41,6 +43,7 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
                     remove(1);
                 add(TabletImpl2.class);
                 add(LogServer.class);
+                add(Controller.class);
             }
         }.run();
     }

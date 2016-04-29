@@ -18,7 +18,8 @@ public class Driver {
         String tabletId=aTabletId(99);
         requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
         Group group=new Group("1",requireds,Model.mark1);
-        Tablet tablet=(TabletImpl2)com.tayek.Tablet.factory.create2(tabletId,group);
+        Model model=group.getModelClone();
+        Tablet tablet=(TabletImpl2)com.tayek.Tablet.factory.create2(tabletId,group,model);
         int n=3;
         tablet.histories().reportPeriod=n<100?100:n;;
         ((TabletImpl2)tablet).startListening();

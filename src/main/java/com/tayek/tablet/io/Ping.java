@@ -17,7 +17,8 @@ public class Ping {
         String tabletId=aTabletId(99);
         requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
         Group group=new Group("1",requireds,Model.mark1);
-        Tablet tablet=Tablet.factory.create2(tabletId,group);
+        Model model=group.getModelClone();
+        Tablet tablet=Tablet.factory.create2(tabletId,group,model);
         group=null; // tablet has a clone of group.
         ((TabletImpl2)tablet).startListening();
         Message message=tablet.messageFactory().other(Type.ping,tablet.groupId(),tablet.tabletId());

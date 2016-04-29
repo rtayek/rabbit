@@ -15,16 +15,21 @@ public interface Tablet {
     void toggle(int id);
     Histories histories();
     String report(String id);
+    interface HasATablet {
+        Tablet tablet();
+        void setTablet(Tablet tablet);
+    }
     interface Factory {
         Tablet create1(String groupId,String id,Required required,Model model);
-        Tablet create2(String id,Group group);
+        Tablet create2(String id,Group group,Model model);
         class FactoryImpl implements Factory {
             @Override public TabletImpl1 create1(String groupId,String id,Required required,Model model) {
                 Server server=Server.factory.create(required);
                 return new TabletImpl1(groupId,id,server,model);
             }
-            @Override public TabletImpl2 create2(String id,Group group) {
-                return group.clone().new TabletImpl2(id,group.required(id));
+            @Override public TabletImpl2 create2(String id,Group group,Model model) {
+                p("required: "+group.required(id));
+                return group.clone().new TabletImpl2(id,group.required(id),model);
             }
             // second just needs an id?
             // first needs group or map: id->required
@@ -50,6 +55,8 @@ public interface Tablet {
                     Message message=messageFactory().normal(groupId(),tabletId(),id,model().toCharacters());
                     broadcast(message);
                 }
+                // move this to model!
+                // is this a controller?
                 @Override public void click(int id) {
                     if(1<=id&&id<=model().buttons) synchronized(model()) {
                         if(model().resetButtonId!=null&&id==model().resetButtonId) {

@@ -41,12 +41,16 @@ public interface MessageReceiver {
             setChanged();
             notifyObservers(object);
         }
+        public boolean areAnyButtonsOn() {
+            boolean areAnyButtonsOn=false;
+            for(int i=0;i<buttons;i++)
+                areAnyButtonsOn|=states[i];
+            return areAnyButtonsOn;
+        }
         public void setState(Integer id,Boolean state) {
             if(1<=id&&id<=buttons) synchronized(states) {
                 states[id-1]=state;
                 setChangedAndNotify(id);
-                if(tablet!=null) if(state) tablet.startChimer();
-                else tablet.stopChimer();
             }
             else l.warning("out of bounds: "+id);
         }
@@ -84,7 +88,6 @@ public interface MessageReceiver {
             }
             return text;
         }
-
         public Object lastOnFrom(Integer id) {
             synchronized(idToLastOnFrom) {
                 return idToLastOnFrom.get(id);
@@ -152,7 +155,6 @@ public interface MessageReceiver {
                         break;
                     case reset:
                         reset();
-                        tablet.stopChimer(); // guard?
                         break;
                     case soundOn:
                         Audio.Instance.sound=true;
@@ -186,8 +188,6 @@ public interface MessageReceiver {
             Model model=new Model(7,null);
             p(model.toString());
         }
-        TabletImpl2 tablet;
-
         public final int serialNumber;
         public final Integer buttons;
         public final Integer resetButtonId;

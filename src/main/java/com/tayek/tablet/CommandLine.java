@@ -2,8 +2,7 @@ package com.tayek.tablet;
 import java.util.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import static com.tayek.io.IO.*;
-public interface View extends Observer {
-    public class CommandLine implements View {
+    public class CommandLine implements Observer {
         public CommandLine(Model model) {
             this.model=model;
         }
@@ -20,4 +19,3 @@ public interface View extends Observer {
         private final Model model;
         private static int n=0;
     }
-}

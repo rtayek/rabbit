@@ -6,9 +6,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import com.tayek.*;
 import com.tayek.Tablet.Factory.FactoryImpl.TabletABC;
-import com.tayek.io.Audio;
-import com.tayek.io.Audio.Sound;
-import com.tayek.tablet.Group.*;
+import com.tayek.io.Audio.AudioObserver;
 import com.tayek.tablet.Message.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.Server;
@@ -69,7 +67,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         public static Integer defaultSendTimeout=defaultConnectTimeout+50; // 60;
         public static Integer defaultDriveWait=200; // 100;
     }
-    public class TabletImpl2 extends TabletABC  {
+    public class TabletImpl2 extends TabletABC {
         // no need for ip address really,
         // maybe set the tablet id after construction
         // or before broadcast
@@ -79,17 +77,14 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         // so let's try:
         // adding host:service to start listening
         // and map<String,SocketAddress> to broadcast;
-        public TabletImpl2(String tabletId,Required required) {
-            super(groupId,tabletId,getModelClone(),required.histories());
+        public TabletImpl2(String tabletId,Required required,Model model) {
+            super(groupId,tabletId,model,required.histories());
             this.required=required;
             messageFactory=Message.instance.create(required,new Single<Integer>(0));
             int n=keys().size();
             executorService=Executors.newFixedThreadPool(4*n+2);
             canceller=Executors.newScheduledThreadPool(4*n+2);
-            if(model()!=null) {
-                model().tablet=this;
-                model().histories=histories();
-            } else l.severe("model is null!");
+            model().histories=histories();
         }
         public Group group() {
             return Group.this;
@@ -285,23 +280,6 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                 simulationTimer=null;
             }
         }
-        public void startChimer() {
-            if(chimer==null) {
-                l.info(""+System.currentTimeMillis());
-                chimer=new Timer();
-                chimer.schedule(new TimerTask() {
-                    @Override public void run() {
-                        Audio.audio.play(Sound.electronic_chime_kevangc_495939803);
-                    }
-                },0,10_000);
-            }
-        }
-        public void stopChimer() {
-            if(chimer!=null) {
-                chimer.cancel();
-                chimer=null;
-            }
-        }
         @Override public Message.Factory messageFactory() {
             return messageFactory;
         }
@@ -313,7 +291,6 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         public Server server;
         Timer simulationTimer;
         Timer heartbeatTimer;
-        Timer chimer;
         public final Message.Factory messageFactory;
     }
     public Group(String id) { // makes a new one 
@@ -341,7 +318,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     public Set<TabletImpl2> createAll() { // mostly for testing
         Set<TabletImpl2> tablets=new LinkedHashSet<>();
         for(String tabletId:keys())
-            tablets.add((TabletImpl2)Tablet.factory.create2(tabletId,this));
+            tablets.add((TabletImpl2)Tablet.factory.create2(tabletId,this,getModelClone()));
         return tablets;
     }
     public static Set<TabletImpl2> createGroupAndstartTablets(String groupId,Map<String,Required> requireds) {
@@ -367,7 +344,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     public String getTabletIdFromInetAddress(InetAddress inetAddress,Integer service) {
         // this is called on the android!
         for(String i:keys()) // fragile!
-            if(required(i)!=null) if(inetAddress.getHostAddress().equals(required(i).host)&&(service==null||service.equals(required(i).service))) return i;
+            if(required(i)!=null&&inetAddress.getHostAddress().equals(required(i).host)&&(service==null||service==0||service.equals(required(i).service))) return i;
         return null;
     }
     public Model getModelClone() {
@@ -375,14 +352,10 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     }
     @Override public String toString() {
         StringBuffer sb=new StringBuffer();
-        sb.append("group: group: ");
-        Required required;
-        for(String id:keys())
-            if((required=required(id))!=null) {
-                sb.append("\nfor: "+id+": ");
-                sb.append(required.histories());
-            }
-        sb.append("\nend of group: -------------------------------");
+        sb.append("group: ");
+        sb.append(groupId);
+        sb.append(' ');
+        sb.append(keys());
         return sb.toString();
     }
     // move this to histories?
@@ -435,7 +408,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     }
     public final int x=2;
     public final String groupId;
-    private final Model prototype;
+    private final Model prototype; // use only for cloning
     private final Map<String,Required> idToRequired=new TreeMap<>();
     // move this to tablet
     // split these into an options class and a constants class?

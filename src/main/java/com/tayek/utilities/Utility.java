@@ -56,19 +56,6 @@ public class Utility {
         }
         return serverSocket;
     }
-    public static Socket connect(SocketAddress socketAddress,int timeout) {
-        Et et=new Et();
-        Socket socket=new Socket();
-        try {
-            socket.connect(socketAddress,timeout);
-            return socket;
-        } catch(SocketTimeoutException e) {
-            IO.l.warning(socketAddress+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-        } catch(IOException e) {
-            IO.l.warning(socketAddress+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-        }
-        return null;
-    }
     public static final Boolean T=true,F=false;
     public static final Integer zero=0,one=1,two=2;
 }

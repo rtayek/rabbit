@@ -21,14 +21,25 @@ public class GroupTestCase {
         p("id: "+id+" "+id.getClass().getName());
         assertTrue(id instanceof String);
     }
-    @Test public void testGetTablet() throws UnknownHostException,InterruptedException,ExecutionException {
+    @Test public void testGetTabletTabletIdFromInetAddressForG2() throws UnknownHostException,InterruptedException,ExecutionException {
         Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(testingHost));
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
+        p(inetAddress.toString());
         Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
-        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId));
+        Model model=group.getModelClone();
+        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId),model);
+        assertEquals(tablet.tabletId(),group.keys().iterator().next());
+    }
+    @Test public void testGetTabletTabletIdFromInetAddressForG0() throws UnknownHostException,InterruptedException,ExecutionException {
+        InetAddress inetAddress=InetAddress.getByName("192.168.0.11");
+        p(inetAddress.toString());
+        Group group=new Group("1",new Groups().groups.get("g0"),Model.mark1);
+        String tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
+        Model model=group.getModelClone();
+        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId),model);
         assertEquals(tablet.tabletId(),group.keys().iterator().next());
     }
     @Test public void testGetTabletWithService() throws UnknownHostException,InterruptedException,ExecutionException {
@@ -38,7 +49,8 @@ public class GroupTestCase {
         InetAddress inetAddress=inetAddresses.iterator().next();
         Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,group.required("pc-5").service);
-        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId));
+        Model model=group.getModelClone();
+        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId),model);
         Iterator<String> i=group.keys().iterator();
         i.next(); // skip the first tablet
         assertEquals(tablet.tabletId(),i.next()); // fragile

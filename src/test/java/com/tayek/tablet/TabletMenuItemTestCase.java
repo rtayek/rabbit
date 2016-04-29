@@ -15,7 +15,8 @@ public class TabletMenuItemTestCase {
     @Before public void setUp() throws Exception {
         Map<String,Required> requireds=new Groups().groups.get("g2");
         Group group=new Group("1",requireds,Model.mark1);
-        tablet=(TabletImpl2)Tablet.factory.create2(group.keys().iterator().next(),group);
+        Model model=group.getModelClone();
+        tablet=(TabletImpl2)Tablet.factory.create2(group.keys().iterator().next(),group,model);
         group=null; // tablet has a clone of group!
     }
     @After public void tearDown() throws Exception {}
