@@ -5,7 +5,7 @@ import java.net.*;
 import com.tayek.*;
 import com.tayek.io.IO.ShutdownOptions;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Group.Config;
+import com.tayek.Tablet.*;
 import com.tayek.utilities.Et;
 import static com.tayek.io.IO.*;
 public class Server implements Runnable {

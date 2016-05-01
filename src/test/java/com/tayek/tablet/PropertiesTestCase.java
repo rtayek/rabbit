@@ -8,7 +8,7 @@ public class PropertiesTestCase {
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {}
     @After public void tearDown() throws Exception {}
-    /*@Test*/ public void testRoundTripWithString() throws IOException {
+    @Test public void testRoundTripWithString() throws IOException {
         Properties expected=new Properties();
         expected.setProperty("foo","bar");
         StringWriter stringWriter=new StringWriter();
@@ -19,7 +19,7 @@ public class PropertiesTestCase {
         actual.load(stringReader);
         assertEquals(expected,actual);
     }
-    /*@Test*/ public void testRoundTripWithResource() throws IOException {
+    @Test public void testRoundTripWithResource() throws IOException {
         Properties expected=new Properties();
         expected.setProperty("foo","bar");
         File dir=new File("./src/test/resources/");

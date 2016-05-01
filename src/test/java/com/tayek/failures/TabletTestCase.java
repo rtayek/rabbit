@@ -17,7 +17,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
     @AfterClass public static void tearDownAfterClass() throws Exception {
         AbstractTabletTestCase.tearDownAfterClass();
     }
-  @Before public void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         super.setUp();
     }
     @After public void tearDown() throws Exception {
@@ -27,8 +27,14 @@ public class TabletTestCase extends AbstractTabletTestCase {
         tablets=createForTest(n,serviceOffset);
         startListening();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
-        for(TabletImpl2 tablet:tablets)
-            checkHistory(tablet,tablets.size(),false);
+        for(Tablet tablet:tablets)
+            if(tablet instanceof TabletImpl2) {
+                TabletImpl2 t2=(TabletImpl2)tablet;
+                checkHistory(t2,tablets.size(),false);
+            } else {
+                p("how do i check history?");
+            }
+        
     }
     @Test(timeout=200) public void testDummy2() throws InterruptedException,UnknownHostException,ExecutionException {
         test(2);
@@ -63,35 +69,37 @@ public class TabletTestCase extends AbstractTabletTestCase {
     @Test public void test2RealSimple() throws InterruptedException,UnknownHostException,ExecutionException {
         tablets=createForTest(2,serviceOffset);
         p("back in test");
-        for(TabletImpl2 tablet:tablets)
-            p("group histories id for "+tablet.tabletId()+" is "+tablet.group().required(tablet.tabletId()).histories().serialNumber+" "+tablet.histories().serialNumber);
+        for(Tablet tablet:tablets) { // don't forget to do consistency check on histories for tabletimpl1!
+            //p("group histories id for "+tablet.tabletId()+" is "+tablet.group().required(tablet.tabletId()).histories().serialNumber+" "+tablet.histories().serialNumber);
+            p("histories id for "+tablet.tabletId()+" is "+tablet.histories().serialNumber+" "+tablet.histories().serialNumber);
+        }
         startListening();
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             tablet.broadcast(tablet.messageFactory().other(Type.dummy,tablet.groupId(),tablet.tabletId()));
         }
         Thread.sleep(200);
         Integer expected=2; // sending to self now
-        Iterator<TabletImpl2> i=tablets.iterator();
-        TabletImpl2 t=i.next();
+        Iterator<Tablet> i=tablets.iterator();
+        Tablet t=i.next();
         Histories histories=t.histories(); // get history from tablet
         assertEquals(expected,histories.receiverHistory.history.successes());
         t=i.next();
         histories=t.histories();
         assertEquals(expected,histories.receiverHistory.history.successes());
-        TabletImpl2 first=tablets.iterator().next();
+        Tablet first=tablets.iterator().next();
         for(int buttoneId=1;buttoneId<=first.model().buttons;buttoneId++) {
             first.model().setState(buttoneId,true);
             Message message=first.messageFactory().normal(first.groupId(),first.tabletId(),buttoneId,first.model().toCharacters());
             first.broadcast(message);
             Thread.sleep(100);
-            for(TabletImpl2 tablet:tablets) {
+            for(Tablet tablet:tablets) {
                 //assert missing attenpts should be equal to messages
                 if(tablet.histories().receiverHistory.missing.failures()>0) fail("badness");
             }
         }
         for(int buttoneId=1;buttoneId<=first.model().buttons;buttoneId++)
             assertTrue(first.model().state(buttoneId));
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
             for(int buttoneId=1;buttoneId<=first.model().buttons;buttoneId++)
                 assertTrue(tablet.model().state(buttoneId));
         first.model().reset();
@@ -100,10 +108,10 @@ public class TabletTestCase extends AbstractTabletTestCase {
         Message message=first.messageFactory().other(Type.reset,first.groupId(),first.tabletId());
         first.broadcast(message);
         Thread.sleep(100);
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
             for(int buttoneId=1;buttoneId<first.model().buttons;buttoneId++)
                 assertFalse(tablet.model().state(buttoneId));
-        for(TabletImpl2 tablet:tablets) // fails because each tablet needs a messages class!
+        for(Tablet tablet:tablets) // fails because each tablet needs a messages class!
             if(tablet.histories().receiverHistory.missing.failures()>0) fail("badness");
         shutdown();
         //printStats();
@@ -111,17 +119,17 @@ public class TabletTestCase extends AbstractTabletTestCase {
     @Test(timeout=2_000) public void test2Real() throws InterruptedException,UnknownHostException,ExecutionException {
         tablets=createForTest(2,serviceOffset);
         startListening();
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
             tablet.broadcast(tablet.messageFactory().other(Type.dummy,tablet.groupId(),tablet.tabletId()));
         if(true) {
             Thread.sleep(200);
             Histories histories;
-            for(TabletImpl2 tablet:tablets)
+            for(Tablet tablet:tablets)
                 histories=tablet.histories();
             printStats(""+getClass().getSimpleName());
         }
         waitForEachTabletToReceiveAtLeastOneMessageFromEachTablet(false);
-        TabletImpl2 first=tablets.iterator().next();
+        Tablet first=tablets.iterator().next();
         for(int buttoneId=1;buttoneId<=first.model().buttons;buttoneId++) {
             first.model().setState(buttoneId,true);
             Message message=first.messageFactory().normal(first.groupId(),first.tabletId(),buttoneId,first.model().toCharacters());
@@ -130,7 +138,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
         }
         for(int buttoneId=1;buttoneId<=first.model().buttons;buttoneId++)
             assertTrue(first.model().state(buttoneId));
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
             for(int buttoneId=1;buttoneId<=tablet.model().buttons;buttoneId++)
                 assertTrue(tablet.model().state(buttoneId));
         first.model().reset();
@@ -139,7 +147,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
         Message message=first.messageFactory().other(Type.reset,first.groupId(),first.tabletId());
         first.broadcast(message);
         Thread.sleep(100);
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
             for(int buttoneId=1;buttoneId<tablet.model().buttons;buttoneId++)
                 assertFalse(tablet.model().state(buttoneId));
         shutdown();

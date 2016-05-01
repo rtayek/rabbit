@@ -95,8 +95,8 @@ public class Controller {
                 }
                 break;
             case 'H':
-                if(((TabletImpl2)tablet).heartbeatTimer!=null) ((TabletImpl2)tablet).startHeatbeat();
-                else ((TabletImpl2)tablet).stopHeartbeat();
+                if(tablet.isHeatbeatOn()) tablet.startHeatbeat();
+                else tablet.stopHeartbeat();
                 break;
             case 'l':
                 if(IO.l.getLevel()==Level.OFF) LoggingHandler.setLevel(Level.ALL);
@@ -156,7 +156,7 @@ public class Controller {
         LoggingHandler.setLevel(Level.OFF);
         String host=InetAddress.getLocalHost().getHostName();
         p("host: "+host);
-        Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
+        Group group=new Group("1",new Groups().groups.get("g2OnPc"),Model.mark1);
         new Controller(group,false).run();
     }
     protected final Group group;

@@ -27,10 +27,10 @@ public class GroupTestCase {
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
         p(inetAddress.toString());
-        Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
+        Group group=new Group("1",new Groups().groups.get("g2OnPc"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
         Model model=group.getModelClone();
-        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId),model);
+        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.keys().size(),group.required(tabletId),model);
         assertEquals(tablet.tabletId(),group.keys().iterator().next());
     }
     @Test public void testGetTabletTabletIdFromInetAddressForG0() throws UnknownHostException,InterruptedException,ExecutionException {
@@ -39,7 +39,7 @@ public class GroupTestCase {
         Group group=new Group("1",new Groups().groups.get("g0"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
         Model model=group.getModelClone();
-        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId),model);
+        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.keys().size(),group.required(tabletId),model);
         assertEquals(tablet.tabletId(),group.keys().iterator().next());
     }
     @Test public void testGetTabletWithService() throws UnknownHostException,InterruptedException,ExecutionException {
@@ -47,10 +47,10 @@ public class GroupTestCase {
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
-        Group group=new Group("1",new Groups().groups.get("g2"),Model.mark1);
+        Group group=new Group("1",new Groups().groups.get("g2OnPc"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,group.required("pc-5").service);
         Model model=group.getModelClone();
-        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.required(tabletId),model);
+        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.keys().size(),group.required(tabletId),model);
         Iterator<String> i=group.keys().iterator();
         i.next(); // skip the first tablet
         assertEquals(tablet.tabletId(),i.next()); // fragile

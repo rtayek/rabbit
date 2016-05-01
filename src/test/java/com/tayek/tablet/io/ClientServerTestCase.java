@@ -6,7 +6,7 @@ import org.junit.*;
 import com.tayek.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Group.Config;
+import com.tayek.Tablet.*;
 import com.tayek.tablet.Message.*;
 import com.tayek.tablet.io.Sender.Client;
 import com.tayek.utilities.Single;
@@ -91,6 +91,6 @@ public class ClientServerTestCase {
     Client client;
     Server server;
     Histories histories=new Histories();
-    Factory factory;
+    Message.Factory factory;
     static int service=55555;
 }

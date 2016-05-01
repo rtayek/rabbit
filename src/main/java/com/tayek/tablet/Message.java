@@ -6,7 +6,7 @@ import com.tayek.tablet.Message.Factory.MetaFactory;
 import com.tayek.utilities.Single;
 public interface Message {
     public enum Type { // add levels for logging?
-        drive,stopDriving,forever,dummy,ping,ack,error,normal,reset,name,heartbeat,soundOn,soundOff,rolloverLogNow;
+        resetReceived,drive,stopDriving,forever,dummy,ping,ack,error,normal,reset,name,heartbeat,soundOn,soundOff,rolloverLogNow;
         public boolean isNormal() {
             return this.equals(normal);
         }

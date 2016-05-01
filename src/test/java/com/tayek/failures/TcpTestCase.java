@@ -16,7 +16,7 @@ import com.tayek.io.IO;
 import com.tayek.io.IO.AddressesWithCallable;
 import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
-import com.tayek.tablet.Group.Config;
+import com.tayek.Tablet.*;
 import com.tayek.tablet.Message.*;
 import com.tayek.tablet.MessageReceiver.DummyReceiver;
 import com.tayek.tablet.io.*;
@@ -131,7 +131,7 @@ import com.tayek.utilities.Single;
         }
     }
     final SocketAddress socketAddress;
-    final Factory messages;
+    final Message.Factory messages; // change to messageFactory!
     //int service;
     int threads;
     Config config=new Config();

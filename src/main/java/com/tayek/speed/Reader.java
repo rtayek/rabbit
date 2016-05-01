@@ -13,7 +13,7 @@ class Reader extends Connection { // Supplier<Message>
         in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
         l.info("constructed: "+this);
     }
-    private Writer sendReply(Socket socket,String string) { // server
+    private java.io.Writer sendReply(Socket socket,String string) { // server
         if(string!=null&&!string.isEmpty()) {
             PrintWriter w;
             try {
@@ -39,7 +39,7 @@ class Reader extends Connection { // Supplier<Message>
                 l.severe(this+" received null or empty message!");
             } else {
                 histories.receiverHistory.history.successes();
-                Writer writer=null;
+                java.io.Writer writer=null;
                 if(replying) writer=sendReply(socket,string);
                 histories.receiverHistory.history.reportSuccess(et);
                 //p("reported success in: "+histories);
@@ -94,10 +94,10 @@ class Reader extends Connection { // Supplier<Message>
                 }
                 server.addConnection(newId,this);
                 thread.setName(this.toString());
-                Pair<Sender,Reader> pair=server.idToPair().get(newId);
+                Pair<Writer,Reader> pair=server.idToPair().get(newId);
                 if(pair.first==null) try {
                     Required required=new Required(newId,message.host(),message.service());
-                    Sender sender=new Sender(id,newId,required);
+                    Writer sender=new Writer(id,newId,required);
                     l.info(this+" adding sender: "+sender);
                     server.addConnection(newId,sender);
                 } catch(IOException e) {

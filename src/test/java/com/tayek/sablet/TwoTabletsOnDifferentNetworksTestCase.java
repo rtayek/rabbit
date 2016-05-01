@@ -31,17 +31,22 @@ public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCas
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
     }
     @Test() public void testDummy2Brokem() throws InterruptedException,UnknownHostException,ExecutionException {
-        for(TabletImpl2 tablet:tablets)
-            tablet.stopListening(); // so send will fail
+        for(Tablet tablet:tablets)
+            if(tablet instanceof TabletImpl2) {
+                TabletImpl2 t2=(TabletImpl2)tablet;
+                t2.stopListening(); // so send will fail
+            } else {
+                // how to break!
+            }
         Thread.sleep(100);
         sendOneDummyMessageFromEachTablet();
         Thread.sleep(2_000);
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
             p(tablet.tabletId()+": "+histories);
         }
         shutdown();
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
             assertTrue(new Integer(2)<=histories.senderHistory.history.failures());
             // retries that fail get counted as failures!

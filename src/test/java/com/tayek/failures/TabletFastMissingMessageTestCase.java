@@ -6,6 +6,7 @@ import org.junit.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
+import com.tayek.Tablet.*;
 import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.tablet.Message.Type;
 import static com.tayek.io.IO.*;
@@ -26,7 +27,7 @@ public class TabletFastMissingMessageTestCase extends AbstractTabletTestCase {
         super.tearDown();
     }
     void check(Integer n) {
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
             assertTrue(n<=histories.senderHistory.history.attempts());
             // strange, was 101
@@ -47,7 +48,7 @@ public class TabletFastMissingMessageTestCase extends AbstractTabletTestCase {
         Histories.defaultReportPeriod=0;
         tablets=createForTest(nTablets,serviceOffset);
         startListening();
-        TabletImpl2 first=tablets.iterator().next();
+        Tablet first=tablets.iterator().next();
         for(int i=1;i<=messages;i++) {
             first.broadcast(first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId()));
             Thread.sleep(wait);
@@ -55,7 +56,7 @@ public class TabletFastMissingMessageTestCase extends AbstractTabletTestCase {
         Thread.sleep(10*messages);
         Thread.sleep(30*nTablets);
         check(messages);
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
             p(tablet.report(method()));
     }
     @Test public void test1WithoutWait() throws InterruptedException {
@@ -88,5 +89,5 @@ public class TabletFastMissingMessageTestCase extends AbstractTabletTestCase {
     @Test() public void test100WithWait() throws InterruptedException {
         test(100,100,wait1);
     }
-    int wait1=Group.Config.defaultDriveWait;
+    int wait1=Config.defaultDriveWait;
 }

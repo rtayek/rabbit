@@ -8,6 +8,8 @@ import static com.tayek.io.IO.*;
         super(string);
     }
 }
+// https://gleichmann.wordpress.com/2008/01/21/declarative-programming-a-range-type-for-java/
+// we need a range when ooo get's big!
 public class Missing { // tracks missing messages from consecutive messages.
     public Missing() {
         this(0);

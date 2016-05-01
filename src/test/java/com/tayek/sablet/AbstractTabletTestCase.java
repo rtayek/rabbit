@@ -10,6 +10,7 @@ import org.junit.*;
 import com.tayek.*;
 import com.tayek.io.*;
 import com.tayek.tablet.*;
+import com.tayek.Tablet.*;
 import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.tablet.Message.Type;
 import com.tayek.tablet.MessageReceiver.Model;
@@ -31,7 +32,7 @@ public abstract class AbstractTabletTestCase {
     }
     @After public void tearDown() throws Exception { //Thread.sleep(100); // apparently not needed since we shutdown the executor service now.
         boolean anyFailures=false;
-        if(tablets!=null) for(TabletImpl2 tablet:tablets)
+        if(tablets!=null) for(Tablet tablet:tablets)
             anyFailures|=tablet.histories().anyFailures();
         if(printStats||anyFailures) {
             //p("printStats or failures!");
@@ -45,21 +46,22 @@ public abstract class AbstractTabletTestCase {
         IO.l.warning("teardown");
         LoggingHandler.setLevel(defaultLevel);
     }
-    
     protected void startListening() {
-        TabletImpl2 first=tablets.iterator().next();
-        for(TabletImpl2 tablet:tablets) {
-            if(!tablet.startListening()) fail(tablet+" startListening() retuns false!");
-            assertNotNull(tablet.server);
+        Tablet first=tablets.iterator().next();
+        for(Tablet tablet:tablets) {
+            if(tablet instanceof TabletImpl2) {
+                if(!((TabletImpl2)tablet).startListening()) fail(tablet+" startListening() retuns false!");
+                assertNotNull(((TabletImpl2)tablet).server);
+            }
             assertEquals(first.model().serialNumber,tablet.model().serialNumber);
             //assertEquals(first.stuff.serialNumber,tablet.stuff.serialNumber);
         }
     }
     public void sendOneDummyMessageFromEachTablet() {
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
             sendOneDummyMessageFromTablet(tablet);
     }
-    void sendOneDummyMessageFromTablet(TabletImpl2 tablet) {
+    void sendOneDummyMessageFromTablet(Tablet tablet) {
         tablet.broadcast(tablet.messageFactory().other(Type.dummy,tablet.groupId(),tablet.tabletId()));
     }
     public void waitForEachTabletToReceiveAtLeastOneMessageFromEachTablet(boolean sleepAndPrint) throws InterruptedException {
@@ -67,10 +69,10 @@ public abstract class AbstractTabletTestCase {
         boolean done=false;
         while(!done) {
             done=true;
-            for(TabletImpl2 tablet:tablets) {
+            for(Tablet tablet:tablets) {
                 Histories histories=tablet.histories();
                 // put history into tablet for convenience?
-                if(tablet.config.replying) {
+                if(tablet.config().replying) {
                     if(histories.senderHistory.replies.successes()<tablets.size()) {
                         done=false;
                         break;
@@ -100,7 +102,7 @@ public abstract class AbstractTabletTestCase {
                 if(!sleepAndPrint) Thread.yield();
             }
             if(sleepAndPrint) p("-----------------");
-            for(TabletImpl2 tablet:tablets) {
+            for(Tablet tablet:tablets) {
                 Histories history=tablet.histories();
                 if(sleepAndPrint) {
                     p("history "+history);
@@ -108,9 +110,9 @@ public abstract class AbstractTabletTestCase {
             }
             if(sleepAndPrint) Thread.sleep(500);
         }
-        if(false) for(TabletImpl2 tablet:tablets)
+        if(false) for(Tablet tablet:tablets)
             p("history: "+tablet.histories());
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
             if(histories.receiverHistory.history.successes()>tablets.size()) l.warning(tablet+" received too many messages: "+histories.receiverHistory.history.successes());
         }
@@ -118,13 +120,13 @@ public abstract class AbstractTabletTestCase {
     void waitForEachTabletToReceiveAtLeastOneMessageFromFirstTablet(boolean sleepAndPrint) throws InterruptedException {
         boolean once=false;
         boolean done=false;
-        TabletImpl2 first=tablets.iterator().next();
+        Tablet first=tablets.iterator().next();
         while(!done) {
             done=true;
-            for(TabletImpl2 tablet:tablets) {
+            for(Tablet tablet:tablets) {
                 Histories histories=tablet.histories();
                 // put history into tablet for convenience?
-                if(tablet.config.replying) {
+                if(tablet.config().replying) {
                     if(histories.senderHistory.replies.successes()<1) {
                         done=false;
                         break;
@@ -154,7 +156,7 @@ public abstract class AbstractTabletTestCase {
                 if(!sleepAndPrint) Thread.yield();
             }
             if(sleepAndPrint) p("-----------------");
-            for(TabletImpl2 tablet:tablets) {
+            for(Tablet tablet:tablets) {
                 Histories history=tablet.histories();
                 if(sleepAndPrint) {
                     p("history "+history);
@@ -162,9 +164,9 @@ public abstract class AbstractTabletTestCase {
             }
             if(sleepAndPrint) Thread.sleep(500);
         }
-        if(false) for(TabletImpl2 tablet:tablets)
+        if(false) for(Tablet tablet:tablets)
             p("history: "+tablet.histories());
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories history=tablet.histories();
             if(history.receiverHistory.history.successes()>tablets.size()) l.warning(tablet+" received too many messages: "+history.receiverHistory.history.successes());
         }
@@ -184,11 +186,14 @@ public abstract class AbstractTabletTestCase {
         }
     }
     protected void shutdown() {
-        for(TabletImpl2 tablet:tablets) {
-            tablet.stopListening();
-            if(!tablet.executorService.isShutdown()) shutdownAndAwaitTermination(tablet.executorService);
-            if(!tablet.canceller.isShutdown()) tablet.canceller.shutdown();
-            // don't do this if we are testing and all using the same service.
+        for(Tablet tablet:tablets) {
+            if(tablet instanceof TabletImpl2) {
+                TabletImpl2 t2=(TabletImpl2)tablet;
+                t2.stopListening();
+                if(!t2.executorService.isShutdown()) shutdownAndAwaitTermination(t2.executorService);
+                if(!t2.canceller.isShutdown()) t2.canceller.shutdown();
+                // don't do this if we are testing and all using the same service.
+            }
         }
     }
     protected void sendOneDummyMessageFromEachTabletAndWait(boolean sleepAndPrint) throws InterruptedException {
@@ -196,10 +201,15 @@ public abstract class AbstractTabletTestCase {
         Et et=new Et();
         waitForEachTabletToReceiveAtLeastOneMessageFromEachTablet(sleepAndPrint);
         //p("wait for "+tablets.size()+" tablets, took: "+et);
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories history=tablet.histories();
             if(history.receiverHistory.history.successes()!=tablets.size()) p(tablet+" received: "+history.receiverHistory.history.successes()+" instead of "+tablets.size());
-            checkHistory(tablet,tablets.size(),false);
+            if(tablet instanceof TabletImpl2) {
+                TabletImpl2 t2=(TabletImpl2)tablet;
+                checkHistory(t2,tablets.size(),true);
+            } else {
+                p("how do i check history?");
+            }
         }
     }
     protected void sendOneDummyMessageFromFirstTabletAndWait(boolean sleepAndPrint) throws InterruptedException {
@@ -207,10 +217,15 @@ public abstract class AbstractTabletTestCase {
         Et et=new Et();
         waitForEachTabletToReceiveAtLeastOneMessageFromFirstTablet(sleepAndPrint);
         p("wait for "+tablets.size()+" tablets, took: "+et);
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
             if(histories.receiverHistory.history.successes()!=tablets.size()) p(tablet+" received: "+histories.receiverHistory.history.successes()+" instead of "+tablets.size());
-            checkHistory(tablet,tablets.size(),true);
+            if(tablet instanceof TabletImpl2) {
+                TabletImpl2 t2=(TabletImpl2)tablet;
+                checkHistory(t2,tablets.size(),true);
+            } else {
+                p("how do i check history?");
+            }
         }
     }
     protected void sendOneDummyMessageFromEachTabletAndWaitAndShutdown(boolean sleepAndPrint) throws InterruptedException {
@@ -244,26 +259,26 @@ public abstract class AbstractTabletTestCase {
     }
     protected void printStats(String string) {
         p("print stats: "+string+" <<<<<<<");
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             if(!tablet.equals(tablets.iterator().next())) p("-------");
             p("history for: "+tablet.tabletId()+": "+tablet.histories());
         }
         p("print stats: "+string+" >>>>>>>");
     }
-    public static Set<TabletImpl2> createForTest(int n,int offset) {
+    public static Set<Tablet> createForTest(int n,int offset) {
         Map<String,Required> map=new TreeMap<>();
         // search for linked hash map and use tree map instead.
         for(int i=1;i<=n;i++)
             map.put("T"+i+" on PC",new Required("T"+i+" on PC",testingHost,defaultReceivePort+100+offset+i));
         Group group=new Group("1",map,Model.mark1);
-        Set<TabletImpl2> tablets=group.createAll();
+        Set<Tablet> tablets=group.createAll();
         return tablets;
     }
-  int threads;
+    int threads;
     protected boolean printThreads;
     static boolean staticPrintThreads;
     protected boolean printStats;
-    protected Set<TabletImpl2> tablets;
+    protected Set<Tablet> tablets;
     public boolean useExecutorService;
     public boolean runCanceller;
     public boolean waitForSendCallable;

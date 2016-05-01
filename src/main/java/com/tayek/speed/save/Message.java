@@ -57,7 +57,7 @@ interface Message {
                             return string;
                         }
                         @Override public String toString() {
-                            return from+delimiter+host+delimiter+service+delimiter+string+delimiter+Sender.line;
+                            return from+delimiter+host+delimiter+service+delimiter+string+delimiter+Writer.line;
                         }
                         private final String from,host,string; // order is different!
                         private final int service;

@@ -36,9 +36,12 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                 //g0.put(99,new Info("nexus 4",99,IO.defaultReceivePort)));
             }
             groups.put("g0",g0);
-            g2.put("pc-4",new Required("pc-4",testingHost,defaultReceivePort+4));
-            g2.put("pc-5",new Required("pc-5",testingHost,defaultReceivePort+5));
-            groups.put("g2",g2);
+            g2OnPc.put("pc-4",new Required("pc-4",testingHost,defaultReceivePort+4));
+            g2OnPc.put("pc-5",new Required("pc-5",testingHost,defaultReceivePort+5));
+            groups.put("g2OnPc",g2OnPc);
+            g2OnRouter.put("pc-4",new Required("pc-4",defaultHost,defaultReceivePort+4));
+            g2OnRouter.put("pc-5",new Required("pc-5",defaultHost,defaultReceivePort+5));
+            groups.put("g2OnRouter",g2OnRouter);
             //g1each.put(3,new Info("nexus 7",Main.networkPrefix+70,Main.defaultReceivePort));
             // two fake tablets on pc, but on different networks.
             // the 100 is dhcp'ed, so it may change once in a while.
@@ -46,39 +49,16 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             g1each.put("pc-5",new Required("pc-5",testingHost,defaultReceivePort+4));
             groups.put("g1each",g1each);
         }
-        private final Map<String,Required> g2=new TreeMap<>();
+        private final Map<String,Required> g2OnPc=new TreeMap<>();
+        private final Map<String,Required> g2OnRouter=new TreeMap<>();
         private final Map<String,Required> g0=new TreeMap<>();
         private final Map<String,Required> g1each=new TreeMap<>();
         public final Map<String,Map<String,Required>> groups=new TreeMap<>();
         // hack, change the above before calling new Groups!
     }
-    public static class Config {
-        public boolean useExecutorService;
-        public boolean waitForSendCallable=true;
-        public boolean runCanceller;
-        public boolean replying;
-        public Integer connectTimeout=defaultConnectTimeout; // set by tablet
-        public Integer sendTimeout=defaultSendTimeout; // set by tablet
-        @Override public String toString() {
-            return "Config [replying="+replying+", connectTimeout="+connectTimeout+", sendTimeout="+sendTimeout+", waitForSendCallable="+waitForSendCallable+", useExecutorService="+useExecutorService
-                    +", runCanceller="+runCanceller+"]";
-        }
-        public static Integer defaultConnectTimeout=2_000; // 40;
-        public static Integer defaultSendTimeout=defaultConnectTimeout+50; // 60;
-        public static Integer defaultDriveWait=200; // 100;
-    }
     public class TabletImpl2 extends TabletABC {
-        // no need for ip address really,
-        // maybe set the tablet id after construction
-        // or before broadcast
-        // and add "instance" stuff!
-        // like last mesgage sent
-        // and ip addresses
-        // so let's try:
-        // adding host:service to start listening
-        // and map<String,SocketAddress> to broadcast;
-        public TabletImpl2(String tabletId,Required required,Model model) {
-            super(groupId,tabletId,model,required.histories());
+        public TabletImpl2(String tabletId,int tablets,Required required,Model model) {
+            super(groupId,tablets,tabletId,model,required.histories());
             this.required=required;
             messageFactory=Message.instance.create(required,new Single<Integer>(0));
             int n=keys().size();
@@ -199,7 +179,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         void driveInThread(final boolean sendReset) {
             new Thread(new Runnable() {
                 @Override public void run() {
-                    drive(100,Group.Config.defaultDriveWait,sendReset);
+                    drive(100,Config.defaultDriveWait,sendReset);
                     l.severe("start drive histories.");
                     l.severe("drive: "+histories());
                     l.severe("end drive histories.");
@@ -241,26 +221,6 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                 }
             }).start();
         }
-        public void startHeatbeat() {
-            if(heartbeatTimer!=null) stopHeartbeat();
-            if(true) {
-                final int dt=500;
-                ArrayList<String> ids=new ArrayList<>(keys());
-                l.info(""+System.currentTimeMillis());
-                heartbeatTimer=new Timer();
-                heartbeatTimer.schedule(new TimerTask() {
-                    @Override public void run() {
-                        broadcast(messageFactory.other(Type.heartbeat,groupId,tabletId()));
-                    }
-                },1_000+ids.indexOf(tabletId())*dt,dt*keys().size());
-            }
-        }
-        public void stopHeartbeat() {
-            if(heartbeatTimer!=null) {
-                heartbeatTimer.cancel();
-                heartbeatTimer=null;
-            }
-        }
         public void startSimulating() {
             if(simulationTimer!=null) stopSimulating();
             ArrayList<String> ids=new ArrayList<>(keys());
@@ -285,12 +245,10 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         }
         boolean stopDriving;
         final Required required;
-        public Config config=new Config(); // maybe pass in ctor later?
         public final ScheduledExecutorService canceller;
         public final ExecutorService executorService;
         public Server server;
         Timer simulationTimer;
-        Timer heartbeatTimer;
         public final Message.Factory messageFactory;
     }
     public Group(String id) { // makes a new one 
@@ -315,19 +273,19 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         Group group=new Group(this.groupId,this,0);
         return group;
     }
-    public Set<TabletImpl2> createAll() { // mostly for testing
-        Set<TabletImpl2> tablets=new LinkedHashSet<>();
+    public Set<Tablet> createAll() { // mostly for testing
+        Set<Tablet> tablets=new TreeSet<>();
         for(String tabletId:keys())
-            tablets.add((TabletImpl2)Tablet.factory.create2(tabletId,this,getModelClone()));
+            tablets.add(Tablet.factory.create2(tabletId,this,getModelClone()));
         return tablets;
     }
-    public static Set<TabletImpl2> createGroupAndstartTablets(String groupId,Map<String,Required> requireds) {
+    public static Set<Tablet> createGroupAndstartTablets(String groupId,Map<String,Required> requireds) {
         //Set<Tablet> tablets=new LinkedHashSet<>();
         Group group=new Group("1",requireds,Model.mark1);
-        Set<TabletImpl2> tablets=group.createAll();
-        for(TabletImpl2 tablet:tablets) {
+        Set<Tablet> tablets=group.createAll();
+        for(Tablet tablet:tablets) {
             tablet.model().addObserver(new AudioObserver(tablet.model())); // maybe not if testing?
-            tablet.startListening();
+            if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).startListening();
         }
         return tablets;
     }
@@ -341,11 +299,15 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     public Required required(String id) {
         return id==null?null:idToRequired!=null?idToRequired.get(id):null;
     }
-    public String getTabletIdFromInetAddress(InetAddress inetAddress,Integer service) {
+    public String getTabletIdFromHost(String host,Integer service) {
         // this is called on the android!
         for(String i:keys()) // fragile!
-            if(required(i)!=null&&inetAddress.getHostAddress().equals(required(i).host)&&(service==null||service==0||service.equals(required(i).service))) return i;
+            if(required(i)!=null&&host.equals(required(i).host)&&(service==null||service==0||service.equals(required(i).service))) return i;
         return null;
+    }
+    public String getTabletIdFromInetAddress(InetAddress inetAddress,Integer service) {
+        // this is called on the android!
+        return getTabletIdFromHost(inetAddress.getHostAddress(),service);
     }
     public Model getModelClone() {
         return prototype!=null?prototype.clone():null;

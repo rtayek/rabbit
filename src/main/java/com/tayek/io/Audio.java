@@ -5,6 +5,7 @@ import java.io.BufferedInputStream;
 import java.util.*;
 import java.util.Observable;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 import java.util.logging.*;
 import javax.sound.sampled.*;
 import com.tayek.io.Audio.Sound;
@@ -75,18 +76,14 @@ public interface Audio {
         }
         public static boolean sound=true;
     }
-    Audio audio=Factory.FactoryImpl.instance().create();
     interface Factory {
-        abstract Audio create();
+        Audio create();
         class FactoryImpl implements Factory {
             private FactoryImpl() {}
             @Override public Audio create() {
                 // says linux, so look for something that says android!
                 if(System.getProperty("os.name").contains("indows")) return new WindowsAudio();
                 else return new AndroidAudio();
-            }
-            static Factory instance() {
-                return factory;
             }
             public static class AndroidAudio implements Audio {
                 AndroidAudio() {}
@@ -95,6 +92,7 @@ public interface Audio {
                     else l.warning("callback is not set: "+sound);
                 }
                 public void setCallback(Callback<Sound> callback) {
+                    //Consumer<String> c;
                     this.callback=callback;
                 }
                 public Callback<Sound> callback;
@@ -156,6 +154,8 @@ public interface Audio {
                 ExecutorService executorService=Executors.newSingleThreadExecutor();
             }
         }
-        Factory factory=new FactoryImpl();
     }
+    Factory factory=new Factory.FactoryImpl();
+    //Audio audio=Factory.FactoryImpl.instance().create();
+    Audio audio=factory.create();
 }

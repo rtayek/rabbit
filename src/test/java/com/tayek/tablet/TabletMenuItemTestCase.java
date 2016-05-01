@@ -13,7 +13,7 @@ public class TabletMenuItemTestCase {
     }
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
-        Map<String,Required> requireds=new Groups().groups.get("g2");
+        Map<String,Required> requireds=new Groups().groups.get("g2OnPc");
         Group group=new Group("1",requireds,Model.mark1);
         Model model=group.getModelClone();
         tablet=(TabletImpl2)Tablet.factory.create2(group.keys().iterator().next(),group,model);

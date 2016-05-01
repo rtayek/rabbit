@@ -62,8 +62,8 @@ public class Enums {
                     break;
                 case Heartbeat:
                     if(tablet!=null) {
-                        if(((TabletImpl2)tablet).heartbeatTimer!=null) ((TabletImpl2)tablet).startHeatbeat();
-                        else((TabletImpl2)tablet).stopHeartbeat();
+                        if(tablet.isHeatbeatOn()) tablet.startHeatbeat();
+                        else tablet.stopHeartbeat();
                     }
                     break;
                 case Disconnect:

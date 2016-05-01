@@ -48,8 +48,8 @@ public class OneKnowsTestCase extends AbstractServerTestCase {
         Server first=servers.iterator().next();
         for(Server server:servers) {
             p("for server: "+server);
-            for(Entry<String,Pair<Sender,Reader>> entry:server.idToPair().entrySet()) {
-                Pair<Sender,Reader> pair=entry.getValue();
+            for(Entry<String,Pair<Writer,Reader>> entry:server.idToPair().entrySet()) {
+                Pair<Writer,Reader> pair=entry.getValue();
                 p("pair: "+pair);
                 if(server.equals(first)) {
                     // will have more sends and no more receives
@@ -99,8 +99,8 @@ public class OneKnowsTestCase extends AbstractServerTestCase {
         Thread.sleep(5_000);
         for(Server server:servers) {
             p("report for server: "+server+", "+server.report());
-            for(Entry<String,Pair<Sender,Reader>> entry:server.idToPair().entrySet()) {
-                Pair<Sender,Reader> pair=entry.getValue();
+            for(Entry<String,Pair<Writer,Reader>> entry:server.idToPair().entrySet()) {
+                Pair<Writer,Reader> pair=entry.getValue();
                 p("pair: "+pair);
                 if(server.equals(first)) {
                     // will have more sends and no more receives

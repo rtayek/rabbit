@@ -30,9 +30,13 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         startListening();
         Et et=new Et();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
-        for(TabletImpl2 tablet:tablets) {
-            checkHistory(tablet,tablets.size(),false);
-        }
+        for(Tablet tablet:tablets)
+            if(tablet instanceof TabletImpl2) {
+                TabletImpl2 t2=(TabletImpl2)tablet;
+                checkHistory(t2,tablets.size(),false);
+            } else {
+                p("how do i check history?");
+            }
     }
     private void justOneWithOneMessage() throws InterruptedException {
         Map<String,Required> map=new TreeMap<>();
@@ -41,19 +45,19 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         Group group=new Group("1",map,Model.mark1);
         p("map: "+map);
         tablets=group.createAll();
-        TabletImpl2 first=tablets.iterator().next();
+        Tablet first=tablets.iterator().next();
         boolean areAllLiestening=true;
         if(areAllLiestening) startListening();
         else {
-            if(!first.startListening()) fail(first+" startListening() retuns false!");
+            if(first instanceof TabletImpl2) if(!((TabletImpl2)first).startListening()) fail(first+" startListening() retuns false!");
         }
         first.broadcast(first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId()));
         Thread.sleep(700);
         Histories histories=first.histories();
         assertEquals(one,histories.receiverHistory.history.successes());
-        assertEquals(first.config.replying?one:zero,histories.receiverHistory.replies.successes());
+        assertEquals(first.config().replying?one:zero,histories.receiverHistory.replies.successes());
         assertEquals(one,histories.senderHistory.history.successes());
-        assertEquals(first.config.replying?one:zero,histories.senderHistory.replies.successes());
+        assertEquals(first.config().replying?one:zero,histories.senderHistory.replies.successes());
         assertEquals(zero,histories.receiverHistory.history.failures());
         if(areAllLiestening) assertEquals(zero,histories.senderHistory.history.failures());
         else assertEquals(thirtyOne,histories.senderHistory.history.failures());

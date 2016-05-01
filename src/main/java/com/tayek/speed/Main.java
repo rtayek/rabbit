@@ -88,5 +88,5 @@ public class Main {
     boolean shutdownServerFirst;
     int threads;
     int devices=50;
-    Set<Sender> clients=new LinkedHashSet<>();
+    Set<Writer> clients=new LinkedHashSet<>();
 }

@@ -22,7 +22,7 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
         super.tearDown();
     }
     void check(Integer n) {
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
             assertEquals(n,histories.senderHistory.history.attempts());
             assertEquals(n,histories.receiverHistory.history.attempts());
@@ -39,7 +39,7 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
         Histories.defaultReportPeriod=0;
         tablets=createForTest(2,serviceOffset);
         startListening();
-        TabletImpl2 first=tablets.iterator().next();
+        Tablet first=tablets.iterator().next();
         Message message1=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
         Message message2=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
         Message message3=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
@@ -50,14 +50,14 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
         first.broadcast(message3);
         while(first.histories().senderHistory.history.attempts()<2)
             Thread.sleep(10);
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
         p(tablet.report(tablet.tabletId()));
     }
     @Test(timeout=900) public void testOneMissing() throws InterruptedException {
         Histories.defaultReportPeriod=0;
         tablets=createForTest(2,serviceOffset);
         startListening();
-        TabletImpl2 first=tablets.iterator().next();
+        Tablet first=tablets.iterator().next();
         Message message1=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
         Message message2=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
         Message message3=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
@@ -68,14 +68,14 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
         first.broadcast(message3);
         while(first.histories().senderHistory.history.attempts()<2)
             Thread.sleep(10);
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
             p(tablet.report(tablet.tabletId()));
     }
     @Test(timeout=900) public void testOneOutOfOrder() throws InterruptedException {
         Histories.defaultReportPeriod=0;
         tablets=createForTest(2,serviceOffset);
         startListening();
-        TabletImpl2 first=tablets.iterator().next();
+        Tablet first=tablets.iterator().next();
         Message message1=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
         Message message2=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
         Message message3=first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId());
@@ -86,7 +86,7 @@ public class TabletRealMissingMessageTestCase extends AbstractTabletTestCase {
         first.broadcast(message2);
         while(first.histories().senderHistory.history.attempts()<2)
             Thread.sleep(10);
-        for(TabletImpl2 tablet:tablets)
+        for(Tablet tablet:tablets)
             p(tablet.report(tablet.tabletId()));
     }
 }

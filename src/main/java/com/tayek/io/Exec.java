@@ -84,8 +84,11 @@ public class Exec {
             timeoutString+=timeout;
             Exec exec=new Exec(new String[] {"ping","-n","1","-w",""+timeoutString,host});
             exec.run();
-            p("output: "+exec.output);
-            return exec.output.contains("0% loss");
+            //p("output: "+exec.output);
+            boolean ok=false;
+            if(exec.output.contains("Reply from "+tabletRouter+":"))
+                ok=true;
+            return ok;
         } else {
             timeoutString+=max(1,timeout/1_000);
             return exec(new String[] {"ping","-c","1","-W",timeoutString,host})==0;

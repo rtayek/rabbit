@@ -24,7 +24,7 @@ public class TwoTabletsTestCase extends AbstractTabletTestCase {
         tablets=createForTest(2,serviceOffset);
         startListening();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
             assertEquals(new Integer(0),histories.senderHistory.history.failures());
         }
@@ -32,7 +32,7 @@ public class TwoTabletsTestCase extends AbstractTabletTestCase {
     @Test(timeout=500) public void testDummyWithEmptyMessage() throws InterruptedException,UnknownHostException,ExecutionException {
         tablets=createForTest(2,serviceOffset);
         startListening();
-        TabletImpl2 first=tablets.iterator().next();
+        Tablet first=tablets.iterator().next();
         int n=1;
         for(int i=1;i<=n;i++) {
             first.broadcast(first.messageFactory().empty());
@@ -47,7 +47,7 @@ public class TwoTabletsTestCase extends AbstractTabletTestCase {
         sendOneDummyMessageFromEachTablet();
         Thread.sleep(2_000);
         shutdown();
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories history=tablet.histories();
             assertTrue(new Integer(2)<=history.senderHistory.history.failures());
         }

@@ -24,9 +24,9 @@ public interface Server {
     Histories histories();
     String maps();
     void addConnection(String newId,Connection connection);
-    Map<String,Pair<Sender,Reader>> idToPair();
+    Map<String,Pair<Writer,Reader>> idToPair();
     Map<InetAddress,Pair<String,Histories>> iNetAddressToPair();
-    Sender createAndAddSender(String destinationId,Required required);
+    Writer createAndAddSender(String destinationId,Required required);
     interface Factory {
         Server create(Required required);
         static class FactoryImpl implements Factory {
@@ -59,7 +59,7 @@ public interface Server {
                 }
                 @Override public void broadcast(Object message) {
                     synchronized(this) {
-                        for(Pair<Sender,Reader> pair:idToPair.values())
+                        for(Pair<Writer,Reader> pair:idToPair.values())
                             if(pair.first!=null) pair.first.write(message);
                     }
                 }
@@ -73,11 +73,11 @@ public interface Server {
                     connection.otherId=newId;
                     synchronized(this) {
                         l.info("map for: "+id()+" is:"+idToPair());
-                        Pair<Sender,Reader> pair=idToPair().get(newId);
+                        Pair<Writer,Reader> pair=idToPair().get(newId);
                         if(connection instanceof Reader) {
                             InetAddress inetAddress=connection.socket.getInetAddress();
                             if(pair==null) { // no previous connection or not known?
-                                pair=new Pair<Sender,Reader>(null,(Reader)connection);
+                                pair=new Pair<Writer,Reader>(null,(Reader)connection);
                                 l.info(id()+" "+id()+"->"+newId+" received first message from: "+newId+":"+inetAddress);
                                 idToPair().put(newId,pair); // sync
                                 l.warning(id()+" added pair: "+pair);
@@ -99,9 +99,9 @@ public interface Server {
                                     l.info(id()+"<-"+newId+" added receiver: "+connection+". modified pair: "+pair);
                                 }
                             }
-                        } else if(connection instanceof Sender) {
+                        } else if(connection instanceof Writer) {
                             if(pair==null) {
-                                pair=new Pair<Sender,Reader>((Sender)connection,null);
+                                pair=new Pair<Writer,Reader>((Writer)connection,null);
                                 l.info(id()+"->"+newId+" new sender to: "+newId);
                                 idToPair().put(newId,pair); // sync
                                 l.info(id()+" added pair: "+pair);
@@ -115,7 +115,7 @@ public interface Server {
                                     l.warning(id()+" pair has existing receiver!: "+pair);
                                     p(Thread.currentThread()+" "+id()+": adding sender to existing receiver: "+connection);
                                 }
-                                pair.first=(Sender)connection;
+                                pair.first=(Writer)connection;
                                 if(pair.second!=null) if(!pair.first.histories.equals(pair.second.histories)) {
                                     p("adding sender: "+connection);
                                     p("sender histories: "+pair.first.histories);
@@ -127,12 +127,12 @@ public interface Server {
                         l.info("new map for: "+id()+" is:"+idToPair());
                     }
                 }
-                public Sender createAndAddSender(String destinationId,Required required) {
-                    Sender sender=null;
+                public Writer createAndAddSender(String destinationId,Required required) {
+                    Writer sender=null;
                     try {
                         l.info("trying: "+required.host+":"+required.service);
                         if(destinationId.equals(id())) l.warning("strange - histories problem");
-                        sender=new Sender(id(),destinationId,required);
+                        sender=new Writer(id(),destinationId,required);
                         sender.otherId=destinationId;
                         l.info("adding: "+sender);
                         addConnection(destinationId,sender);
@@ -220,7 +220,7 @@ public interface Server {
                     l.info("wait for: "+idToPair.size()+" servers to complete: "+n+" messages.");
                     for(boolean done=false;!done;) {
                         done=true;
-                        for(Pair<Sender,Reader> pair:idToPair.values()) // how can this work!
+                        for(Pair<Writer,Reader> pair:idToPair.values()) // how can this work!
                             if(pair.second!=null) if(pair.second.histories.receiverHistory.history.attempts()<n) done=false;
                         if(done) break;
                         Thread.sleep(10);
@@ -228,7 +228,7 @@ public interface Server {
                     l.info(idToPair.size()+" servers complete.");
                 }
                 public void waitForServersToShutdown() throws IOException {
-                    for(Pair<Sender,Reader> pair:idToPair.values())
+                    for(Pair<Writer,Reader> pair:idToPair.values())
                         if(pair.second!=null) {
                             pair.second.stopThread();
                             // how to set receiver to null?
@@ -239,7 +239,7 @@ public interface Server {
                     isShuttingDown=true;
                     l.info(" stopping senders and receivers: "+this);
                     l.info("shutting down old connections:");
-                    for(Pair<Sender,Reader> pair:idToPair.values()) {
+                    for(Pair<Writer,Reader> pair:idToPair.values()) {
                         l.info("shutting down old connection: "+pair);
                         if(pair.first!=null) pair.first.stopThread();
                         if(pair.second!=null) pair.second.stopThread();
@@ -267,7 +267,7 @@ public interface Server {
                     }
                     l.info(" exit stopping server with thread: "+this);
                 }
-                @Override public Map<String,Pair<Sender,Reader>> idToPair() {
+                @Override public Map<String,Pair<Writer,Reader>> idToPair() {
                     return idToPair;
                 }
                 @Override public Map<InetAddress,Pair<String,Histories>> iNetAddressToPair() {
@@ -290,7 +290,7 @@ public interface Server {
                     //sb.append("from this: "+histories+"\n");
                     sb.append("maps: "+maps()+"\n");
                     synchronized(idToPair) {
-                        for(Pair<Sender,Reader> pair:idToPair.values()) {
+                        for(Pair<Writer,Reader> pair:idToPair.values()) {
                             if(pair.first!=null) {
                                 sb.append(pair.first.id+"->"+pair.first.otherId);
                                 sb.append('\n');
@@ -319,7 +319,7 @@ public interface Server {
                 final ServerSocket serverSocket;
                 private volatile boolean isShuttingDown;
                 final Set<Reader> newConnections=new LinkedHashSet<>();
-                final Map<String,Pair<Sender,Reader>> idToPair=new TreeMap<>(); // destination id!
+                final Map<String,Pair<Writer,Reader>> idToPair=new TreeMap<>(); // destination id!
                 public static final String ok="ok";
                 static int serialNumbers=0;
             }

@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.logging.Level;
 import org.junit.*;
 import static com.tayek.io.IO.*;
-import com.tayek.Required;
+import com.tayek.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
 import com.tayek.tablet.Group.*;
@@ -44,10 +44,10 @@ public class StuffTestCase {
         }
         // histories have same serial numbers.
         // they should
-        Set<TabletImpl2> tablets=group.createAll();
-        Iterator<TabletImpl2> i=tablets.iterator();
-        TabletImpl2 first=i.next();
-        TabletImpl2 second=i.next();
+        Set<Tablet> tablets=group.createAll();
+        Iterator<Tablet> i=tablets.iterator();
+        Tablet first=i.next();
+        Tablet second=i.next();
         if(false) {
             p("first tablet histories #: "+first.histories().serialNumber);
             p("second tablet histories #: "+second.histories().serialNumber);
@@ -55,11 +55,11 @@ public class StuffTestCase {
         assertFalse(first.histories().serialNumber.equals(second.histories().serialNumber));
     }
     @Test public void testClone2() {
-        Map<String,Required> map=new Groups().groups.get("g2");
+        Map<String,Required> map=new Groups().groups.get("g2OnPc");
         Group group=new Group("1",map,Model.mark1);
-        Set<TabletImpl2> tablets=group.createAll();
-        Iterator<TabletImpl2> i=tablets.iterator();
-        TabletImpl2 tablet1=i.next(),tablet2=i.next();
+        Set<Tablet> tablets=group.createAll();
+        Iterator<Tablet> i=tablets.iterator();
+        Tablet tablet1=i.next(),tablet2=i.next();
         tablet1.histories().senderHistory.history.success();
         if(false) {
             p("t1 successes: "+tablet1.histories().senderHistory.history.successes());

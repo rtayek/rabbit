@@ -23,13 +23,13 @@ public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestC
     }
     void sendMessagesToTablets(int n) throws InterruptedException {
         tablets=createForTest(2,serviceOffset);
-        for(TabletImpl2 tablet:tablets)
-            p("config: "+tablet.config);
+        for(Tablet tablet:tablets)
+            p("config: "+tablet.config());
         startListening();
         Model model=tablets.iterator().next().model();
         //p("model: "+model);
         int buttonId=model.buttons-1;
-        for(TabletImpl2 tablet:tablets) { // maybe have a version that just sends to first?
+        for(Tablet tablet:tablets) { // maybe have a version that just sends to first?
             for(int i=0;i<n;i++) {
                 tablet.click((++buttonId-1)%(model.buttons-1)+1);
                 Thread.sleep(20); // nobody can press buttons this fast
@@ -38,7 +38,7 @@ public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestC
         }
         Thread.sleep(100);
         shutdown();
-        for(TabletImpl2 tablet:tablets) {
+        for(Tablet tablet:tablets) {
             Histories history=tablet.histories();
             assertEquals(new Integer(0),history.senderHistory.history.failures());
             assertEquals(new Integer(0),history.receiverHistory.history.failures());

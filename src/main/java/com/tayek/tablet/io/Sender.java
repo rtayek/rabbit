@@ -4,8 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
 import com.tayek.*;
+import com.tayek.Tablet.*;
 import com.tayek.io.IO.ShutdownOptions;
-import com.tayek.tablet.Group.Config;
 import com.tayek.utilities.*;
 public interface Sender {
     boolean send(Object message);

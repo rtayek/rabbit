@@ -1,6 +1,5 @@
 package com.tayek.utilities;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.Properties;
 public class P {
@@ -38,6 +37,11 @@ public class P {
 	}
 	void run() throws IOException {
 		System.out.println("with file: "+dirs+propertyFilename);
+		File file=new File(dirs,propertyFilename);
+                System.out.println("really: "+file);
+                System.out.println(file.exists());
+                File file2=new File("src/main/resources/"+dirs,propertyFilename);
+                System.out.println(file2+" "+file2.exists());
 		for(String filename:filenames) {
 			System.out.println("filename: "+filename);
 			new P().load(filename);

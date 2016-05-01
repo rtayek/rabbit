@@ -8,7 +8,7 @@ import java.util.logging.*;
 import com.tayek.*;
 import com.tayek.io.*;
 import com.tayek.tablet.Group.*;
-
+import com.tayek.Tablet.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
 import com.tayek.utilities.Et;
@@ -25,7 +25,7 @@ public class Driver {
         ((TabletImpl2)tablet).startListening();
         ((TabletImpl2)tablet).server.reportPeriod=n<100?100:n;
         if(false)
-            ((TabletImpl2)tablet).drive(n,Group.Config.defaultDriveWait,false);
+            ((TabletImpl2)tablet).drive(n,Config.defaultDriveWait,false);
         else ((TabletImpl2)tablet).forever();
         ((TabletImpl2)tablet).stopDriving=false;
         ((TabletImpl2)tablet).stopListening();
@@ -38,7 +38,7 @@ public class Driver {
         Map<String,Required> requireds=new Groups().groups.get("g6");
         requireds.put("T99",new Required("T99","localhost",defaultReceivePort));
         Group group=new Group("1",requireds,Model.mark1);
-        Set<TabletImpl2> tablets=group.createGroupAndstartTablets(group.groupId,requireds);
+        Set<Tablet> tablets=Group.createGroupAndstartTablets(group.groupId,requireds);
         int n=100;
         /*
         tablet.reportPeriod=n;

@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
 import org.junit.*;
+import com.tayek.Tablet;
 import com.tayek.io.*;
 import com.tayek.io.LogServer.Copier;
 import com.tayek.tablet.*;
@@ -54,8 +55,13 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         tablets=createForTest(2,serviceOffset);
         startListening();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
-        for(TabletImpl2 tablet:tablets)
-            checkHistory(tablet,tablets.size(),false);
+        for(Tablet tablet:tablets)
+            if(tablet instanceof TabletImpl2) {
+                TabletImpl2 t2=(TabletImpl2)tablet;
+                checkHistory(t2,tablets.size(),false);
+            } else {
+                p("how do i check history?");
+            }
         Thread.sleep(200);
         shutdown();
         // stop socket logging

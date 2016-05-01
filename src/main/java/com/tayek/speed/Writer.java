@@ -58,11 +58,11 @@ abstract class Connection implements Runnable {
     Histories histories;
     // maybe put histories here?
 }
-public class Sender extends Connection { // Consumer<Message>
-    Sender(String id,String otherId,Required required) throws IOException {
+public class Writer extends Connection { // Consumer<Message>
+    Writer(String id,String otherId,Required required) throws IOException {
         this(id,otherId,required,connect(new InetSocketAddress(required.host,required.service),timeout));
     }
-    private Sender(String id,String otherId,Required required,Socket socket) throws IOException {
+    private Writer(String id,String otherId,Required required,Socket socket) throws IOException {
         super(id,socket,required.histories());
         this.otherId=otherId;
         this.required=required;
@@ -132,7 +132,7 @@ public class Sender extends Connection { // Consumer<Message>
     public Integer reportPeriod=Histories.defaultReportPeriod;
     public final Required required;
     final boolean replying=false;
-    private final Writer out;
+    private final java.io.Writer out;
     static int messagesToSend=1_000;
     static int timeout=1_000;
     static int lineLength=1024;
