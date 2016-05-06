@@ -13,9 +13,7 @@ public interface Prefs {
         class FactoryImpl implements Factory {
             private FactoryImpl() {}
             @Override public Prefs create() {
-                // says linux, so look for something that says android!
-                if(System.getProperty("os.name").contains("indows")) return new WindowsPrefs();
-                else return new AndroidPrefs();
+                return isAndroid()?new AndroidPrefs():new WindowsPrefs();
             }
             public static class AndroidPrefs implements Prefs {
                 public void setDelegate(Prefs prefs) {
@@ -33,8 +31,7 @@ public interface Prefs {
                 @Override public String toString() {
                     return prefs.toString();
                 }
-
-             private Prefs prefs;
+                private Prefs prefs;
             }
             private static class WindowsPrefs implements Prefs {
                 WindowsPrefs() {

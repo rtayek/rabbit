@@ -14,7 +14,9 @@ public class RunnerTestCase {
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
         LoggingHandler.init();
-        runner=new RunnerABC(group,raysPcOnTabletNetworkToday);
+        LoggingHandler.setLevel(Level.WARNING);
+        runner=new RunnerABC(group,raysRouter,raysRouterPrefix);
+        runner.loopSleep=3_000;
         new Thread(runner,"tablet runner").start();
     }
     @After public void tearDown() throws Exception {
@@ -22,10 +24,10 @@ public class RunnerTestCase {
     }
     // add a test to delete the properties file!
     @Test public void test() throws InterruptedException {
-        Thread.sleep(200_000);
+        Thread.sleep(12_000);
         p("n: "+runner.n);
-        if(runner.tablet!=null)
-            p("histories: "+runner.tablet.histories());
+        p("restarts: "+runner.restarts);
+        if(runner.tablet!=null) p("histories: "+runner.tablet.histories());
     }
     Map<String,Required> requireds=new Groups().groups.get("g2OnRouter");
     Group group=new Group("1",requireds,Model.mark1);

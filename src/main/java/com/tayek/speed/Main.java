@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.logging.Level;
 import com.tayek.Required;
 import com.tayek.io.*;
+import com.tayek.tablet.Group;
 import com.tayek.tablet.Message.Type;
 import com.tayek.utilities.Et;
 import static com.tayek.speed.Server.*;
@@ -73,6 +74,8 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.WARNING);
+        Map<String,Required> requireds=new TreeMap<>(new Group.Groups().groups.get("big0"));
+        p("requireds: "+requireds);
         if(true) run(4);
         else {
             Server server=factory.create(new Required("T1","localhost",defaultReceivePort));

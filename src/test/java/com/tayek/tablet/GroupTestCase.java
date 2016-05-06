@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import org.junit.*;
 import static com.tayek.io.IO.*;
+import com.tayek.Tablet;
 import com.tayek.io.IO;
 import com.tayek.tablet.Group.*;
 import com.tayek.tablet.MessageReceiver.Model;
@@ -29,8 +30,7 @@ public class GroupTestCase {
         p(inetAddress.toString());
         Group group=new Group("1",new Groups().groups.get("g2OnPc"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
-        Model model=group.getModelClone();
-        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.keys().size(),group.required(tabletId),model);
+        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(group,tabletId);
         assertEquals(tablet.tabletId(),group.keys().iterator().next());
     }
     @Test public void testGetTabletTabletIdFromInetAddressForG0() throws UnknownHostException,InterruptedException,ExecutionException {
@@ -38,8 +38,7 @@ public class GroupTestCase {
         p(inetAddress.toString());
         Group group=new Group("1",new Groups().groups.get("g0"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
-        Model model=group.getModelClone();
-        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.keys().size(),group.required(tabletId),model);
+        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(group,tabletId);
         assertEquals(tablet.tabletId(),group.keys().iterator().next());
     }
     @Test public void testGetTabletWithService() throws UnknownHostException,InterruptedException,ExecutionException {
@@ -49,8 +48,7 @@ public class GroupTestCase {
         InetAddress inetAddress=inetAddresses.iterator().next();
         Group group=new Group("1",new Groups().groups.get("g2OnPc"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,group.required("pc-5").service);
-        Model model=group.getModelClone();
-        TabletImpl2 tablet=group.new TabletImpl2(tabletId,group.keys().size(),group.required(tabletId),model);
+        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(group,tabletId);
         Iterator<String> i=group.keys().iterator();
         i.next(); // skip the first tablet
         assertEquals(tablet.tabletId(),i.next()); // fragile

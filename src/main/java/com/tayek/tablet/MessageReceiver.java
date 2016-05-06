@@ -123,7 +123,7 @@ public interface MessageReceiver {
                     synchronized(idToLastOnFrom) {
                         idToLastOnFrom.put(i,message.from());
                     }
-                    if(!state(i).equals(message.state(i))) { // will turn on?
+                    if(false) if(!state(i).equals(message.state(i))) { // will turn on?
                         setChangedAndNotify(Sound.electronic_chime_kevangc_495939803);
                     }
                 }
@@ -141,6 +141,9 @@ public interface MessageReceiver {
                 l.fine("received message: "+message);
                 messages++;
                 switch(message.type()) {
+                    case heartbeat:
+                        l.info("received hreatbeat: "+messages);
+                        break;
                     case normal:
                         normal(message);
                         break;
@@ -177,7 +180,7 @@ public interface MessageReceiver {
             return s;
         }
         @Override public String toString() {
-            String s="("+serialNumber+"): {";
+            String s="(#"+serialNumber+"): {";
             synchronized(states) {
                 s+=toCharacters();
                 s+='}';

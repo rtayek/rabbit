@@ -9,7 +9,7 @@ import com.tayek.tablet.Message.Type;
 import com.tayek.tablet.MessageReceiver.Model;
 public interface Tablet {
     Config config();
-    String groupId();
+    Group group();
     String tabletId();
     int tablets();
     Message.Factory messageFactory();
@@ -28,32 +28,32 @@ public interface Tablet {
         void setStatusText(String string);
     }
     interface Factory {
-        Tablet create1(String groupId,int tablets,String id,Required required,Model model);
-        Tablet create2(String id,Group group,Model model);
+        Tablet create1(Group group,String id);
+        Tablet create2(Group group,String id);
         class FactoryImpl implements Factory {
-            @Override public TabletImpl1 create1(String groupId,int tablets,String id,Required required,Model model) {
-                Server server=Server.factory.create(required);
-                return new TabletImpl1(groupId,tablets,id,server,model);
+            @Override public TabletImpl1 create1(Group group,String id) {
+                Server server=Server.factory.create(group.required(id));
+                return new TabletImpl1(group.clone(),id,server,group.getModelClone());
             }
-            @Override public TabletImpl2 create2(String id,Group group,Model model) {
-                p("required: "+group.required(id));
-                return group.clone().new TabletImpl2(id,group.keys().size(),group.required(id),model);
+            @Override public TabletImpl2 create2(Group group,String id) {
+                Group clone=group.clone();
+                return clone.new TabletImpl2(id);
             }
             // second just needs an id?
             // first needs group or map: id->required
             public static abstract class TabletABC implements Tablet {
-                public TabletABC(String groupId,int tablets,String tabletId,Model model,Histories histories) {
-                    this.groupId=groupId;
-                    this.tablets=tablets;
+                public TabletABC(Group group,String tabletId,Model model,Histories histories) {
+                    this.group=group;
+                    required=group.required(tabletId);
                     this.tabletId=tabletId;
                     this.model=model;
                     this.histories=histories;
                 }
-                @Override public String groupId() {
-                    return groupId;
+                @Override public Group group() {
+                    return group;
                 }
                 @Override public int tablets() {
-                    return tablets;
+                    return group.keys().size();
                 }
                 @Override public String tabletId() {
                     return tabletId;
@@ -67,26 +67,30 @@ public interface Tablet {
                 @Override public void toggle(int id) {
                     Boolean state=!model().state(id);
                     model().setState(id,state);
-                    Message message=messageFactory().normal(groupId(),tabletId(),id,model().toCharacters());
+                    Message message=messageFactory().normal(group().groupId,tabletId(),id,model().toCharacters());
                     broadcast(message);
                 }
                 // move this to model!
                 // is this a controller?
                 @Override public void click(int id) {
-                    if(1<=id&&id<=model().buttons) synchronized(model()) {
-                        if(model().resetButtonId!=null&&id==model().resetButtonId) {
-                            model().reset();
-                            Message message=messageFactory().other(Type.reset,groupId(),tabletId());
-                            broadcast(message);
-                        } else {
-                            Boolean state=!model().state(id);
-                            model().setState(id,state);
-                            Message message=messageFactory().normal(groupId(),tabletId(),id,model().toCharacters());
-                            broadcast(message);
+                    try {
+                        if(1<=id&&id<=model().buttons) synchronized(model()) {
+                            if(model().resetButtonId!=null&&id==model().resetButtonId) {
+                                model().reset();
+                                Message message=messageFactory().other(Type.reset,group().groupId,tabletId());
+                                broadcast(message);
+                            } else {
+                                Boolean state=!model().state(id);
+                                model().setState(id,state);
+                                Message message=messageFactory().normal(group().groupId,tabletId(),id,model().toCharacters());
+                                broadcast(message);
+                            }
                         }
-                    }
-                    else {
-                        l.warning(id+" is not a model button!");
+                        else {
+                            l.warning(id+" is not a model button!");
+                        }
+                    } catch(Exception e) {
+                        l.severe("click caught: "+e);
                     }
                 }
                 @Override public Histories histories() {
@@ -104,7 +108,7 @@ public interface Tablet {
                         heartbeatTimer=new Timer();
                         heartbeatTimer.schedule(new TimerTask() {
                             @Override public void run() {
-                                broadcast(messageFactory().other(Type.heartbeat,groupId,tabletId()));
+                                broadcast(messageFactory().other(Type.heartbeat,group().groupId,tabletId()));
                             }
                         },1_000+ids.indexOf(tabletId())*dt,dt*tablets());
                     }
@@ -115,16 +119,17 @@ public interface Tablet {
                         heartbeatTimer=null;
                     }
                 }
-                private final String groupId,tabletId;
+                protected final Group group;
+                protected final Required required;
+                private final String tabletId;
                 private final Model model;
-                public final int tablets;
-                public Config config=new Config(); // maybe pass in ctor later? - maybe not!
+                public Config config=new Config();
                 public final Histories histories;
                 protected Timer heartbeatTimer;
             }
             private class TabletImpl1 extends TabletABC { // stays connected
-                TabletImpl1(String groupId,int tablets,String id,Server server,Model model) {
-                    super(groupId,tablets,id,model,server.histories());
+                TabletImpl1(Group group,String id,Server server,Model model) {
+                    super(group,id,model,server.histories());
                     this.server=server;
                 }
                 @Override public com.tayek.tablet.Message.Factory messageFactory() {
@@ -140,11 +145,29 @@ public interface Tablet {
             }
         }
     }
-    class Config {
+    class Config implements Cloneable {
+        public Config() {}
+        public Config(boolean useExecutorService,boolean waitForSendCallable,boolean runCanceller,boolean replying,boolean logErrors,Integer connectTimeout,Integer sendTimeout) {
+            super();
+            this.useExecutorService=useExecutorService;
+            this.waitForSendCallable=waitForSendCallable;
+            this.runCanceller=runCanceller;
+            this.replying=replying;
+            this.logErrors=logErrors;
+            this.connectTimeout=connectTimeout;
+            this.sendTimeout=sendTimeout;
+        }
+        @Override public Config clone() {
+            Config config=new Config(useExecutorService,waitForSendCallable,runCanceller,replying,logErrors,connectTimeout,sendTimeout);
+            return config;
+        }
+        // put all the switches in here
+        // maybe all the static stuff in io also?
         public boolean useExecutorService;
         public boolean waitForSendCallable=true;
         public boolean runCanceller;
         public boolean replying;
+        public boolean logErrors=false;
         public Integer connectTimeout=defaultConnectTimeout; // set by tablet
         public Integer sendTimeout=defaultSendTimeout; // set by tablet
         @Override public String toString() {

@@ -7,6 +7,7 @@ import java.util.concurrent.*;
 import com.tayek.*;
 import com.tayek.Tablet.Factory.FactoryImpl.TabletABC;
 import com.tayek.io.Audio.AudioObserver;
+import com.tayek.Tablet.Config;
 import com.tayek.tablet.Message.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.Server;
@@ -23,16 +24,33 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             if(!old) {
                 int tablets=6;
                 for(int tabletId=1;tabletId<=tablets;tabletId++)
-                    g0.put(aTabletId(tabletId),new Required(aTabletId(tabletId),tabletNetworkPrefix+(10+tabletId),defaultReceivePort));
+                    g0.put(aTabletId(tabletId),new Required(aTabletId(tabletId),tabletRouterPrefix+(10+tabletId),defaultReceivePort));
+                tablets=10;
+                String host,id;
+                for(int i=1;i<=tablets;i++) {
+                    host=tabletRouterPrefix+(10+i);
+                    id=Required.defaultId(host,defaultReceivePort);
+                    Required required=new Required(id,host,defaultReceivePort);
+                    big0.put(id,required);
+                }
+                host=raysPcOnTabletNetworkToday;
+                id=Required.defaultId(host,defaultReceivePort);
+                Required required=new Required(id,host,defaultReceivePort);
+                big0.put(id,required);
+                host=laptopToday;
+                id=Required.defaultId(host,defaultReceivePort);
+                required=new Required(id,host,defaultReceivePort);
+                big0.put(id,required);
+                groups.put("big0",big0);
             } else {
-                g0.put(aTabletId(1),new Required("fire 1",tabletNetworkPrefix+21,defaultReceivePort));
-                g0.put(aTabletId(2),new Required("fire 2",tabletNetworkPrefix+22,defaultReceivePort));
-                g0.put(aTabletId(3),new Required("nexus 7",tabletNetworkPrefix+70,defaultReceivePort));
-                g0.put(aTabletId(4),new Required("pc-4",tabletNetworkPrefix+100,defaultReceivePort+4));
-                g0.put(aTabletId(5),new Required("pc-5",tabletNetworkPrefix+100,defaultReceivePort+5));
-                g0.put(aTabletId(6),new Required("azpen",tabletNetworkPrefix+33,defaultReceivePort));
-                g0.put(aTabletId(7),new Required("at&t",tabletNetworkPrefix+77,defaultReceivePort));
-                g0.put(aTabletId(8),new Required("conrad",tabletNetworkPrefix+88,defaultReceivePort));
+                g0.put(aTabletId(1),new Required("fire 1",tabletRouterPrefix+21,defaultReceivePort));
+                g0.put(aTabletId(2),new Required("fire 2",tabletRouterPrefix+22,defaultReceivePort));
+                g0.put(aTabletId(3),new Required("nexus 7",tabletRouterPrefix+70,defaultReceivePort));
+                g0.put(aTabletId(4),new Required("pc-4",tabletRouterPrefix+100,defaultReceivePort+4));
+                g0.put(aTabletId(5),new Required("pc-5",tabletRouterPrefix+100,defaultReceivePort+5));
+                g0.put(aTabletId(6),new Required("azpen",tabletRouterPrefix+33,defaultReceivePort));
+                g0.put(aTabletId(7),new Required("at&t",tabletRouterPrefix+77,defaultReceivePort));
+                g0.put(aTabletId(8),new Required("conrad",tabletRouterPrefix+88,defaultReceivePort));
                 //g0.put(99,new Info("nexus 4",99,IO.defaultReceivePort)));
             }
             groups.put("g0",g0);
@@ -52,15 +70,17 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         private final Map<String,Required> g2OnPc=new TreeMap<>();
         private final Map<String,Required> g2OnRouter=new TreeMap<>();
         private final Map<String,Required> g0=new TreeMap<>();
+        private final Map<String,Required> big0=new TreeMap<>();
         private final Map<String,Required> g1each=new TreeMap<>();
         public final Map<String,Map<String,Required>> groups=new TreeMap<>();
         // hack, change the above before calling new Groups!
     }
     public class TabletImpl2 extends TabletABC {
-        public TabletImpl2(String tabletId,int tablets,Required required,Model model) {
-            super(groupId,tablets,tabletId,model,required.histories());
-            this.required=required;
-            messageFactory=Message.instance.create(required,new Single<Integer>(0));
+        // get group out of constructor!
+        // or fix all of the callers!
+        public TabletImpl2(String tabletId) {
+            super(Group.this,tabletId,Group.this.getModelClone(),Group.this.required(tabletId).histories());
+            messageFactory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
             int n=keys().size();
             executorService=Executors.newFixedThreadPool(4*n+2);
             canceller=Executors.newScheduledThreadPool(4*n+2);
@@ -69,7 +89,14 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         public Group group() {
             return Group.this;
         }
+        // strange dream about two ways to do something
+        // (kike get host and service?)
+        // about how to see which is faster or better?
+        // do them on seperate threads?
         @Override public void broadcast(Object message) {
+            // maybe pass in a histories, so we can see what happened
+            // to all of the tablets.
+            // then add it in?
             l.info("broadcasting: "+message);
             for(String destinationTabletId:keys()) {
                 InetSocketAddress inetSocketAddress=socketAddress(destinationTabletId);
@@ -77,7 +104,11 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                 if(config.useExecutorService)
                     Client.executeTaskAndCancelIfItTakesTooLong(executorService,sendCallable,config.sendTimeout,config.runCanceller?canceller:null,config.waitForSendCallable);
                 else new Thread(new SendCallable(tabletId(),message,destinationTabletId,required(destinationTabletId).histories(),inetSocketAddress)).start();
-                Thread.yield();
+                try {
+                    Thread.sleep(5); // to out of order
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             Histories.SenderHistory clientHistory=histories.senderHistory;
             // maybe sleep for a while here?
@@ -121,18 +152,18 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         public boolean startListening() {
             // should need only enough information to bind to the correct interface 
             // but at this point we should know our ip address for the correct interface
+            l.info(tabletId()+" binding to: "+required.host+':'+required.service);
             InetSocketAddress inetSocketAddress=new InetSocketAddress(required.host,required.service);
-            try {
-                Receiver.ReceiverImpl receiver=new Receiver.ReceiverImpl(tabletId(),this,keys(),model());
-                server=new Server(this,inetSocketAddress,receiver,config,histories());
+            Receiver.ReceiverImpl receiver=new Receiver.ReceiverImpl(tabletId(),this,keys(),model());
+            ServerSocket serverSocket=serverSocket(inetSocketAddress);
+            if(serverSocket!=null&&serverSocket.isBound()) {
+                server=new Server(this,serverSocket,receiver,config,histories());
                 server.startServer();
                 return true;
-            } catch(BindException e) {
-                l.warning("bind caught: '"+e+"'");
-            } catch(IOException e) {
-                e.printStackTrace();
+            } else {
+                l.warning("tablet: "+tabletId()+", can not bind to: "+required.host+':'+required.service);
+                return false;
             }
-            return false;
         }
         public void stopListening() {
             if(server!=null) {
@@ -244,7 +275,6 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             return messageFactory;
         }
         boolean stopDriving;
-        final Required required;
         public final ScheduledExecutorService canceller;
         public final ExecutorService executorService;
         public Server server;
@@ -274,9 +304,9 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         return group;
     }
     public Set<Tablet> createAll() { // mostly for testing
-        Set<Tablet> tablets=new TreeSet<>();
+        Set<Tablet> tablets=new LinkedHashSet<>();
         for(String tabletId:keys())
-            tablets.add(Tablet.factory.create2(tabletId,this,getModelClone()));
+            tablets.add(Tablet.factory.create2(this,tabletId));
         return tablets;
     }
     public static Set<Tablet> createGroupAndstartTablets(String groupId,Map<String,Required> requireds) {
@@ -370,6 +400,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     }
     public final int x=2;
     public final String groupId;
+    public final Config config=new Config();
     private final Model prototype; // use only for cloning
     private final Map<String,Required> idToRequired=new TreeMap<>();
     // move this to tablet

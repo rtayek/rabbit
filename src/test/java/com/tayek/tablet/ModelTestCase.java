@@ -88,7 +88,7 @@ public class ModelTestCase {
     }
     Model model=new Model(7,null);
     Required required=new Required("T0","localhost",++service);
-    Factory factory=Message.instance.create(required,new Single<Integer>(0));
+    Factory factory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
     Message message;
     static int service=2222;
 }

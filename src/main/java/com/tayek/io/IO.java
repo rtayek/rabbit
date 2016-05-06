@@ -3,6 +3,7 @@ import static com.tayek.io.IO.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.*;
 import java.util.logging.*;
 import com.tayek.utilities.*;
@@ -24,6 +25,18 @@ public class IO {
     public static String toString(Thread thread) {
         return thread.toString()+", state: "+thread.getState()+", is alive: "+thread.isAlive()+", is interrupted:  "+thread.isInterrupted();
     }
+    public static boolean isAndroid() {
+        return System.getProperty("http.agent")!=null;
+    }
+    public static void printSystemProperties() {
+        Properties systemProperties=System.getProperties();
+        p("system properties:");
+        p("system properties size: "+systemProperties.size());
+        for(Entry<Object,Object> x:systemProperties.entrySet())
+            p(""+x.getKey()+'='+x.getValue());
+        
+    }
+    // move some of these to utility?
     public static Thread[] getThreads() {
         int big=2*Thread.activeCount();
         Thread[] threads=new Thread[big];
@@ -76,6 +89,7 @@ public class IO {
     }
     public static InetAddress addressWith(String networkPrefix) {
         Set<InetAddress> inetAddresses=addressesWith(networkPrefix);
+        if(inetAddresses.size()>1) l.severe("more than one inetAddress: "+inetAddresses);
         return inetAddresses.size()>0?inetAddresses.iterator().next():null;
     }
     public static class AddressesWithCallable implements java.util.concurrent.Callable<java.util.Set<java.net.InetAddress>> {
@@ -94,7 +108,7 @@ public class IO {
             this.service=service;
         }
         @Override public SocketHandler call() throws Exception {
-            Thread.currentThread().setName(getClass().getName());
+            Thread.currentThread().setName(getClass().getSimpleName()+" "+host+":"+service);
             SocketHandler socketHandler=null;
             try {
                 socketHandler=new SocketHandler(host,service);
@@ -171,7 +185,7 @@ public class IO {
         Set<Pair<Integer,SocketAddress>> good=new LinkedHashSet<>();
         if(real) {
             for(int i=11;i<11+n;i++) // fragile!
-                socketAddresses.add(new Pair<Integer,SocketAddress>(i-10,new InetSocketAddress(tabletNetworkPrefix+i,service)));
+                socketAddresses.add(new Pair<Integer,SocketAddress>(i-10,new InetSocketAddress(tabletRouterPrefix+i,service)));
         } else {
             for(int i=1;i<=n;i++)
                 socketAddresses.add(new Pair<Integer,SocketAddress>(i,new InetSocketAddress(defaultHost,service+i)));
@@ -217,14 +231,14 @@ public class IO {
         InetAddress inetAddress=InetAddress.getByName(host);
         p("address: "+inetAddress);
         printInetAddresses(networkStub);
-        printInetAddresses(tabletNetworkPrefix);
+        printInetAddresses(tabletRouterPrefix);
         printInetAddresses(defaultHost);
         if(!defaultHost.equals(testingHost)) printInetAddresses(testingHost);
-        Set<InetAddress> inetAddresses=addressesWith(tabletNetworkPrefix);
-        p("addresses on: "+tabletNetworkPrefix+" are: "+inetAddresses);
+        Set<InetAddress> inetAddresses=addressesWith(tabletRouterPrefix);
+        p("addresses on: "+tabletRouterPrefix+" are: "+inetAddresses);
         if(!inetAddresses.contains(InetAddress.getByName(raysPcOnTabletNetworkToday))) p("address has changed, expected: "+raysPcOnTabletNetworkToday+", but got: "+inetAddresses);
-        inetAddresses=addressesWith(raysNetworkPrefix);
-        p("addresses on: "+raysNetworkPrefix+" are: "+inetAddresses);
+        inetAddresses=addressesWith(raysRouterPrefix);
+        p("addresses on: "+raysRouterPrefix+" are: "+inetAddresses);
         if(!inetAddresses.contains(InetAddress.getByName(raysPcOnRaysNetwork))) p("address has changed, expected: "+raysPcOnTabletNetworkToday+", but got: "+inetAddresses);
         p(raysRouter+" "+canConnect(raysRouter,80,1_000));
         p(tabletRouter+" "+canConnect(tabletRouter,80,1_000));
@@ -253,21 +267,21 @@ public class IO {
     public static final boolean isLaptop=System.getProperty("user.dir").contains("C:\\Users\\");
     public static final Integer defaultReceivePort=33000;
     public static final String networkStub="192.168.";
-    public static final String tabletNetworkPrefix="192.168.0.";
+    public static final String tabletRouterPrefix="192.168.0.";
     public static final String tabletRouter="192.168.0.1";
-    public static final String raysNetworkPrefix="192.168.1.";
+    public static final String raysRouterPrefix="192.168.1.";
     public static final String raysRouter="192.168.1.1";
+    public static final String raysPc="192.168.1.2";
     public static final String raysPcOnTabletNetworkToday="192.168.0.101";
-    public static final String defaultHost=raysPcOnTabletNetworkToday;
     public static final String raysPcOnRaysNetwork="192.168.1.2";
     public static final String laptopToday="192.168.0.100";
-    // really need to find the above using a thread
+    public static final String defaultHost=raysPcOnTabletNetworkToday;
     public static final String testingHost=raysPcOnRaysNetwork;
     public static final Map<String,SocketHandler> logServerHosts=new TreeMap<>();
     static {
-        logServerHosts.put("192.168.1.2",null); // static ip on my pc
-        logServerHosts.put("192.168.0.101",null); // my pc today
-        logServerHosts.put("192.168.0.100",null); // laptop today
+        logServerHosts.put(raysPc,null); // static ip on my pc
+        logServerHosts.put(raysPcOnTabletNetworkToday,null); // my pc today
+        logServerHosts.put(laptopToday,null); // laptop today
     }
     public static final Map<Integer,String> androidIds=new TreeMap<>();
     static {

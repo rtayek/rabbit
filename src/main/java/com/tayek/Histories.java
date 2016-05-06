@@ -92,11 +92,11 @@ public class Histories implements Addable<Histories> {
         }
         @Override public String toString() {
             String string="",prefix="\t\t";
-            if(history.attempts()!=0) string+="\n"+history.toString(prefix+"sends: ");
-            if(replies.attempts()!=0) string+="\n"+replies.toString(prefix+"replies: ");
-            if(retries.attempts()!=0) string+="\n"+retries.toString(prefix+"retries: ");
-            if(allSendTimes.n()!=0) string+="\n"+allSendTimes.toString(prefix+"all send times: ");
-            if(allFailures.n()!=0) string+="\n"+allFailures.toString(prefix+"all failures: ");
+            if(history.attempts()!=0) string+="\n"+history.toString(prefix+"sends"+sn()+": ");
+            if(replies.attempts()!=0) string+="\n"+replies.toString(prefix+"replies"+sn()+": ");
+            if(retries.attempts()!=0) string+="\n"+retries.toString(prefix+"retries"+sn()+": ");
+            if(allSendTimes.n()!=0) string+="\n"+allSendTimes.toString(prefix+"all send times"+sn()+": ");
+            if(allFailures.n()!=0) string+="\n"+allFailures.toString(prefix+"all failures"+sn()+": ");
             return string;
         }
         public final History history=new History(),replies=new History(),retries=new History();
@@ -111,14 +111,14 @@ public class Histories implements Addable<Histories> {
         }
         @Override public String toString() {
             String string="",prefix="\t\t";
-            if(history.attempts()!=0) string+="\n"+history.toString(prefix+"received: ");
-            if(replies.attempts()!=0) string+="\n"+replies.toString(prefix+"replies: ");
-            if(missing.attempts()!=0) string+="\n"+missing.toString(prefix+"missing: ");
-            if(missing.attempts()!=0) string+="\n"+prefix+"missed: "+missed;
+            if(history.attempts()!=0) string+="\n"+history.toString(prefix+"received"+sn()+": ");
+            if(replies.attempts()!=0) string+="\n"+replies.toString(prefix+"replies"+sn()+": ");
+            if(missing.attempts()!=0) string+="\n"+missing.toString(prefix+"missing"+sn()+": ");
+            if(missing.attempts()!=0) string+="\n"+prefix+"missed"+sn()+": "+missed;
             return string;
         }
         public final History history=new History(),replies=new History(),missing=new History();
-        public final Missing missed=new Missing(1);
+        public final Missing<Integer,Integer> missed=Missing.factory.createNormal(1);
     }
     public class ModelHistory implements Addable<ModelHistory> {
         @Override public void add(ModelHistory modelHistory) {
@@ -157,8 +157,11 @@ public class Histories implements Addable<Histories> {
         else if(modelHistory.history.failures()!=0) return true;
         return false;
     }
+    public String sn() {
+        return "(#"+serialNumber+')';
+    }
     public String toString(String prefix) {
-        return prefix+"\n\t"+"sender("+serialNumber+"): "+senderHistory+"\n\t"+"receiver("+serialNumber+"): "+receiverHistory+"\n\t"+"model("+serialNumber+"): "+modelHistory;
+        return prefix+"\n\t"+"sender"+sn()+": "+senderHistory+"\n\t"+"receiver"+sn()+": "+receiverHistory+"\n\t"+"model"+sn()+": "+modelHistory;
     }
     @Override public String toString() {
         return toString("no prefix");

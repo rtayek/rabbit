@@ -11,6 +11,7 @@ import com.tayek.tablet.Group.*;
 import com.tayek.io.Audio.AudioObserver;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
+import com.tayek.tablet.io.Sender.Client;
 public class Controller {
     Controller(Group group,boolean other) throws UnknownHostException {
         this(group,other,System.in,System.out);
@@ -23,10 +24,12 @@ public class Controller {
         Required required=group.required(id);
         String host=required.host;
         Integer service=other?group.required(id).service:null; // hack to get second tablet
-        String tabletId=group.getTabletIdFromInetAddress(InetAddress.getByName(host),service);
-        model=group.getModelClone();
-        Tablet tablet=Tablet.factory.create2(tabletId,group,model);
+        InetAddress inetAddress=addressWith(tabletRouterPrefix);
+        String tabletId=group.getTabletIdFromInetAddress(inetAddress,service);
+        p("tablet: "+tabletId);
+        Tablet tablet=Tablet.factory.create2(group,tabletId);
         this.tablet=tablet;
+        model=tablet.model();
         this.in=in;
         this.out=out;
     }
@@ -106,7 +109,7 @@ public class Controller {
                 LoggingHandler.toggleSockethandlers();
                 break;
             case 'p':
-                p(out,model.toString());
+                p(out,tablet.toString());
                 break;
             case 'r':
                 model.reset();
@@ -153,10 +156,13 @@ public class Controller {
     }
     public static void main(String[] arguments) throws UnknownHostException,InterruptedException,ExecutionException {
         LoggingHandler.init();
-        LoggingHandler.setLevel(Level.OFF);
+        LoggingHandler.setLevel(Level.ALL);
         String host=InetAddress.getLocalHost().getHostName();
         p("host: "+host);
-        Group group=new Group("1",new Groups().groups.get("g2OnPc"),Model.mark1);
+        // make this work with real tablets!
+        Group group=new Group("1",new Groups().groups.get("big0"),Model.mark1);
+        group.config.logErrors=true;
+        p("group: "+group);
         new Controller(group,false).run();
     }
     protected final Group group;

@@ -21,6 +21,12 @@ public class Required {
     @Override public String toString() {
         return id+" "+host+" "+service;
     }
+    public String defaultId() {
+        return defaultId(host,service);
+    }
+    public static String defaultId(String host,Integer service) {
+        return host+':'+service;
+    }
     public final String id;
     public final String host;
     public final Integer service;

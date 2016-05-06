@@ -6,7 +6,8 @@ import com.tayek.tablet.Message.Factory.MetaFactory;
 import com.tayek.utilities.Single;
 public interface Message {
     public enum Type { // add levels for logging?
-        resetReceived,drive,stopDriving,forever,dummy,ping,ack,error,normal,reset,name,heartbeat,soundOn,soundOff,rolloverLogNow;
+        // set last message number
+        resetMessages,drive,stopDriving,forever,dummy,ping,ack,error,normal,reset,name,heartbeat,soundOn,soundOff,rolloverLogNow;
         public boolean isNormal() {
             return this.equals(normal);
         }
@@ -29,30 +30,34 @@ public interface Message {
         Message empty();
         Message other(Type type,String groupId,String tabletId);
         Message from(String string);
+        Integer messages();
         interface MetaFactory {
-            Factory create(Required required,Single<Integer> single);
+            Factory create(String host,Integer service,Single<Integer> single);
             class FImpl implements MetaFactory {
-                @Override public Factory create(Required required,Single<Integer> single) {
-                    return new MessageFactory(single,required);
+                @Override public Factory create(String host,Integer service,Single<Integer> single) {
+                    return new MessageFactory(host,service,single);
                 }
                 private static class MessageFactory implements Message.Factory {
-                    MessageFactory(Single<Integer> single,Required required) {
+                    MessageFactory(String host,Integer service,Single<Integer> single) {
                         this.messages=single;
-                        this.host=required.host;
-                        this.service=required.service;
+                        this.host=host;
+                        this.service=service;
+                    }
+                    @Override public Integer messages() {
+                        return messages.t;
                     }
                     // has most things needed to construct a message
-                    @Override public MessageImpl normal(String groupId,String tabletId,int buttonId,String states) {
+                    @Override public Message normal(String groupId,String tabletId,int buttonId,String states) {
                         return new MessageImpl(MessageFactory.this.host,MessageFactory.this.service,Type.normal,groupId,tabletId,buttonId,states,++messages.t);
                     }
-                    @Override public MessageImpl error(String string) {
+                    @Override public Message error(String string) {
                         return new MessageImpl(MessageFactory.this.host,MessageFactory.this.service,Type.error,"0","error",0,string,++messages.t); // put in some id's?
                     }
-                    @Override public MessageImpl empty() {
+                    @Override public Message empty() {
                         ++messages.t;
                         return new MessageImpl();
                     }
-                    @Override public MessageImpl other(Type type,String groupId,String tabletId) {
+                    @Override public Message other(Type type,String groupId,String tabletId) {
                         return new MessageImpl(MessageFactory.this.host,MessageFactory.this.service,type,groupId,tabletId,0,type.name(),++messages.t);
                     }
                     private class MessageImpl implements Message,java.io.Serializable {
@@ -122,7 +127,7 @@ public interface Message {
                         private final String string;
                         private static final long serialVersionUID=1L;
                     }
-                    @Override public MessageImpl from(String string) {
+                    @Override public Message from(String string) {
                         if(string==null) {
                             l.warning("string is null!");
                             return null;

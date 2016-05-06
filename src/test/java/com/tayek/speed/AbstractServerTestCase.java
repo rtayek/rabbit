@@ -21,7 +21,7 @@ public abstract class AbstractServerTestCase {
     }
     @After public void tearDown() throws Exception {}
     void createStartAndStop(int n) throws InterruptedException {
-        create(n);
+        createTestTablets(n);
         startServers();
         Thread.sleep(100);
         stopServers();
@@ -30,7 +30,7 @@ public abstract class AbstractServerTestCase {
     }
     // need a test to use discover and pass the addresses to the tablets
     void run(int n,Integer messages) throws InterruptedException {
-        create(n);
+        createTestTablets(n);
         startServers();
         //Thread.sleep(100);
         addSenders(n);
@@ -46,21 +46,9 @@ public abstract class AbstractServerTestCase {
         p((messages*servers.size()*servers.size())+" messages sent in: "+et+"="+(1000.*messages*messages*servers.size()/et.etms())+" messages/second");
         Thread.sleep(20);
         p((messages*servers.size()*servers.size())+" messages sent in: "+et+"="+(1000.*messages*messages*servers.size()/et.etms())+" messages/second");
-        if(true) {
-            p("reporting -----------------------------------------------------");
-            for(Server server:servers) {
-                p("---------\n"+server.report());
-            }
-        }
-        //new Thread(new Joiner(threads)).start();
-        Thread.sleep(1_000);
+        Thread.sleep(2_000);
         for(Server server:servers) {
-            //p(""+server);
-            Histories histories=server.histories();
-            //p("messages: "+messages+", sent: "+histories.senderHistory.history.attempts()+", received: "+histories.receiverHistory.history.attempts());
-            //p(""+histories.anyAttempts());
-            //p(""+histories.anyFailures());
-            //p(""+histories);
+           Histories histories=server.histories();
             if(histories.senderHistory.history.attempts()<messages) {
                 p(""+server);
                 p("not all were sent!");
@@ -71,15 +59,16 @@ public abstract class AbstractServerTestCase {
             }
             assertTrue(histories.anyAttempts());
             assertFalse(histories.anyFailures());
-            assertEquals(Integer.valueOf(messages),histories.senderHistory.history.attempts());
-            assertEquals(Integer.valueOf(messages),histories.receiverHistory.history.attempts());
+            Integer expectedSent=messages;
+            Integer expectedReceived=n*messages;
+            assertEquals(expectedSent,histories.senderHistory.history.attempts());
+            assertEquals(expectedReceived,histories.receiverHistory.history.attempts());
         }
         stopServers();
     }
-    void create(int n) {
+    void createTestTablets(int n) {
         for(Integer i=1;i<=n;i++)
-            if(i==1) servers.add(factory.create(new Required(aTabletId(i),testingHost,service+i)));
-            else servers.add(factory.create(new Required(aTabletId(i),defaultHost,service+i)));
+            servers.add(factory.create(new Required(aTabletId(i),testingHost,service+i)));
     }
     void stopServers() throws InterruptedException {
         for(Server server:servers)

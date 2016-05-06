@@ -1,13 +1,12 @@
-package com.tayek.speed;
+package com.tayek.experiment;
 import java.io.*;
 import java.net.*;
 import static com.tayek.io.IO.*;
 import com.tayek.*;
 import com.tayek.tablet.Message;
 import com.tayek.utilities.*;
-// maybe this can implement an interface
 class Reader extends Connection { // Supplier<Message>
-    Reader(Server server,String id,String otherId,Socket socket,Histories histories) throws IOException {
+    Reader(XServer server,String id,String otherId,Socket socket,Histories histories) throws IOException {
         super(id,socket,histories);
         this.otherId=otherId;
         this.server=server;
@@ -97,18 +96,12 @@ class Reader extends Connection { // Supplier<Message>
                 } catch(InterruptedException e1) {
                     e1.printStackTrace();
                 }
-                server.addConnection(newId,this);
-                thread.setName(this.toString());
-                Pair<Writer,Reader> pair=server.idToPair().get(newId);
-                if(pair.first==null) try {
-                    Required required=new Required(newId,message.host(),message.service());
-                    Writer sender=new Writer(id,newId,required);
-                    l.info(this+" adding sender: "+sender);
-                    server.addConnection(newId,sender);
-                } catch(IOException e) {
-                    e.printStackTrace();
+                p("adding new reader: "+this);
+                synchronized(server.newConnections) {
+                    
+                    server.newConnections.add(this);
                 }
-                else l.info(this+" not addding sender, pair is: "+pair);
+                thread.setName(this.toString());
             }
             l.info(this+" received: "+message);
         }
@@ -120,7 +113,7 @@ class Reader extends Connection { // Supplier<Message>
         return "reader"+histories.sn()+":"+id+"<-"+otherId;
     }
     Integer reportPeriod=Histories.defaultReportPeriod;
-    final Server server;
+    final XServer server;
     final BufferedReader in;
     final boolean replying=false;
     static final String ok="ok";

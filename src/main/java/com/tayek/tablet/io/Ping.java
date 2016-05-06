@@ -17,11 +17,10 @@ public class Ping {
         String tabletId=aTabletId(99);
         requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
         Group group=new Group("1",requireds,Model.mark1);
-        Model model=group.getModelClone();
-        Tablet tablet=Tablet.factory.create2(tabletId,group,model);
+        Tablet tablet=Tablet.factory.create2(group,tabletId);
         group=null; // tablet has a clone of group.
         ((TabletImpl2)tablet).startListening();
-        Message message=tablet.messageFactory().other(Type.ping,tablet.groupId(),tablet.tabletId());
+        Message message=tablet.messageFactory().other(Type.ping,tablet.group().groupId,tablet.tabletId());
         // not working on the tablets
         // because they don't have a socket address for tablet 99
         // so how do we handle this?

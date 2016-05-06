@@ -24,17 +24,17 @@ public abstract class AbstractTabletTestCase {
         if(staticPrintThreads) printThreads();
     }
     @Before public void setUp() throws Exception {
+        LoggingHandler.init();
         LoggingHandler.setLevel(defaultLevel);
         printThreads=false;
         threads=Thread.activeCount();
         serviceOffset+=100;
-        IO.l.warning("setup");
     }
     @After public void tearDown() throws Exception { //Thread.sleep(100); // apparently not needed since we shutdown the executor service now.
         boolean anyFailures=false;
         if(tablets!=null) for(Tablet tablet:tablets)
             anyFailures|=tablet.histories().anyFailures();
-        if(printStats||anyFailures) {
+        if(printStats/*||anyFailures*/) {
             //p("printStats or failures!");
             printStats("stats for: "+this+": "+(anyFailures?"failures":""));
         }
@@ -43,7 +43,6 @@ public abstract class AbstractTabletTestCase {
             p((threads-this.threads)+" extra threads!");
             if(printThreads) printThreads();
         }
-        IO.l.warning("teardown");
         LoggingHandler.setLevel(defaultLevel);
     }
     protected void startListening() {
@@ -62,7 +61,7 @@ public abstract class AbstractTabletTestCase {
             sendOneDummyMessageFromTablet(tablet);
     }
     void sendOneDummyMessageFromTablet(Tablet tablet) {
-        tablet.broadcast(tablet.messageFactory().other(Type.dummy,tablet.groupId(),tablet.tabletId()));
+        tablet.broadcast(tablet.messageFactory().other(Type.dummy,tablet.group().groupId,tablet.tabletId()));
     }
     public void waitForEachTabletToReceiveAtLeastOneMessageFromEachTablet(boolean sleepAndPrint) throws InterruptedException {
         boolean once=false;
@@ -206,7 +205,7 @@ public abstract class AbstractTabletTestCase {
             if(history.receiverHistory.history.successes()!=tablets.size()) p(tablet+" received: "+history.receiverHistory.history.successes()+" instead of "+tablets.size());
             if(tablet instanceof TabletImpl2) {
                 TabletImpl2 t2=(TabletImpl2)tablet;
-                checkHistory(t2,tablets.size(),true);
+                checkHistory(t2,tablets.size(),false);
             } else {
                 p("how do i check history?");
             }

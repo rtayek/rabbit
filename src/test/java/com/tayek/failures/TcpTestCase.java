@@ -12,7 +12,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import com.tayek.*;
-import com.tayek.io.IO;
+import com.tayek.io.*;
 import com.tayek.io.IO.AddressesWithCallable;
 import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.*;
@@ -31,7 +31,7 @@ import com.tayek.utilities.Single;
     }
     @Before public void setUp() throws Exception {
         super.setUp();
-        printThreads=true;
+        //printThreads=true;
     }
     @After public void tearDown() throws Exception {
         super.tearDown();
@@ -42,12 +42,13 @@ import com.tayek.utilities.Single;
         if(socketAddress instanceof InetSocketAddress) {
             InetSocketAddress inetSocketAddress=(InetSocketAddress)socketAddress;
             Required required=new Required("T0",inetSocketAddress.getHostName(),inetSocketAddress.getPort());
-            messages=Message.instance.create(required,new Single<Integer>(0));
+            messages=Message.instance.create(required.host,required.service,new Single<Integer>(0));
         } else throw new RuntimeException(socketAddress+" is not an InetSocketAddress!");
     }
     @Parameters public static Collection<Object[]> data() throws UnknownHostException,InterruptedException,ExecutionException {
         Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(networkStub));
-        p("addresses: "+inetAddresses);
+        LoggingHandler.init();
+        l.info("addresses: "+inetAddresses);
         List<InetSocketAddress> list=new ArrayList<>();
         list.add(new InetSocketAddress("localhost",defaultReceivePort+serviceOffset));
         list.add(new InetSocketAddress(InetAddress.getByName("127.0.0.1"),defaultReceivePort+serviceOffset));
@@ -92,7 +93,7 @@ import com.tayek.utilities.Single;
             p("socket address: "+socketAddress+" failed! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
         }
         server.startServer();
-        Socket socket=Client.connect(socketAddress,100,null);
+        Socket socket=Client.connect(socketAddress,100,config,null);
         if(socket!=null) p("connected to: "+socket);
         assertTrue(socket!=null);
         Thread.sleep(100);

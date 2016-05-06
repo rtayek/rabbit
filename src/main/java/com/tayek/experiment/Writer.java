@@ -1,4 +1,4 @@
-package com.tayek.speed;
+package com.tayek.experiment;
 import static com.tayek.utilities.Utility.*;
 import java.io.*;
 import java.net.*;
@@ -58,9 +58,6 @@ abstract class Connection implements Runnable {
     Histories histories;
     // maybe put histories here?
 }
-// looks like this implements sender!
-// try to combine!
-
 public class Writer extends Connection { // Consumer<Message>
     Writer(String id,String otherId,Required required) throws IOException {
         this(id,otherId,required,connect(new InetSocketAddress(required.host,required.service),timeout));
@@ -130,7 +127,7 @@ public class Writer extends Connection { // Consumer<Message>
         l.info(this+" exit run()");
     }
     @Override public String toString() {
-        return "writer"+histories.sn()+":"+id+"->"+otherId;
+        return "sender"+histories.sn()+":"+id+"->"+otherId;
     }
     public Integer reportPeriod=Histories.defaultReportPeriod;
     public final Required required;

@@ -1,5 +1,7 @@
 package com.tayek.tablet;
+import java.awt.Menu;
 import java.net.SocketAddress;
+import java.util.*;
 import java.util.logging.Level;
 import com.tayek.Tablet;
 import com.tayek.io.*;
@@ -8,13 +10,16 @@ import com.tayek.tablet.Message.Type;
 import static com.tayek.io.IO.*;
 import com.tayek.tablet.io.*;
 import com.tayek.utilities.Utility;
+interface Item {
+    void doItem(Tablet tablet);
+}
 public class Enums {
-    public enum LevelSubMenuItem {
+    public enum LevelSubMenuItem implements Item {
         all(Level.ALL),finest(Level.FINEST),finer(Level.FINER),fine(Level.FINE),config(Level.CONFIG),info(Level.INFO),warning(Level.WARNING),sever(Level.SEVERE),none(Level.OFF);
         LevelSubMenuItem(Level level) {
             this.level=level;
         }
-        public void doItem() {
+        @Override public void doItem(Tablet tablet) {
             doItem(this);
         }
         public static boolean isItem(int ordinal) {
@@ -24,7 +29,7 @@ public class Enums {
             return 0<=ordinal&&ordinal<values().length?values()[ordinal]:null;
         }
         public static void doItem(int ordinal) { // used by android
-            if(0<=ordinal&&ordinal<values().length) values()[ordinal].doItem();
+            if(0<=ordinal&&ordinal<values().length) values()[ordinal].doItem((Tablet)null);
             else l.warning(ordinal+" is invalid ordinal for!");
         }
         public static void doItem(LevelSubMenuItem levelSubMenuItem) {
@@ -32,9 +37,9 @@ public class Enums {
         }
         private final Level level;
     }
-    public enum MenuItem {
-        ToggleLogging,Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,StopDriving,Forever,Level;
-        public void doItem(Tablet tablet) {
+    public enum MenuItem implements Item {
+        toggleExtraStatus,ToggleLogging,Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,StopDriving,Forever,Level;
+        @Override public void doItem(Tablet tablet) {
             doItem(this,tablet);
         }
         public static boolean isItem(int ordinal) {
@@ -58,7 +63,7 @@ public class Enums {
                     if(tablet!=null) tablet.model().reset();
                     break;
                 case Ping:
-                    if(tablet!=null) tablet.broadcast(tablet.messageFactory().other(Type.ping,tablet.groupId(),tablet.tabletId()));
+                    if(tablet!=null) tablet.broadcast(tablet.messageFactory().other(Type.ping,tablet.group().groupId,tablet.tabletId()));
                     break;
                 case Heartbeat:
                     if(tablet!=null) {
@@ -88,9 +93,9 @@ public class Enums {
                     }
                     break;
                 case Quit:
-                    if(!System.getProperty("os.name").contains("indows")) {
-                        p("calling System.exit().");
-                        System.exit(0);
+                    if(!isAndroid()) {
+                        //p("calling System.exit().");
+                        //System.exit(0);
                     }
                     break;
                 case Drive:

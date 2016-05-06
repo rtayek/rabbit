@@ -11,7 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import com.tayek.io.LoggingHandler;
-import com.tayek.utilities.Missing;
+import com.tayek.utilities.MissingImpl;
 import static com.tayek.io.IO.*;
 public class MissingTestCase {
     @Before public void setUp() throws Exception {
@@ -22,20 +22,20 @@ public class MissingTestCase {
     @Test public void testAdd0() {
         m.adjust(0);
         p("add 0: "+m);
-        assertEquals(0,m.largest);
+        assertEquals(Integer.valueOf(0),m.largest());
         assertEquals(0,m.missing().size());
     }
     @Test public void testAdd1() {
         m.adjust(1);
         p("add 1: "+m);
-        assertEquals(1,m.largest);
+        assertEquals(Integer.valueOf(1),m.largest());
         assertEquals(1,m.missing().size());
         assertTrue(m.missing().contains(0));
     }
     @Test public void testAdd2() {
         m.adjust(2);
         p("add 2: "+m);
-        assertEquals(2,m.largest);
+        assertEquals(Integer.valueOf(2),m.largest());
         assertEquals(2,m.missing().size());
         assertTrue(m.missing().contains(0));
         assertTrue(m.missing().contains(1));
@@ -43,7 +43,7 @@ public class MissingTestCase {
     @Test public void testAdd3() {
         m.adjust(3);
         p("add 3: "+m);
-        assertEquals(3,m.largest);
+        assertEquals(Integer.valueOf(3),m.largest());
         assertEquals(3,m.missing().size());
         assertTrue(m.missing().contains(0));
         assertTrue(m.missing().contains(1));
@@ -54,14 +54,14 @@ public class MissingTestCase {
         m.adjust(1);
         m.adjust(2);
         p("add 0,1,2: "+m);
-        assertEquals(2,m.largest);
+        assertEquals(Integer.valueOf(2),m.largest());
         assertEquals(0,m.missing().size());
     }
     @Test public void testAdd0ThenAdd2() {
         m.adjust(0);
         m.adjust(2);
         p("add 0, then 2: "+m);
-        assertEquals(2,m.largest);
+        assertEquals(Integer.valueOf(2),m.largest());
         assertEquals(1,m.missing().size());
         assertTrue(m.missing().contains(1));
     }
@@ -69,7 +69,7 @@ public class MissingTestCase {
         m.adjust(2);
         m.adjust(0);
         p("add 2, then 0: "+m);
-        assertEquals(2,m.largest);
+        assertEquals(Integer.valueOf(2),m.largest());
         assertEquals(1,m.missing().size());
         assertTrue(m.missing().contains(1));
     }
@@ -78,7 +78,7 @@ public class MissingTestCase {
         m.adjust(2);
         m.adjust(3);
         p("add 123: "+m);
-        assertEquals(3,m.largest);
+        assertEquals(Integer.valueOf(3),m.largest());
         assertEquals(1,m.missing().size());
     }
     @Test() public void testdooo() {
@@ -93,7 +93,7 @@ public class MissingTestCase {
             m.adjust(x[i]);
     }
     private List<Integer> run(Random random,int length,int max) {
-        m=new Missing();
+        m=Missing.factory.createNormal(0);
         List<Integer> integers=new ArrayList<>();
         try {
             for(int i=0;i<length;i++) {
@@ -116,8 +116,8 @@ public class MissingTestCase {
         }
         return integers;
     }
-    boolean use(List<Integer> sequence) {
-        m=new Missing();
+    boolean use(List<Integer> sequence) { // old. 
+        m=Missing.factory.createNormal(0);
         try {
             for(int i:sequence)
                 m.adjust(i);
@@ -157,5 +157,5 @@ public class MissingTestCase {
         for(int i=0;i<5;i++)
             random(random,length+i,symbols,reps);
     }
-    Missing m=new Missing();
+    Missing<Integer,Integer> m=Missing.factory.createNormal(0);
 }

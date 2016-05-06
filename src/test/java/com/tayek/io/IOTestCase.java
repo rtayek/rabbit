@@ -40,12 +40,12 @@ public class IOTestCase {
     }
     @Test public void testGetNetworkInterfacesWithNetworkPrefix() throws InterruptedException,ExecutionException {
         // you will need a wireless nic or be able to plug in to the real network for this to work
-        Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(tabletNetworkPrefix));
+        Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(tabletRouterPrefix));
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
         assertTrue(inetAddress!=null);
-        assertTrue(inetAddress.getHostAddress().contains(tabletNetworkPrefix));
+        assertTrue(inetAddress.getHostAddress().contains(tabletRouterPrefix));
     }
     @Test public void testGetNetworkInterfacesWithNetworkPrefix192dot168() throws InterruptedException,ExecutionException {
         // you will need a wireless nic or be able to plug in to the real network for this to work
@@ -54,7 +54,7 @@ public class IOTestCase {
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         boolean foundOne=false;
         for(InetAddress inetAddress:inetAddresses)
-            if(inetAddress.getHostAddress().contains(tabletNetworkPrefix)) foundOne=true;
+            if(inetAddress.getHostAddress().contains(tabletRouterPrefix)) foundOne=true;
         assertTrue(foundOne);
     }
     String host;

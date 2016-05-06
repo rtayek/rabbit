@@ -15,8 +15,7 @@ public class Drive2 {
         requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
         Group group=new Group("1",requireds,Model.mark1);
         p("group: "+group);
-        Model model=group.getModelClone();
-        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(tabletId,group,model);
+        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(group,tabletId);
         group=null; // tablet has a clone of group;
         BufferedReader r=new BufferedReader(new InputStreamReader(System.in));
         while(true) {
@@ -27,12 +26,12 @@ public class Drive2 {
                 if(n==0) ;
                 else if(n>0) {
                     destinationId=aTabletId(n);
-                    Message message=tablet.messageFactory().other(Type.drive,tablet.groupId(),tablet.tabletId());
+                    Message message=tablet.messageFactory().other(Type.drive,tablet.group().groupId,tablet.tabletId());
                     InetSocketAddress inetSocketAddress=tablet.group().socketAddress(destinationId);
                     Client.send(tablet.tabletId(),message,destinationId,inetSocketAddress,tablet.group().required(destinationId).histories());
                 } else {
                     destinationId=aTabletId(-n);
-                    Message message=tablet.messageFactory().other(Type.forever,tablet.groupId(),tablet.tabletId());
+                    Message message=tablet.messageFactory().other(Type.forever,tablet.group().groupId,tablet.tabletId());
                     InetSocketAddress inetSocketAddress=tablet.group().socketAddress(destinationId);
                     Client.send(tablet.tabletId(),message,destinationId,inetSocketAddress,tablet.group().required(destinationId).histories());
                 }

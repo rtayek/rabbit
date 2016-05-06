@@ -32,9 +32,9 @@ public class Exec {
         Process process;
         try {
             process=processBuilder.start();
-            p("started process.");
+            //p("started process.");
             rc=process.waitFor();
-            p("process returned: "+rc);
+            //p("process returned: "+rc);
             output=output(process.getInputStream());
             error=output(process.getErrorStream());
         } catch(IOException e) {
@@ -54,10 +54,10 @@ public class Exec {
         p("err: '"+error+"'");
     }
     public static int exec(String[] strings) {
-        p("building process: "+Arrays.asList(strings));
+        //p("building process: "+Arrays.asList(strings));
         Exec exec=new Exec(strings);
         exec.run();
-        exec.print();
+        //exec.print();
         return exec.rc;
     }
     public static int exec(String command) {
@@ -80,18 +80,17 @@ public class Exec {
     }
     public static boolean canWePing(String host,int timeout) {
         String timeoutString="";
-        if(System.getProperty("os.name").contains("indows")) {
+        if(isAndroid()) {
+            timeoutString+=max(1,timeout/1_000);
+            return exec(new String[] {"ping","-c","1","-W",timeoutString,host})==0;
+        } else {
             timeoutString+=timeout;
             Exec exec=new Exec(new String[] {"ping","-n","1","-w",""+timeoutString,host});
             exec.run();
-            //p("output: "+exec.output);
+            p("output: "+exec.output);
             boolean ok=false;
-            if(exec.output.contains("Reply from "+tabletRouter+":"))
-                ok=true;
+            if(exec.output.contains("Reply from "+host+":")) ok=true;
             return ok;
-        } else {
-            timeoutString+=max(1,timeout/1_000);
-            return exec(new String[] {"ping","-c","1","-W",timeoutString,host})==0;
         }
     }
     public static void main(String[] args) throws InterruptedException,IOException {

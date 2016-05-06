@@ -72,6 +72,6 @@ public class MessageTestCase {
     }
     Model model=Model.mark1.clone();
     Required required=new Required("T0","localhost",++service);
-    Factory factory=Message.instance.create(required,new Single<Integer>(0));
+    Factory factory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
     static int service=1111;
 }

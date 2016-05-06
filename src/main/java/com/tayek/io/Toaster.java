@@ -24,9 +24,7 @@ interface Factory_ {
     static class Implementation implements Factory_ {
         private Implementation() {}
         @Override public Toaster create() {
-            // says linux, so look for something that says android!
-            if(System.getProperty("os.name").contains("indows")) return new Windows_();
-            else return new Toaster.Android_();
+            return isAndroid()?new Toaster.Android_():new WindowsToaster();
         }
         static Factory_ instance() {
             return factory;
@@ -34,8 +32,8 @@ interface Factory_ {
         private static Factory_ factory=new Implementation();
     }
 }
-class Windows_ implements Toaster {
-    Windows_() {}
+class WindowsToaster implements Toaster {
+    WindowsToaster() {}
     @Override public void toast(String string) {
         //p(string);
     }

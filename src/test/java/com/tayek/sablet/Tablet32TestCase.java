@@ -51,7 +51,7 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         else {
             if(first instanceof TabletImpl2) if(!((TabletImpl2)first).startListening()) fail(first+" startListening() retuns false!");
         }
-        first.broadcast(first.messageFactory().other(Type.dummy,first.groupId(),first.tabletId()));
+        first.broadcast(first.messageFactory().other(Type.dummy,first.group().groupId,first.tabletId()));
         Thread.sleep(700);
         Histories histories=first.histories();
         assertEquals(one,histories.receiverHistory.history.successes());

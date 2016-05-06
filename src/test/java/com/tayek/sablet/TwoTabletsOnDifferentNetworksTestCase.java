@@ -14,7 +14,6 @@ public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCas
         super.setUp();
         Map<String,Required> requireds=new Groups().groups.get("g1each");
         Map<String,Required> requireds2=new TreeMap<>();
-        p("required: "+requireds);
         for(Object tabletId:requireds.keySet()) {
             Required required=requireds.get(tabletId);
             requireds2.put(required.id,new Required(required.id,required.host,required.service+serviceOffset));
@@ -48,6 +47,7 @@ public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCas
         shutdown();
         for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
+            p("histories: "+histories);
             assertTrue(new Integer(2)<=histories.senderHistory.history.failures());
             // retries that fail get counted as failures!
         }

@@ -81,9 +81,7 @@ public interface Audio {
         class FactoryImpl implements Factory {
             private FactoryImpl() {}
             @Override public Audio create() {
-                // says linux, so look for something that says android!
-                if(System.getProperty("os.name").contains("indows")) return new WindowsAudio();
-                else return new AndroidAudio();
+                return isAndroid()?new AndroidAudio():new WindowsAudio();
             }
             public static class AndroidAudio implements Audio {
                 AndroidAudio() {}

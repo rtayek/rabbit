@@ -23,11 +23,11 @@ public interface Receiver { // Consumer<Object>
             // use a set of Id's
             this.id=id;
             this.tablet=tablet;
-            this.ids=ids;
             this.messageReceiver=messageReceiver;
             receiverHistory=tablet.histories().receiverHistory;
             if(ids!=null) for(Object x:ids)
                 lastMessageNumbers.put(x,null);
+            l.info("initial lastMessageNumbers: "+lastMessageNumbers);
             this.messageFactory=tablet.messageFactory(); // maybe only needs a from?
         }
         @Override public void receive(Object message) {
@@ -38,6 +38,7 @@ public interface Receiver { // Consumer<Object>
             if(!lastMessageNumbers.containsKey(message.from())) l.severe("message from foreign tablet: "+message);
             Integer lastMessageNumber=lastMessageNumbers.get(message.from());
             boolean ignoreMissingOrOutOfOrder=true;
+            // move this to config!
             if(lastMessageNumber!=null) {
                 l.info("last: "+lastMessageNumber+", current: "+message.number());
                 if(message.number()==lastMessageNumber+1) receiverHistory.missing.success();
@@ -55,7 +56,7 @@ public interface Receiver { // Consumer<Object>
                 }
             } else {
                 // maybe missed a whole bunch!
-                if(message.number()!=1) l.warning("first message is: #"+message.number());
+                if(message.number()!=1) l.severe("first message is: #"+message.number()+", "+message);
                 receiverHistory.missing.success(); // count first as success
             }
             lastMessageNumbers.put(message.from(),message.number());
@@ -67,7 +68,7 @@ public interface Receiver { // Consumer<Object>
         }
         // move this to messages?
         private void processMessageObject(Object id,String string) {
-            l.info("enter process message, lastMessageNumbers: "+lastMessageNumbers+", message: "+string);
+            l.info("enter process message: "+string+", lastMessageNumbers: "+lastMessageNumbers);
             if(string!=null&&!string.isEmpty()) {
                 Message message=messageFactory.from(string);
                 checkForMissing(message);
@@ -75,7 +76,7 @@ public interface Receiver { // Consumer<Object>
                 switch(message.type()) {
                     case ping:
                         l.warning("i got a ping!");
-                        Message ack=messageFactory.other(Type.ack,tablet.groupId(),tablet.tabletId());
+                        Message ack=messageFactory.other(Type.ack,tablet.group().groupId,tablet.tabletId());
                         ackEt=new Et();
                         InetSocketAddress inetSocketAddress=tablet.group().socketAddress(message.from());
                         Future<Void> future=Client.executeTaskAndCancelIfItTakesTooLong(tablet.executorService,
@@ -111,7 +112,6 @@ public interface Receiver { // Consumer<Object>
         // maybe just use group?
         final Object id;
         final MessageReceiver messageReceiver;
-        final Set<? extends Object> ids;
         final Histories.ReceiverHistory receiverHistory; // change to histories?
         Et ackEt;
         private final Factory messageFactory;

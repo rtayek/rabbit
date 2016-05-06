@@ -12,8 +12,10 @@ import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.GuiAdapter.GuiAdapterABC;
 import com.tayek.utilities.*;
 public class RunnerABC implements Runnable {
-    public RunnerABC(Group group,String networkPrefix) {
-        this.networkPrefix=networkPrefix;
+    public RunnerABC(Group group,String router,String routerPrefix) {
+        printSystemProperties();
+        this.router=router;
+        this.routerPrefix=routerPrefix;
         p("group: "+group);
         for(String id:group.keys())
             p("required: "+group.required(id));
@@ -29,17 +31,18 @@ public class RunnerABC implements Runnable {
     }
     public void buildGui() {}
     public boolean isRouterOk() {
-        return Exec.canWePing(tabletRouter,1_000);
+        return Exec.canWePing(router,1_000);
     }
     public boolean isNetworkInterfaceUp() {
-        InetAddress inetAddress=addressWith(networkPrefix);
+        InetAddress inetAddress=addressWith(routerPrefix);
         return inetAddress!=null;
     }
+    // change some of the p's to l's as we want the info!
     protected void createTabletAndStart(String tabletId) {
-        n++;
-        p("creating tablet and starting: "+n);
-        tablet=Tablet.factory.create2(tabletId,group,model);
-        if(gui!=null) gui.setTablet(tablet);
+        restarts++;
+        p("creating tablet and starting: "+restarts);
+        tablet=Tablet.factory.create2(group,tabletId);
+        if(hasATablet!=null) hasATablet.setTablet(tablet);
         if(guiAdapterABC!=null) guiAdapterABC.setTablet(tablet);
         if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).startListening();
     }
@@ -47,10 +50,9 @@ public class RunnerABC implements Runnable {
         return "tabletId: "+tabletId+", host: "+host+", status: "+(tablet!=null?"on":"off");
     }
     private void tryToStartTablet() {
-        p("try to start tablet. host: "+host+", tabletId: "+tabletId);
         if(tabletId==null&&host==null) {
             p("no tablet id and no host, gettin inetAddress from nic.");
-            InetAddress inetAddress=addressWith(networkPrefix);
+            InetAddress inetAddress=addressWith(routerPrefix);
             if(inetAddress!=null) {
                 p("got inetAddress from nic: "+inetAddress);
                 host=inetAddress.getHostAddress();
@@ -62,7 +64,6 @@ public class RunnerABC implements Runnable {
                 } else p("can not get tabletId from group!");
             } else p("can not get inetAddress despite network being up!");
         }
-        p("try to start tablet. host: "+host+", tabletId: "+tabletId);
         if(tablet!=null) if(host==null) { // assume that they will all be the same!
             String host=group.required(tabletId).host;
             if(host!=null) {
@@ -70,7 +71,6 @@ public class RunnerABC implements Runnable {
                 prefs.put("host",host);
             } else p("group can not find host for tableiId: "+tabletId);
         }
-        p("try to start tablet. host: "+host+", tabletId: "+tabletId);
         if(host!=null) if(tabletId==null) { // maybe use network interface instead?
             tabletId=group.getTabletIdFromHost(host,null);
             if(tabletId!=null) {
@@ -78,7 +78,6 @@ public class RunnerABC implements Runnable {
                 prefs.put("tabletId",tabletId);
             } else p("can not get tabletId from group!");
         }
-        p("try to start tablet. host: "+host+", tabletId: "+tabletId);
         if(tabletId!=null&&host!=null) {
             if(oldTablet!=null) {
                 p("using old tablet.");
@@ -95,31 +94,28 @@ public class RunnerABC implements Runnable {
             if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).stopListening();
             oldTablet=tablet;
             tablet=null;
-            if(gui!=null) gui.setTablet(null);
+            if(hasATablet!=null) hasATablet.setTablet(null);
             if(guiAdapterABC!=null) guiAdapterABC.setTablet(null);
         }
     }
-    protected void loop() {
+    protected void loop(int n) {
         isNetworkInterfaceUp=isNetworkInterfaceUp();
         p("network interface is "+(isNetworkInterfaceUp?"up":"not up!"));
         isRouterOk=isRouterOk();
         p("router is "+(isRouterOk?"ok":"not ok!"));
         // mainActivity.waitForWifi(); // do we need this?
         // does not seem to work anymore :(
-        if(tablet==null) {
+        if(tablet==null) if(isNetworkInterfaceUp&&isRouterOk) tryToStartTablet();
+        else if(hasATablet!=null) hasATablet.setStatusText("can not start tablet, check wifi and router!");
+        else {
             if(isNetworkInterfaceUp&&isRouterOk) {
-                p("calling try to start tablet. host: "+host+", tabletId: "+tabletId);
-                tryToStartTablet();
-            } else {
-                if(gui!=null) gui.setStatusText("can not start tablet, check wifi and router!");
-            }
-        } else {
-            if(isNetworkInterfaceUp&&isRouterOk) {
-                Message message=tablet.messageFactory().other(Type.heartbeat,tablet.groupId(),tablet.tabletId());
-                tablet.broadcast(message);
+                if(tablet!=null) if(heartbeatperiod!=0) if(n%heartbeatperiod==0) if(n>0) {
+                    Message message=tablet.messageFactory().other(Type.heartbeat,tablet.group().groupId,tablet.tabletId());
+                    tablet.broadcast(message);
+                }
             } else {
                 stop();
-                if(gui!=null) gui.setStatusText("tablet was stopped, check wifi and router!");
+                if(hasATablet!=null) hasATablet.setStatusText("tablet was stopped, check wifi and router!");
             }
         }
     }
@@ -134,18 +130,21 @@ public class RunnerABC implements Runnable {
         if(prefs.get("tabetId")!=null&&!prefs.get("tabetId").equals("")) tabletId=prefs.get("tabetId");
         if(prefs.get("host")!=null&&!prefs.get("host").equals("")) host=prefs.get("host");
         p("before loop, host: "+host+", tabletId: "+tabletId);
-        while(true) {
-            p("loop at: "+et+" -------------------");
-            if(gui!=null) gui.setStatusText(status());
-            loop();
-            if(gui!=null) gui.setStatusText(status());
+        while(true)
             try {
-                p("at: "+et+", sleeping: "+tabletId+" "+host+" "+tablet);
-                Thread.sleep(10_000);
+                String s="456";
+                p("loop at: "+et+" -------------------");
+                if(hasATablet!=null) hasATablet.setStatusText(status());
+                loop(n++);
+                if(hasATablet!=null) hasATablet.setStatusText(status());
+                try {
+                    Thread.sleep(loopSleep);
+                } catch(Exception e) {
+                    p("sleep was interrupted at: "+et);
+                }
             } catch(Exception e) {
-                p("sleep was interrupted");
+                l.severe("runner caught: "+e);
             }
-        }
     }
     /*
     if(false) {
@@ -179,18 +178,20 @@ public class RunnerABC implements Runnable {
     },60_000,60_000);
     Timer timer2=new Timer();
     */
-    public final String networkPrefix;
+    public final String router,routerPrefix;
     public final Prefs prefs;
     public final Model model;
+    final AudioObserver audioObserver;
     public final Colors colors;
     public final Group group;
-    final AudioObserver audioObserver;
     public String tabletId,host;
     public Tablet tablet,oldTablet;
     public final Et et=new Et();
     public Thread thread; // kill this thread when the app quits!
-    protected HasATablet gui;
+    protected HasATablet hasATablet;
     protected GuiAdapterABC guiAdapterABC;
     protected boolean isNetworkInterfaceUp,isRouterOk;
-    public int n;
+    public int restarts,n;
+    public int loopSleep=10_000;
+    final int heartbeatperiod=10;
 }

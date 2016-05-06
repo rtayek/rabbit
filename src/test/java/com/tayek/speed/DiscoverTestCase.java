@@ -28,8 +28,13 @@ public class DiscoverTestCase extends AbstractServerTestCase {
         // we can not since the are not doing tcp yet :(
     }
     @Test public void testDiscoverTestTablets() throws InterruptedException {
+        // should we discover these?
+        // or just assume they are there.
+        // and handle new ones showing up and old ones going away?
+        // even with a list all we can do is try to connect evey time and fail?
+        // how to handle guys that go away?
         int n=6;
-        create(n);
+        createTestTablets(n);
         startServers();
         Thread.sleep(2_000);
         Level level=l.getLevel();

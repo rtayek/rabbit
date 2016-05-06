@@ -30,7 +30,7 @@ public class OneKnowsTestCase extends AbstractServerTestCase {
         }
     }
     void run2(int n,Integer messages) throws InterruptedException {
-        create(n);
+        createTestTablets(n);
         startServers();
         Thread.sleep(1_000);
         addSenders2();
@@ -98,7 +98,6 @@ public class OneKnowsTestCase extends AbstractServerTestCase {
         p("sleeping -------------------------------------");
         Thread.sleep(5_000);
         for(Server server:servers) {
-            p("report for server: "+server+", "+server.report());
             for(Entry<String,Pair<Writer,Reader>> entry:server.idToPair().entrySet()) {
                 Pair<Writer,Reader> pair=entry.getValue();
                 p("pair: "+pair);

@@ -20,7 +20,7 @@ public class ClientServerTestCase {
     @Test(timeout=500) public void test() throws IOException,InterruptedException {
         socketAddress=new InetSocketAddress("localhost",++service);
         Required required=new Required("T0","localhost",service);
-        factory=Message.instance.create(required,new Single<Integer>(0));
+        factory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
         Group group=new Group("1");
         Config config=new Config();
         server=new Server(null,socketAddress,null,config,histories);
@@ -43,7 +43,7 @@ public class ClientServerTestCase {
     @Test(timeout=500) public void testWithReply() throws IOException {
         Required required=new Required("T0","localhost",++service);
         socketAddress=new InetSocketAddress(required.host,required.service);
-        factory=Message.instance.create(required,new Single<Integer>(0));
+        factory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
         Group group=new Group("1");
         Config config=new Config();
         config.replying=true;
@@ -68,7 +68,7 @@ public class ClientServerTestCase {
     @Test(timeout=200) public void testMissing() throws IOException,InterruptedException {
         Required required=new Required("T0","localhost",++service);
         socketAddress=new InetSocketAddress(required.host,required.service);
-        factory=Message.instance.create(required,new Single<Integer>(0));
+        factory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
         Group stuff=new Group("1");
         Config config=new Config();
         server=new Server(null,socketAddress,null,config,histories);

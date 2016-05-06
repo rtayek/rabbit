@@ -48,8 +48,9 @@ public class TwoTabletsTestCase extends AbstractTabletTestCase {
         Thread.sleep(2_000);
         shutdown();
         for(Tablet tablet:tablets) {
-            Histories history=tablet.histories();
-            assertTrue(new Integer(2)<=history.senderHistory.history.failures());
+            Histories histories=tablet.histories();
+            //p("histories: "+histories);
+            assertTrue(new Integer(1)<=histories.senderHistory.history.failures());
         }
     }
 }

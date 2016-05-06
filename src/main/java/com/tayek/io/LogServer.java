@@ -187,11 +187,18 @@ public class LogServer implements Runnable {
     public static void main(String args[]) {
         for(String host:logServerHosts.keySet())
             try {
-                new Thread(new LogServer(host,defaultService,null)).start();
+                LogServer logServer=new LogServer(host,defaultService,null);
+                new Thread(logServer).start();
+                logServers.add(logServer);
             } catch(Exception e) {
                 p("caught: '"+e+"'");
             }
+        if(logServers.size()==0) {
+            p("no log servers were created!");
+            p("check the interfaces to see if they are up: "+logServerHosts.keySet());
+        }
     }
+    public static final Set<LogServer> logServers=new LinkedHashSet<>();
     public final String host;
     public final int service;
     public final String prefix;

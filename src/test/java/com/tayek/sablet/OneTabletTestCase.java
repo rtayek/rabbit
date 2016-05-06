@@ -19,8 +19,7 @@ public class OneTabletTestCase extends AbstractTabletTestCase {
     @After public void tearDown() throws Exception {
         super.tearDown();
     }
-    @Test public void testSetUpAndTearDown() {}
-    @Test public void startupAndShutdown() {
+    @Test public void testSetUpAndTearDown() {
         tablets=createForTest(1,serviceOffset);
         startListening();
         shutdown();

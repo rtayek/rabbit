@@ -1,17 +1,20 @@
 package com.tayek.speed;
 import static org.junit.Assert.*;
+import java.util.logging.Level;
 import org.junit.*;
+import com.tayek.io.LoggingHandler;
 public class ServerTestCase extends AbstractServerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
         super.setUp();
+        //LoggingHandler.setLevel(Level.ALL);
     }
     @After public void tearDown() throws Exception {
         super.tearDown();
     }
     @Test public void testCreateAndStopServers1() throws InterruptedException {
-        create(1);
+        createTestTablets(1);
         stopServers();
         Thread.sleep(100);
         assertTrue(Thread.activeCount()<=threads);
@@ -36,8 +39,8 @@ public class ServerTestCase extends AbstractServerTestCase {
         run(2,1);
         assertTrue(Thread.activeCount()<=threads);
     }
-    @Test public void test10_1() throws InterruptedException {
-        run(10,1);
+    @Test public void test5_1() throws InterruptedException {
+        run(5,1);
         assertTrue(Thread.activeCount()<=threads);
     }
     @Test public void test1_10() throws InterruptedException {
@@ -48,8 +51,8 @@ public class ServerTestCase extends AbstractServerTestCase {
         run(2,10);
         assertTrue(Thread.activeCount()<=threads);
     }
-    @Test public void test10_10() throws InterruptedException {
-        run(10,10);
+    @Test public void test5_10() throws InterruptedException {
+        run(5,10);
         assertTrue(Thread.activeCount()<=threads);
     }
 }

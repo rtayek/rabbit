@@ -75,7 +75,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
         }
         startListening();
         for(Tablet tablet:tablets) {
-            tablet.broadcast(tablet.messageFactory().other(Type.dummy,tablet.groupId(),tablet.tabletId()));
+            tablet.broadcast(tablet.messageFactory().other(Type.dummy,tablet.group().groupId,tablet.tabletId()));
         }
         Thread.sleep(200);
         Integer expected=2; // sending to self now
@@ -89,7 +89,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
         Tablet first=tablets.iterator().next();
         for(int buttoneId=1;buttoneId<=first.model().buttons;buttoneId++) {
             first.model().setState(buttoneId,true);
-            Message message=first.messageFactory().normal(first.groupId(),first.tabletId(),buttoneId,first.model().toCharacters());
+            Message message=first.messageFactory().normal(first.group().groupId,first.tabletId(),buttoneId,first.model().toCharacters());
             first.broadcast(message);
             Thread.sleep(100);
             for(Tablet tablet:tablets) {
@@ -105,7 +105,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
         first.model().reset();
         for(int buttoneId=1;buttoneId<=first.model().buttons;buttoneId++)
             assertFalse(first.model().state(buttoneId));
-        Message message=first.messageFactory().other(Type.reset,first.groupId(),first.tabletId());
+        Message message=first.messageFactory().other(Type.reset,first.group().groupId,first.tabletId());
         first.broadcast(message);
         Thread.sleep(100);
         for(Tablet tablet:tablets)
@@ -120,19 +120,19 @@ public class TabletTestCase extends AbstractTabletTestCase {
         tablets=createForTest(2,serviceOffset);
         startListening();
         for(Tablet tablet:tablets)
-            tablet.broadcast(tablet.messageFactory().other(Type.dummy,tablet.groupId(),tablet.tabletId()));
+            tablet.broadcast(tablet.messageFactory().other(Type.dummy,tablet.group().groupId,tablet.tabletId()));
         if(true) {
             Thread.sleep(200);
             Histories histories;
             for(Tablet tablet:tablets)
                 histories=tablet.histories();
-            printStats(""+getClass().getSimpleName());
+            //printStats(""+getClass().getSimpleName());
         }
         waitForEachTabletToReceiveAtLeastOneMessageFromEachTablet(false);
         Tablet first=tablets.iterator().next();
         for(int buttoneId=1;buttoneId<=first.model().buttons;buttoneId++) {
             first.model().setState(buttoneId,true);
-            Message message=first.messageFactory().normal(first.groupId(),first.tabletId(),buttoneId,first.model().toCharacters());
+            Message message=first.messageFactory().normal(first.group().groupId,first.tabletId(),buttoneId,first.model().toCharacters());
             first.broadcast(message);
             Thread.sleep(100);
         }
@@ -144,7 +144,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
         first.model().reset();
         for(int buttoneId=1;buttoneId<=first.model().buttons;buttoneId++)
             assertFalse(first.model().state(buttoneId));
-        Message message=first.messageFactory().other(Type.reset,first.groupId(),first.tabletId());
+        Message message=first.messageFactory().other(Type.reset,first.group().groupId,first.tabletId());
         first.broadcast(message);
         Thread.sleep(100);
         for(Tablet tablet:tablets)

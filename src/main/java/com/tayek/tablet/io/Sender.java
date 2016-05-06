@@ -25,7 +25,7 @@ public interface Sender {
                 if(string.contains("\n")) l.severe(string+" contains a linefeed!");
                 l.fine("#"+(histories.senderHistory.history.attempts()+1)+", connecting to: "+socketAddress+", with timeout: "+config.connectTimeout);
                 Et et=new Et();
-                Socket socket=connect(socketAddress,config.connectTimeout,histories.senderHistory);
+                Socket socket=connect(socketAddress,config.connectTimeout,config,histories.senderHistory);
                 if(socket!=null) try {
                     l.fine("#"+(histories.senderHistory.history.attempts()+1)+", connect took: "+et);
                     Writer out=new OutputStreamWriter(socket.getOutputStream());
@@ -76,7 +76,8 @@ public interface Sender {
             }
             return wasSuccessful;
         }
-        public static Socket connect(SocketAddress socketAddress,int timeout,Histories.SenderHistory senderHistory) {
+        // refactor this and the on ein io that speed uses!
+        public static Socket connect(SocketAddress socketAddress,int timeout,Config config,Histories.SenderHistory senderHistory) {
             Et et=new Et();
             l.fine("connecting to: "+socketAddress+" with timeout: "+timeout);
             Socket socket=new Socket();
@@ -85,17 +86,24 @@ public interface Sender {
                 return socket;
             } catch(SocketTimeoutException e) {
                 senderHistory.history.reportFailure(et,e.toString());
-                l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-                l.warning("history: "+senderHistory.history);
+                if(config.logErrors) {
+                    l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+                    l.warning("history: "+senderHistory.history);
+                }
             } catch(IOException e) {
                 senderHistory.history.reportFailure(et,e.toString());
-                l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-                l.warning("history: "+senderHistory.history);
+                if(config.logErrors) {
+                    l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+                    l.warning("history: "+senderHistory.history);
+                }
             } catch(Exception e) {
                 senderHistory.history.reportFailure(et,e.toString());
-                l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-                l.warning("history: "+senderHistory.history);
-                e.printStackTrace();
+                if(config.logErrors) {
+                    
+                    l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+                    l.warning("history: "+senderHistory.history);
+                    e.printStackTrace();
+                }
             }
             return null;
         }
@@ -106,22 +114,23 @@ public interface Sender {
             try {
                 boolean ok=client.send(message);
                 if(!ok) {
-                    l.warning("trying to send again to: "+socketAddress);
+                    l.info("trying to send again to: "+socketAddress);
                     Et et=new Et();
                     ok=client.send(message);
                     if(ok) {
                         histories.senderHistory.retries.success();
                         histories.senderHistory.retries.successHistogram.add(et.etms());
                         histories.senderHistory.replies.failureHistogram.add(Double.NaN);
-                        l.warning("worked the second time send to: "+socketAddress);
+                        if(config.logErrors) l.warning("worked the second time send to: "+socketAddress);
                     } else {
                         histories.senderHistory.retries.failure("second");
                         histories.senderHistory.retries.successHistogram.add(Double.NaN);
                         histories.senderHistory.replies.failureHistogram.add(et.etms());
-                        l.severe("second time failed sending to: "+socketAddress);
+                        if(config.logErrors)l.severe("second time failed sending to: "+socketAddress);
                     }
                 }
             } catch(Exception e) {
+                l.warning("unhandled exception: "+e);
                 e.printStackTrace();
             }
         }
@@ -175,7 +184,7 @@ public interface Sender {
             return future;
         }
         private final SocketAddress socketAddress;
-        private final Config config;
+        public final Config config;
         private final Histories histories;
         public final ShutdownOptions shutdownOptions=new ShutdownOptions();
         // use these options like the server does!
