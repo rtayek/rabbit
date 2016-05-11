@@ -2,6 +2,7 @@ package com.tayek.tablet.io;
 import java.net.*;
 import java.util.Map;
 import java.util.logging.Level;
+import javax.sound.sampled.ReverbType;
 import com.tayek.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
@@ -14,12 +15,11 @@ public class Ping {
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.ALL);
         Map<String,Required> requireds=new Groups().groups.get("g0");
-        String tabletId=aTabletId(99);
-        requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
+        String tabletId=Groups.add("localhost",defaultReceivePort,requireds);
         Group group=new Group("1",requireds,Model.mark1);
-        Tablet tablet=Tablet.factory.create2(group,tabletId);
+        Tablet tablet=Tablet.factory.create2(group,tabletId,group.getModelClone());
         group=null; // tablet has a clone of group.
-        ((TabletImpl2)tablet).startListening();
+        ((TabletImpl2)tablet).startServer();
         Message message=tablet.messageFactory().other(Type.ping,tablet.group().groupId,tablet.tabletId());
         // not working on the tablets
         // because they don't have a socket address for tablet 99

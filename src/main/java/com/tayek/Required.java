@@ -1,9 +1,11 @@
 package com.tayek;
-
 public class Required {
     // let's try and work this into speed now.
     // and see what falls out.
     // moved to top level now. 
+    public Required(String host,int service) {
+        this(defaultId(host,service),host,service);
+    }
     public Required(String id,String host,int service) {
         this.id=id;
         this.host=host;
@@ -20,6 +22,14 @@ public class Required {
     }
     @Override public String toString() {
         return id+" "+host+" "+service;
+    }
+    public String shortId() {
+        int index=host.lastIndexOf('.');
+        if(index==-1) return id;
+        else {
+            String lastOctet=host.substring(index+1);
+            return lastOctet+':'+service;
+        }
     }
     public String defaultId() {
         return defaultId(host,service);

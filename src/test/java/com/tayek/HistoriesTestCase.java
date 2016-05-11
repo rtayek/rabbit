@@ -1,10 +1,13 @@
 package com.tayek;
 import static org.junit.Assert.*;
 import org.junit.*;
+import org.junit.rules.TestRule;
 import com.tayek.*;
 import com.tayek.Histories.History;
 import static com.tayek.io.IO.*;
 public class HistoriesTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {}

@@ -3,6 +3,7 @@ import static org.junit.Assert.*;
 import java.util.*;
 import java.util.logging.Level;
 import org.junit.*;
+import org.junit.rules.TestRule;
 import static com.tayek.io.IO.*;
 import com.tayek.*;
 import com.tayek.io.LoggingHandler;
@@ -10,6 +11,7 @@ import com.tayek.tablet.*;
 import com.tayek.tablet.Group.*;
 import com.tayek.tablet.MessageReceiver.Model;
 public class StuffTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
@@ -35,7 +37,7 @@ public class StuffTestCase {
         Map<String,Required> map=new Groups().groups.get("g0");
         Group group=new Group("1",map,Model.mark1);
         Group clone=group.clone();
-        group.required("T1").histories().senderHistory.history.success();
+        group.required(group.keys().iterator().next()).histories().senderHistory.history.success();
         if(false) {
             p("original group: "+group.required("T1").histories().senderHistory.history.successes());
             p("original histories #: "+group.required("T1").histories().serialNumber);

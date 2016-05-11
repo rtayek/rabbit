@@ -6,21 +6,22 @@ import com.tayek.Required;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.Message.Type;
 import static com.tayek.io.IO.*;
-public class ConnectionTestCase {
+public class ConnectionTestCase extends AbstractServerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
-        LoggingHandler.init();
-        LoggingHandler.setLevel(Level.WARNING);
+        super.setUp();
     }
-    @After public void tearDown() throws Exception {}
+    @After public void tearDown() throws Exception {
+        super.tearDown();
+    }
     @Test public void testCreate() throws InterruptedException {
+        LoggingHandler.setLevel(Level.ALL);
         printThreads();
         Thread.sleep(100);
         server.stopServer();
         Thread.sleep(200);
-        if(Thread.activeCount()>threads) printThreads();
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(failOnExtraThreads);
     }
     @Test public void testCreateAndStartup() throws InterruptedException {
         printThreads();
@@ -28,8 +29,7 @@ public class ConnectionTestCase {
         Thread.sleep(100);
         server.stopServer();
         Thread.sleep(200);
-        if(Thread.activeCount()>threads) printThreads();
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(failOnExtraThreads);
     }
     @Test public void testBroadcast() throws InterruptedException {
         printThreads();
@@ -37,18 +37,13 @@ public class ConnectionTestCase {
         p(""+server);
         p(""+server.messageFactory());
         Thread.sleep(100);
-        server.broadcast(server.messageFactory().other(Type.dummy,"1","T1"));
+        server.broadcast(server.messageFactory().other(Type.dummy,"1",server.id()));
         Thread.sleep(200);
-        server.stopServer();
-        Thread.sleep(200);
-        if(failOnExtraThreads) {
-            if(Thread.activeCount()>threads) printThreads();
-            assertTrue(Thread.activeCount()<=threads);
-        } else p((Thread.activeCount()-threads)+" extra threads!");
+        //server.stopServer();
+        //Thread.sleep(200);
+        checkThreads(failOnExtraThreads);
     }
-    int service=serviceBase++;
-    int threads=Thread.activeCount();
-    Server server=Server.factory.create(new Required("test","localhost",service));
-    static int serviceBase=44444;
+    Required required=new Required("localhost",service);
+    Server server=Server.factory.create(required);
     static boolean failOnExtraThreads=false;
 }

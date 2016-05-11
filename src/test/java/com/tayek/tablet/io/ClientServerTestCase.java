@@ -3,6 +3,7 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.net.*;
 import org.junit.*;
+import org.junit.rules.TestRule;
 import com.tayek.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
@@ -11,6 +12,8 @@ import com.tayek.tablet.Message.*;
 import com.tayek.tablet.io.Sender.Client;
 import com.tayek.utilities.Single;
 public class ClientServerTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {

@@ -60,7 +60,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
     @Test(timeout=1_600) public void testDummy16() throws InterruptedException,UnknownHostException,ExecutionException {
         test(16);
     }
-    @Test(timeout=3_200) public void testDummy32() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test(timeout=6_500) public void testDummy32() throws InterruptedException,UnknownHostException,ExecutionException {
         test(32);
     }
     @Test(timeout=6_400) public void testDummy64() throws InterruptedException,UnknownHostException,ExecutionException {

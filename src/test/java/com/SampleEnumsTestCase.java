@@ -1,6 +1,8 @@
 package com;
 import static org.junit.Assert.*;
 import org.junit.*;
+import org.junit.rules.TestRule;
+import com.tayek.MyTestWatcher;
 import java.util.*;
 interface Item {
     void f();
@@ -37,6 +39,8 @@ class Enums {
     }
 }
 public class SampleEnumsTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     @Test public void testFindEnumRed() {
         Color expected=Color.red;
         assertEquals(expected,enums.findEnum(expected.name()));

@@ -19,11 +19,15 @@ public class IO {
         }
     }
     public static void p(String string) {
-        // i hope this can stay static :(
-        p(System.out,string);
+        synchronized(System.out) {
+            p(System.out,string);
+        }
     }
     public static String toString(Thread thread) {
         return thread.toString()+", state: "+thread.getState()+", is alive: "+thread.isAlive()+", is interrupted:  "+thread.isInterrupted();
+    }
+    public static String toString(ServerSocket serverSocket) {
+        return serverSocket+": "+serverSocket.isBound()+" "+serverSocket.isClosed();
     }
     public static boolean isAndroid() {
         return System.getProperty("http.agent")!=null;
@@ -102,14 +106,13 @@ public class IO {
         }
         final String networkPrefix;
     }
-    public static class SocketHandlerCallable implements java.util.concurrent.Callable<java.util.logging.SocketHandler> {
+    public static class SocketHandlerCallable implements Runnable,java.util.concurrent.Callable<java.util.logging.SocketHandler> {
         public SocketHandlerCallable(String host,int service) {
             this.host=host;
             this.service=service;
         }
-        @Override public SocketHandler call() throws Exception {
+        @Override public void run() {
             Thread.currentThread().setName(getClass().getSimpleName()+" "+host+":"+service);
-            SocketHandler socketHandler=null;
             try {
                 socketHandler=new SocketHandler(host,service);
                 // socketHandler.setFormatter(new LoggingHandler());
@@ -117,10 +120,14 @@ public class IO {
             } catch(IOException e) {
                 l.info("caught: '"+e+"' constructing socket handler on: "+host+":"+service);
             }
+        }
+        @Override public SocketHandler call() throws Exception {
+            run();
             return socketHandler;
         }
         final String host;
         final int service;
+        SocketHandler socketHandler;
     }
     static void printNetworkInterface(NetworkInterface netint) {
         p("Display name: "+netint.getDisplayName()+", Name: "+netint.getName());

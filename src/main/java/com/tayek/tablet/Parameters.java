@@ -39,11 +39,8 @@ public enum Parameters { // properties
     public static void writePropertiesFile(Properties properties,String filename) {
         try {
             URL url=Parameters.class.getResource(filename);
-            p(filename+" has url: "+url);
             String path=url.getPath();
-            p("path: "+path);
             File file=new File(path);
-            p("storing into: "+file);
             properties.store(new FileOutputStream(file),"initial");
         } catch(FileNotFoundException e) {
             l.warning("properties"+" "+"caught: "+e+" property file was not written!");

@@ -2,11 +2,15 @@ package com.tayek.tablet;
 import static org.junit.Assert.*;
 import java.util.*;
 import org.junit.*;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import com.tayek.MyTestWatcher;
 class Foo {}
 @RunWith(Parameterized.class) public class ExampleParameterizedTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {}

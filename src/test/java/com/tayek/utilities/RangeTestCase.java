@@ -2,9 +2,13 @@ package com.tayek.utilities;
 import static org.junit.Assert.*;
 import java.util.Date;
 import org.junit.*;
+import org.junit.rules.TestRule;
+import com.tayek.MyTestWatcher;
 import com.tayek.utilities.Range;
 import static com.tayek.utilities.Range.*;
 public class RangeTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}

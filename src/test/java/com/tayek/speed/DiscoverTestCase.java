@@ -44,10 +44,9 @@ public class DiscoverTestCase extends AbstractServerTestCase {
         assertEquals(n,discovered.size());
         for(Server server:servers) {
             for(Pair<Integer,SocketAddress> pair:discovered) {
-                String id=aTabletId(pair.first);
                 InetSocketAddress inetSocketAddress=(InetSocketAddress)pair.second;
-                Required required=new Required(id,inetSocketAddress.getHostName(),inetSocketAddress.getPort());
-                server.createAndAddSender(id,required);
+                Required required=new Required(inetSocketAddress.getHostName(),inetSocketAddress.getPort());
+                server.createAndAddWriter(required.id,required);
             }
         }
         Thread.sleep(1_000);
@@ -55,6 +54,6 @@ public class DiscoverTestCase extends AbstractServerTestCase {
             p("server: "+server);
         stopServers();
         Thread.sleep(100);
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(false);
     }
 }

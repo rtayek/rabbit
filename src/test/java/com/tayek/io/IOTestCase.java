@@ -4,11 +4,15 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import org.junit.*;
+import org.junit.rules.TestRule;
+import com.tayek.MyTestWatcher;
 import com.tayek.io.IO;
 import com.tayek.io.IO.*;
 import static com.tayek.io.IO.*;
 import static com.tayek.utilities.Utility.*;
 public class IOTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         LoggingHandler.init();
     }

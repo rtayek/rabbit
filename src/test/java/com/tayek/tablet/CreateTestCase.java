@@ -3,11 +3,14 @@ import static com.tayek.io.IO.*;
 import static org.junit.Assert.*;
 import java.util.Set;
 import org.junit.*;
-import com.tayek.Tablet;
+import org.junit.rules.TestRule;
+import com.tayek.*;
 import com.tayek.sablet.AbstractTabletTestCase;
 import com.tayek.tablet.Group;
 import com.tayek.tablet.Group.TabletImpl2;
 public class CreateTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {}

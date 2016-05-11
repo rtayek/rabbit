@@ -27,7 +27,7 @@ public class Controller {
         InetAddress inetAddress=addressWith(tabletRouterPrefix);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,service);
         p("tablet: "+tabletId);
-        Tablet tablet=Tablet.factory.create2(group,tabletId);
+        Tablet tablet=Tablet.factory.create2(group,tabletId,group.getModelClone());
         this.tablet=tablet;
         model=tablet.model();
         this.in=in;
@@ -115,11 +115,11 @@ public class Controller {
                 model.reset();
                 break;
             case 's':
-                boolean ok=((TabletImpl2)tablet).startListening();
+                boolean ok=((TabletImpl2)tablet).startServer();
                 if(!ok) p(out,"badness");
                 break;
             case 't':
-                ((TabletImpl2)tablet).stopListening();
+                ((TabletImpl2)tablet).stopServer();
                 break;
             case 'q':
                 return false;
@@ -160,7 +160,7 @@ public class Controller {
         String host=InetAddress.getLocalHost().getHostName();
         p("host: "+host);
         // make this work with real tablets!
-        Group group=new Group("1",new Groups().groups.get("big0"),Model.mark1);
+        Group group=new Group("1",new Groups().groups.get("g0"),Model.mark1);
         group.config.logErrors=true;
         p("group: "+group);
         new Controller(group,false).run();

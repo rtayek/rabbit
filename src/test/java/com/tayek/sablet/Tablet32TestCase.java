@@ -49,7 +49,7 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         boolean areAllLiestening=true;
         if(areAllLiestening) startListening();
         else {
-            if(first instanceof TabletImpl2) if(!((TabletImpl2)first).startListening()) fail(first+" startListening() retuns false!");
+            if(first instanceof TabletImpl2) if(!((TabletImpl2)first).startServer()) fail(first+" startListening() retuns false!");
         }
         first.broadcast(first.messageFactory().other(Type.dummy,first.group().groupId,first.tabletId()));
         Thread.sleep(700);

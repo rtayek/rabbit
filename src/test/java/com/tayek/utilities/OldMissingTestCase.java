@@ -1,5 +1,8 @@
 package com.tayek.utilities;
 import static org.junit.Assert.*;
+import org.junit.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -7,81 +10,47 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
-import org.junit.*;
-import org.junit.rules.TestRule;
-import com.tayek.MyTestWatcher;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import com.tayek.io.LoggingHandler;
-import com.tayek.utilities.MissingImpl;
-import static com.tayek.io.IO.*;
-public class MissingTestCase {
-    @Rule public TestRule watcher=new MyTestWatcher();
-
+import com.tayek.utilities.Missing;
+public class OldMissingTestCase {
     @Before public void setUp() throws Exception {
-        LoggingHandler.init();
         LoggingHandler.setLevel(Level.OFF);
     }
     @After public void tearDown() throws Exception {}
     @Test public void testAdd0() {
         m.adjust(0);
-        p("add 0: "+m);
-        assertEquals(Integer.valueOf(0),m.largest());
+        assertEquals(0,m.largest);
         assertEquals(0,m.missing().size());
     }
     @Test public void testAdd1() {
         m.adjust(1);
-        p("add 1: "+m);
-        assertEquals(Integer.valueOf(1),m.largest());
+        assertEquals(1,m.largest);
         assertEquals(1,m.missing().size());
         assertTrue(m.missing().contains(0));
     }
     @Test public void testAdd2() {
         m.adjust(2);
-        p("add 2: "+m);
-        assertEquals(Integer.valueOf(2),m.largest());
+        assertEquals(2,m.largest);
         assertEquals(2,m.missing().size());
         assertTrue(m.missing().contains(0));
         assertTrue(m.missing().contains(1));
     }
-    @Test public void testAdd3() {
-        m.adjust(3);
-        p("add 3: "+m);
-        assertEquals(Integer.valueOf(3),m.largest());
-        assertEquals(3,m.missing().size());
-        assertTrue(m.missing().contains(0));
-        assertTrue(m.missing().contains(1));
-        assertTrue(m.missing().contains(2));
-    }
-    @Test public void testAdd0Then1Then2() {
-        m.adjust(0);
-        m.adjust(1);
-        m.adjust(2);
-        p("add 0,1,2: "+m);
-        assertEquals(Integer.valueOf(2),m.largest());
-        assertEquals(0,m.missing().size());
-    }
     @Test public void testAdd0ThenAdd2() {
         m.adjust(0);
         m.adjust(2);
-        p("add 0, then 2: "+m);
-        assertEquals(Integer.valueOf(2),m.largest());
+        assertEquals(2,m.largest);
         assertEquals(1,m.missing().size());
         assertTrue(m.missing().contains(1));
     }
     @Test public void testAdd2ThenAdd0() {
         m.adjust(2);
         m.adjust(0);
-        p("add 2, then 0: "+m);
-        assertEquals(Integer.valueOf(2),m.largest());
+        assertEquals(2,m.largest);
         assertEquals(1,m.missing().size());
         assertTrue(m.missing().contains(1));
-    }
-    @Test public void testAdd123() {
-        m.adjust(1);
-        m.adjust(2);
-        m.adjust(3);
-        p("add 123: "+m);
-        assertEquals(Integer.valueOf(3),m.largest());
-        assertEquals(1,m.missing().size());
     }
     @Test() public void testdooo() {
         int[] x=new int[] {0,2,1,3,1,4,1};
@@ -95,7 +64,7 @@ public class MissingTestCase {
             m.adjust(x[i]);
     }
     private List<Integer> run(Random random,int length,int max) {
-        m=Missing.factory.createNormal(0);
+        m=new OldMissing();
         List<Integer> integers=new ArrayList<>();
         try {
             for(int i=0;i<length;i++) {
@@ -118,8 +87,8 @@ public class MissingTestCase {
         }
         return integers;
     }
-    boolean use(List<Integer> sequence) { // old. 
-        m=Missing.factory.createNormal(0);
+    boolean use(List<Integer> sequence) {
+        m=new OldMissing();
         try {
             for(int i:sequence)
                 m.adjust(i);
@@ -153,11 +122,11 @@ public class MissingTestCase {
         m.adjust(1);
         m.adjust(0);
     }
-    /*@Test()*/ public void testRandom() {
+    @Test() public void testRandom() {
         Random random=new Random();
         int length=3,symbols=5,reps=10000;
         for(int i=0;i<5;i++)
             random(random,length+i,symbols,reps);
     }
-    Missing<Integer,Integer> m=Missing.factory.createNormal(0);
+    OldMissing m=new OldMissing();
 }

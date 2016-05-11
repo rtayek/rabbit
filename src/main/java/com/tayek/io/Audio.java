@@ -42,7 +42,7 @@ public interface Audio {
             }
         }
         @Override public void update(Observable observable,Object hint) {
-            p("uodate in: "+getClass().getSimpleName());
+            p("update in: "+getClass().getSimpleName());
             l.fine("hint: "+hint);
             if(observable instanceof Model) if(this.model.equals(observable)) {
                 if(hint instanceof Sound) Audio.audio.play((Sound)hint);

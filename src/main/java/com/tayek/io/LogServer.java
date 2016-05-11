@@ -51,7 +51,7 @@ public class LogServer implements Runnable {
         public Factory(Writer writer) {
             this.writer=writer;
         }
-        public Copier create(Socket socket) {
+        public Copier create(Socket socket,boolean verbose) {
             return new Copier(socket,writer,false);
         }
         final Writer writer;
@@ -62,12 +62,15 @@ public class LogServer implements Runnable {
             this.socket=socket;
             this.out=out;
             this.verbose=verbose;
+            p("verbose: "+verbose);
         }
         public void flush() throws IOException {
             out.flush();
         }
         public void close() {
             try {
+                if(verbose)
+                    p("closing: "+this);
                 out.flush();
                 out.close();
                 socket.shutdownInput();
@@ -77,21 +80,30 @@ public class LogServer implements Runnable {
         }
         @Override public void run() {
             try {
+                out.write("<!-- first line -->");
+                out.flush();
                 InputStream is=socket.getInputStream();
                 BufferedReader br=new BufferedReader(new InputStreamReader(is,"US-ASCII"));
                 String line=null;
+                p("try first read:");
+                boolean once=false;
                 while((line=br.readLine())!=null) {
+                    if(!once) {
+                        p("got first read: "+line);
+                        once=false;
+                    }
                     if(line.contains(Type.rolloverLogNow.name())) rollover();
                     out.write(line+"\n");
                     out.flush();
                     if(verbose) p("copier wrote: "+line);
                     if(file!=null&&file.exists()&&file.length()>maxSize) if(line.equals("</record>")) {
                         rollover();
+                        out.write("<!-- rolled over -->");
                     }
                 }
                 p("end of file");
             } catch(IOException e) {
-                if(isShuttingdown) ;
+                if(isShuttingdown) ; // set this when we close it ourselves!
                 else {
                     p("log copier caught: '"+e+"'");
                     e.printStackTrace();
@@ -102,15 +114,16 @@ public class LogServer implements Runnable {
         }
         private void rollover() throws IOException {
             // close file and start new one
+            p("closing log file");
             out.close();
             logFile.sequenceNumber++; // starts over at 1!
             File newFile=logFile.file();
             out=new FileWriter(newFile);
             file=newFile;
-            p("rollover to: "+newFile+" &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+            p("rollover to: "+newFile);
         }
         final Socket socket;
-        final boolean verbose;
+        public final boolean verbose;
         Writer out;
         public File file; // may be null for testing
         LogFile logFile; // may be null for testing
@@ -124,7 +137,6 @@ public class LogServer implements Runnable {
         this.service=service;
         this.prefix=prefix!=null?prefix:"";
         InetAddress inetAddress;
-        p("trying "+host+":"+service);
         try {
             inetAddress=InetAddress.getByName(host);
             serverSocket=new ServerSocket(service,10/* what should this be?*/,inetAddress);
@@ -144,13 +156,13 @@ public class LogServer implements Runnable {
                     socket=serverSocket.accept();
                     p("accepted connection from: "+socket);
                     Copier copier=null;
-                    if(factory!=null) copier=factory.create(socket);
+                    if(factory!=null) copier=factory.create(socket,verbose);
                     else {
                         LogFile logFile=new LogFile(socket,prefix,1);
                         File file=logFile.file();
                         p("log file: "+file);
                         Writer out=new FileWriter(file);
-                        copier=new Copier(socket,out,true);
+                        copier=new Copier(socket,out,verbose);
                         copier.file=file;
                         copier.logFile=logFile;
                         synchronized(copiers) {
@@ -205,6 +217,7 @@ public class LogServer implements Runnable {
     private boolean isShuttingDown;
     private final ServerSocket serverSocket;
     private final Factory factory;
+    public boolean verbose;
     public final List<Copier> copiers=new ArrayList<>();
     public static final String defaultHost="127.0.0.1";
     public static final int defaultService=5000;

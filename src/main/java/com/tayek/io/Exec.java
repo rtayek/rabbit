@@ -38,8 +38,13 @@ public class Exec {
             output=output(process.getInputStream());
             error=output(process.getErrorStream());
         } catch(IOException e) {
+            l.warning("caught: "+e);
             e.printStackTrace();
         } catch(InterruptedException e) {
+            l.warning("caught: "+e);
+            e.printStackTrace();
+        } catch(Exception e) {
+            l.warning("caught: "+e);
             e.printStackTrace();
         }
         printThreads();
@@ -87,9 +92,11 @@ public class Exec {
             timeoutString+=timeout;
             Exec exec=new Exec(new String[] {"ping","-n","1","-w",""+timeoutString,host});
             exec.run();
-            p("output: "+exec.output);
             boolean ok=false;
-            if(exec.output.contains("Reply from "+host+":")) ok=true;
+            if(exec.output.contains("Reply from "+host+":")) {
+                ok=true;
+            }
+            else p("output: "+exec.output);
             return ok;
         }
     }

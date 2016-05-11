@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import org.junit.*;
+import org.junit.rules.*;
+import org.junit.runner.Description;
 import com.tayek.*;
 import com.tayek.io.*;
 import com.tayek.tablet.*;
@@ -16,6 +18,7 @@ import com.tayek.tablet.Message.Type;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.utilities.Et;
 public abstract class AbstractTabletTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         LoggingHandler.init();
         // put the ip addresses that we need in here!
@@ -27,8 +30,10 @@ public abstract class AbstractTabletTestCase {
         LoggingHandler.init();
         LoggingHandler.setLevel(defaultLevel);
         printThreads=false;
+        Config.defaultConnectTimeout=200;
         threads=Thread.activeCount();
-        serviceOffset+=100;
+        staticServiceOffset+=100;
+        serviceOffset=staticServiceOffset; // find out why this meeds to be 100, try to make it 1!
     }
     @After public void tearDown() throws Exception { //Thread.sleep(100); // apparently not needed since we shutdown the executor service now.
         boolean anyFailures=false;
@@ -38,18 +43,24 @@ public abstract class AbstractTabletTestCase {
             //p("printStats or failures!");
             printStats("stats for: "+this+": "+(anyFailures?"failures":""));
         }
-        int threads=Thread.activeCount();
-        if(threads>this.threads) {
-            p((threads-this.threads)+" extra threads!");
-            if(printThreads) printThreads();
-        }
+        checkThreads(true);
         LoggingHandler.setLevel(defaultLevel);
+    }
+    void checkThreads(boolean fail) {
+        if(Thread.activeCount()<threads) {
+            printThreads();
+            if(fail) fail("extra threads!");
+            else {
+                p("extra threads:");
+                printThreads();
+            }
+        }
     }
     protected void startListening() {
         Tablet first=tablets.iterator().next();
         for(Tablet tablet:tablets) {
             if(tablet instanceof TabletImpl2) {
-                if(!((TabletImpl2)tablet).startListening()) fail(tablet+" startListening() retuns false!");
+                if(!((TabletImpl2)tablet).startServer()) fail(tablet+" startListening() retuns false!");
                 assertNotNull(((TabletImpl2)tablet).server);
             }
             assertEquals(first.model().serialNumber,tablet.model().serialNumber);
@@ -188,7 +199,7 @@ public abstract class AbstractTabletTestCase {
         for(Tablet tablet:tablets) {
             if(tablet instanceof TabletImpl2) {
                 TabletImpl2 t2=(TabletImpl2)tablet;
-                t2.stopListening();
+                t2.stopServer();
                 if(!t2.executorService.isShutdown()) shutdownAndAwaitTermination(t2.executorService);
                 if(!t2.canceller.isShutdown()) t2.canceller.shutdown();
                 // don't do this if we are testing and all using the same service.
@@ -236,10 +247,10 @@ public abstract class AbstractTabletTestCase {
         //Thread.sleep(10);
         shutdown();
     }
-    public void checkHistory(TabletImpl2 tablet,Integer n,boolean oneTablet) {
-        checkHistory(tablet,tablet.histories(),tablet.config.replying,n,oneTablet);
+    public void checkHistory(Tablet tablet,Integer n,boolean oneTablet) {
+        checkHistory(tablet,tablet.histories(),tablet.config().replying,n,oneTablet);
     }
-    public void checkHistory(TabletImpl2 tablet,Histories histories,boolean replying,Integer n,boolean oneTablet) {
+    public void checkHistory(Tablet tablet,Histories histories,boolean replying,Integer n,boolean oneTablet) {
         //p("history: "+histories);
         assertEquals(oneTablet?one:n,histories.receiverHistory.history.successes());
         assertEquals(replying?n:zero,histories.receiverHistory.replies.successes());
@@ -267,8 +278,10 @@ public abstract class AbstractTabletTestCase {
     public static Set<Tablet> createForTest(int n,int offset) {
         Map<String,Required> map=new TreeMap<>();
         // search for linked hash map and use tree map instead.
-        for(int i=1;i<=n;i++)
-            map.put("T"+i+" on PC",new Required("T"+i+" on PC",testingHost,defaultReceivePort+100+offset+i));
+        for(int i=1;i<=n;i++) {
+            Required required=new Required(testingHost,defaultReceivePort+100+offset+i);
+            map.put(required.id,required);
+        }
         Group group=new Group("1",map,Model.mark1);
         Set<Tablet> tablets=group.createAll();
         return tablets;
@@ -282,5 +295,6 @@ public abstract class AbstractTabletTestCase {
     public boolean runCanceller;
     public boolean waitForSendCallable;
     public static Level defaultLevel=Level.WARNING;
-    public static int serviceOffset=1_000; // too many places, fix!
+    public Integer serviceOffset;
+    public static int staticServiceOffset=1_000; // too many places, fix!
 }

@@ -15,28 +15,28 @@ abstract class Connection implements Runnable {
         this.histories=histories;
     }
     synchronized void stopThread() {
-        l.info(this+": enter stop().");
+        l.info(id+": "+this+": enter stop().");
         if(thread==null) {
-            l.info(this+": no thread to stop!");
+            l.info(id+": "+this+": no thread to stop!");
         } else {
-            l.info(this+": stopping thread: "+thread);
+            l.info(id+": "+this+": stopping thread: "+thread);
             isShuttingDown=true;
             if(!socket.isClosed()) {
-                l.info(this+": closing socket: "+socket);
+                l.info(id+": "+this+": closing socket: "+socket);
                 try {
                     socket.close();
                     // causes other thread to wait? 
                 } catch(IOException e) {
                     e.printStackTrace();
                 }
-                l.info(this+": socket is closed: "+socket);
-            } else l.info(this+": socket is already closed.");
+                l.info(id+": "+this+": socket is closed: "+socket);
+            } else l.info(id+": "+this+": socket is already closed.");
             if(!Thread.currentThread().equals(thread)) {
-                l.info(this+": joining with: "+IO.toString(thread));
+                l.info(id+": "+this+": joining with: "+IO.toString(thread));
                 if(thread.getState().equals(Thread.State.WAITING)) {
-                    l.warning(this+": interrupting: "+IO.toString(thread));
+                    l.warning(id+": "+this+": interrupting: "+IO.toString(thread));
                     thread.interrupt();
-                    l.warning(this+": after interrupting: "+IO.toString(thread));
+                    l.warning(id+": "+this+": after interrupting: "+IO.toString(thread));
                 }
                 try {
                     l.info(id+"->"+otherId+": waiting to join with: "+IO.toString(thread));

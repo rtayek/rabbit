@@ -1,7 +1,9 @@
 package com.tayek.speed;
 import java.io.IOException;
 import java.net.*;
+import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.*;
+import java.util.Map.Entry;
 import static com.tayek.io.IO.*;
 import com.tayek.*;
 import com.tayek.io.IO;
@@ -14,7 +16,8 @@ public interface Server {
     String id();
     String host();
     int service();
-    void startServer();
+    boolean startServer();
+    ServerSocket serverSocket();
     Message.Factory messageFactory();
     void broadcast(Object message);
     String report();
@@ -26,7 +29,7 @@ public interface Server {
     void addConnection(String newId,Connection connection);
     Map<String,Pair<Writer,Reader>> idToPair();
     Map<InetAddress,Pair<String,Histories>> iNetAddressToPair();
-    Writer createAndAddSender(String destinationId,Required required);
+    Writer createAndAddWriter(String destinationId,Required required);
     interface Factory {
         Server create(Required required);
         Server create2(Required required);
@@ -35,6 +38,7 @@ public interface Server {
                 Server server=null;
                 try {
                     server=new ServerImpl(required);
+                    ((ServerImpl)server).start();
                 } catch(IOException e) {
                     e.printStackTrace();
                     p("can not start server: "+required);
@@ -50,15 +54,35 @@ public interface Server {
                 }
                 return server;
             }
-            private static abstract class ServerABC extends Thread implements Server {
+            public static abstract class ServerABC extends Thread implements Server {
+                // make private again!
                 ServerABC(Required required) throws IOException {
                     super(required.id.toString()+" server");
                     this.required=required;
-                    InetAddress inetAddress=InetAddress.getByName(required.host);
+                    //InetAddress inetAddress=InetAddress.getByName(required.host);
                     messageFactory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
-                    serverSocket=new ServerSocket(required.service,100/* what should this be?*/,inetAddress);
-                    if(serverSocket==null) throw new RuntimeException("bind failed!");
+                    //serverSocket=new ServerSocket();
+                    //if(serverSocket==null) throw new RuntimeException("serverSocket is null!");
+                    //serverSocket.setReuseAddress(true);
                     isShuttingDown=false;
+                }
+                @Override public boolean startServer() {
+                    InetAddress inetAddress;
+                    try {
+                        inetAddress=InetAddress.getByName(required.host);
+                        p("creating new ServerSocket.");
+                        serverSocket=new ServerSocket();
+                        serverSocket.bind(new InetSocketAddress(inetAddress,required.service),100);
+                        p("created new ServerSocket: "+serverSocket);
+                        return true;
+                    } catch(UnknownHostException e) {
+                        l.warning(id()+" caught: "+e);
+                    } catch(IOException e) {
+                        l.warning(id()+" caught: "+e);
+                    } catch(Exception e) {
+                        l.warning(id()+" caught: "+e);
+                    }
+                    return false;
                 }
                 @Override public String id() {
                     return required.id;
@@ -71,76 +95,75 @@ public interface Server {
                 }
                 final Required required;
                 final Histories histories=new Histories();
-                final ServerSocket serverSocket;
+                ServerSocket serverSocket;
                 final Message.Factory messageFactory;
-                protected volatile boolean isShuttingDown;
+                public volatile boolean isShuttingDown;
             }
             private static class ServerImpl2 extends ServerABC implements Server {
+                // why did i start this again?
+                // something to do with x?
+                // this is in speed, though, so maybe it is for x
                 ServerImpl2(Required required) throws IOException {
                     super(required);
-                    InetAddress inetAddress=InetAddress.getByName(required.host);
                     messageFactory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
-                    serverSocket=new ServerSocket(required.service,100/* what should this be?*/,inetAddress);
+                    //serverSocket=new ServerSocket(required.service,100/* what should this be?*/,inetAddress);
+                    serverSocket=new ServerSocket();
                     if(serverSocket==null) throw new RuntimeException("bind failed!");
                     isShuttingDown=false;
                 }
-                @Override public void startServer() {
-                    // TODO Auto-generated method stub
+                @Override public void stopServer() {
+                    throw new UnsupportedOperationException("nyi");
                 }
                 @Override public com.tayek.tablet.Message.Factory messageFactory() {
-                    // TODO Auto-generated method stub
-                    return null;
+                    throw new UnsupportedOperationException("nyi");
+                    //return null;
                 }
                 @Override public void broadcast(Object message) {
-                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException("nyi");
                 }
                 @Override public String report() {
-                    // TODO Auto-generated method stub
-                    return null;
-                }
-                @Override public void stopServer() {
-                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException("nyi");
+                    //return null;
                 }
                 @Override public void startHeartbeat() {
-                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException("nyi");
                 }
                 @Override public void stopHeartbeat() {
-                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException("nyi");
                 }
                 @Override public Histories histories() {
-                    // TODO Auto-generated method stub
-                    return null;
+                    throw new UnsupportedOperationException("nyi");
+                    //return null;
                 }
                 @Override public String maps() {
-                    // TODO Auto-generated method stub
-                    return null;
+                    throw new UnsupportedOperationException("nyi");
+                    //return null;
                 }
                 @Override public void addConnection(String newId,Connection connection) {
-                    // TODO Auto-generated method stub
+                    throw new UnsupportedOperationException("nyi");
                 }
                 @Override public Map<String,Pair<Writer,Reader>> idToPair() {
-                    // TODO Auto-generated method stub
-                    return null;
+                    throw new UnsupportedOperationException("nyi");
+                    //return null;
                 }
                 @Override public Map<InetAddress,Pair<String,Histories>> iNetAddressToPair() {
-                    // TODO Auto-generated method stub
-                    return null;
+                    throw new UnsupportedOperationException("nyi");
+                    //return null;
                 }
-                @Override public Writer createAndAddSender(String destinationId,Required required) {
-                    // TODO Auto-generated method stub
-                    return null;
+                @Override public Writer createAndAddWriter(String destinationId,Required required) {
+                    throw new UnsupportedOperationException("nyi");
+                    //return null;
                 }
                 @Override public void run() {
-                    p("running: "+id()+" accepting on: "+serverSocket);
-                    l.info("running: "+id()+" accepting on: "+serverSocket);
+                    l.info(id()+" is accepting on: "+serverSocket);
                     while(!isShuttingDown) {
                         try {
                             Socket socket=serverSocket.accept();
-                            l.info("server: "+id()+" accepted connection from: "+socket);
+                            l.info(id()+" accepted connection from: "+socket);
                             // we might be able to guess the ip and service?
                             InetAddress iNetAddress=socket.getInetAddress();
-                            l.info("socket address: "+iNetAddress);
-                            Reader reader=new Reader(this,id(),null/* no id yet*/,socket,new Histories());
+                            l.info(id()+" socket address: "+iNetAddress);
+                            Reader reader=Reader.create(this,id(),null/* no id yet*/,socket,new Histories());
                             synchronized(this) {
                                 newConnections.add(reader);
                             }
@@ -150,12 +173,12 @@ public interface Server {
                             // don't add yet, until we receive a message,so we know where he is listening.
                         } catch(IOException e) {
                             if(isShuttingDown) {
-                                l.info("server: "+required.id+" is shutting down");
+                                l.info(id()+" is shutting down");
                                 if(e.toString().contains("socket closed")) l.info("0 (maybe normal) server: "+id()+" caught: "+e);
                                 else if(e.toString().contains("Socket is closed")) l.info("0 (maybe normal) server: "+id()+" caught: "+e);
-                                else l.info("1 server: "+id()+" caught: "+e);
+                                else l.info(id()+" 1 server: "+id()+" caught: "+e);
                             } else {
-                                l.info("server: "+id()+"is not shutting down, server caught: "+e);
+                                l.info(id()+" server is not shutting down, server caught: "+e);
                                 e.printStackTrace();
                             }
                             break;
@@ -165,9 +188,9 @@ public interface Server {
                         l.info(id()+" closing server socket.");
                         serverSocket.close();
                     } catch(IOException e) {
-                        if(isShuttingDown) l.info("server: "+id()+" shutting down, server caught: "+e);
+                        if(isShuttingDown) l.info(id()+" shutting down, server caught: "+e);
                         else {
-                            l.severe("server: "+id()+" not shutting down, server caught: "+e);
+                            l.severe(id()+" not shutting down, server caught: "+e);
                             e.printStackTrace();
                             System.exit(1);
                         }
@@ -175,7 +198,6 @@ public interface Server {
                 }
                 final Message.Factory messageFactory;
                 final Histories histories=new Histories();
-                final ServerSocket serverSocket;
                 private volatile boolean isShuttingDown;
                 final Set<Reader> newConnections=new LinkedHashSet<>();
                 // maybe Map<Pair<host,service>,pair<reader,Writer>>
@@ -184,18 +206,25 @@ public interface Server {
                 //final Map<String,Pair<Writer,Reader>> idToPair=new TreeMap<>(); // destination id!
                 //public static final String ok="ok";
                 //static int serialNumbers=0;
+                @Override public ServerSocket serverSocket() {
+                    // TODO Auto-generated method stub
+                    return null;
+                }
             }
             private static class ServerImpl extends ServerABC implements Server {
                 ServerImpl(Required required) throws IOException {
                     super(required);
                 }
+                @Override public ServerSocket serverSocket() {
+                    return serverSocket;
+                }
                 @Override public Message.Factory messageFactory() {
                     return messageFactory;
                 }
-                @Override public void startServer() { // should we use a different name?
-                    super.start();
-                    // only works for ourselves!
-                    createAndAddSender(id(),required);
+                @Override public boolean startServer() { // should we use a different name?
+                    boolean ok=super.startServer();
+                    if(ok) createAndAddWriter(id(),required);
+                    return ok;
                 }
                 @Override public void broadcast(Object message) {
                     synchronized(this) {
@@ -232,111 +261,139 @@ public interface Server {
                     }
                     if(!ok) throw(new RuntimeException("oops"));
                 }
-                @Override public void addConnection(String newId,Connection connection) {
-                    l.info("adding: "+connection+" to server: "+id()+" has histories: "+histories.serialNumber);
-                    check();
-                    connection.otherId=newId;
-                    synchronized(this) {
-                        l.info("map for: "+id()+" is:"+idToPair());
-                        Pair<Writer,Reader> pair=idToPair().get(newId);
-                        if(connection instanceof Reader) {
-                            InetAddress inetAddress=connection.socket.getInetAddress();
-                            if(pair==null) { // no previous connection or not known?
-                                pair=new Pair<Writer,Reader>(null,(Reader)connection);
-                                l.info(id()+" "+id()+"->"+newId+" received first message from: "+newId+":"+inetAddress);
-                                idToPair().put(newId,pair); // sync
-                                l.warning(id()+" added pair: "+pair);
-                            } else { // there is a previous connection
-                                l.info(id()+"->"+newId+" modifying pair: "+pair);
-                                if(pair.first!=null) {
-                                    l.info(id()+" pair has existing writer: "+pair+" with: "+pair.first.histories.sn());
-                                    l.info(id()+" new reader has: "+connection.histories.sn());
-                                    l.info("merging histories: "+connection.histories);
-                                    if(id().equals(newId)) {
-                                        l.info("with self histories: "+histories());
-                                        if(!histories.equals(connection.histories)) {
-                                            histories().add(connection.histories);
-                                            connection.histories=histories();
-                                            l.info("resulting histories: "+histories());
-                                        }
-                                    } else {
-                                        l.info("with histories: "+pair.first.histories);
-                                        pair.first.histories.add(connection.histories);
-                                        connection.histories=pair.first.histories;
-                                        l.info("resulting histories: "+pair.first.histories);
-                                    }
+                private void newWriter(String newId,Writer writer,Pair<Writer,Reader> pair) {
+                    if(pair==null) {
+                        pair=new Pair<Writer,Reader>(writer,null);
+                        l.info(id()+": "+id()+"->"+newId+" adding new writer to: "+newId);
+                        idToPair().put(newId,pair); // sync
+                        l.info(id()+": "+id()+"->"+newId+" added pair: "+pair);
+                    } else {
+                        l.info(id()+" modifying pair: "+pair);
+                        if(pair.first!=null) {
+                            l.warning(id()+": pair has existing writer: "+pair);
+                            l.warning(id()+" new writer: "+writer);
+                            Writer old=pair.first;
+                            if(connections.remove(old)) {
+                                p(id()+": stoping: "+old);
+                                writer.stopThread();
+                            } else l.severe(id()+": can not remove old writer: "+old);
+                        }
+                        if(pair.second!=null) {
+                            l.warning(id()+" pair has existing receiver!: "+pair);
+                            l.info(id()+" new writer has: "+writer.histories.sn());
+                            p(id()+": adding sender to existing receiver: "+writer);
+                        }
+                        pair.first=writer;
+                        p("adding writer: "+writer);
+                        if(pair.second!=null) {
+                            if(!pair.first.histories.equals(pair.second.histories)) {
+                                l.severe(id()+": histories are different!");
+                                // use reader histories?
+                                p(id()+": sender histories: "+pair.first.histories);
+                                p(id()+": reader histories: "+pair.second.histories);
+                            } else l.warning(id()+": added sender: "+writer+", modified pair: "+pair);
+                        }
+                    }
+                }
+                private void newReader(String newId,Reader reader,Pair<Writer,Reader> pair) {
+                    InetAddress inetAddress=reader.socket.getInetAddress();
+                    if(pair==null) { // no previous connection or not known?
+                        pair=new Pair<Writer,Reader>(null,reader);
+                        l.info(id()+" "+id()+"->"+newId+" added new reader");
+                        l.info(id()+" "+id()+"->"+newId+" received first message from: "+newId+":"+inetAddress);
+                        idToPair().put(newId,pair); // sync
+                        l.info(id()+" added pair: "+pair);
+                    } else { // there is a previous connection
+                        l.info(id()+": "+id()+"->"+newId+" modifying pair: "+pair);
+                        if(pair.first!=null) {
+                            l.info(id()+": pair has existing writer!: "+pair);
+                            l.info(id()+": new reader: "+reader);
+                            l.fine(id()+": merging histories: "+reader.histories);
+                            if(id().equals(newId)) {
+                                l.fine(id()+": with self histories: "+histories());
+                                if(!histories.equals(reader.histories)) {
+                                    l.info("histories 1 adding: "+reader.histories.sn()+" to"+histories().sn());
+                                    histories().add(reader.histories);
+                                    reader.histories=histories();
+                                    l.fine(id()+": resulting histories: "+histories());
                                 }
-                                if(pair.second!=null) { // new reader, what to do here?
-                                    l.warning(id()+"<-"+newId+" pair has exiting reader!: "+pair+" with: "+pair.second.histories.sn());
-                                    l.info(id()+" new reader has: "+connection.histories.sn());
-                                    // save history?
-                                    //pair.second.stopThread();
-                                    l.warning(id()+"<-"+newId+" pair was not modified!: "+pair);
-                                } else { // how can we get here?
-                                    l.warning(id()+"<-"+newId+" pair has existing reader!: "+pair);
-                                    pair.second=(Reader)connection;
-                                    l.info("merging histories: "+connection.histories);
-                                    if(id().equals(newId)) {
-                                        l.info("with self histories: "+histories());
-                                        if(!histories.equals(connection.histories)) {
-                                            histories().add(connection.histories);
-                                            connection.histories=histories();
-                                            l.info("resulting histories: "+histories());
-                                        }
-                                    } else {
-                                        l.info("with histories: "+pair.first.histories);
-                                        pair.first.histories.add(connection.histories);
-                                        connection.histories=pair.first.histories;
-                                        l.info("resulting histories: "+pair.first.histories);
-                                    }
-                                    l.info(id()+"<-"+newId+" added receiver: "+connection+". modified pair: "+pair);
-                                }
-                            }
-                        } else if(connection instanceof Writer) {
-                            if(pair==null) {
-                                pair=new Pair<Writer,Reader>((Writer)connection,null);
-                                l.info(id()+"->"+newId+" new write to: "+newId);
-                                idToPair().put(newId,pair); // sync
-                                l.info(id()+" added pair: "+pair);
                             } else {
-                                l.info(id()+" modifying pair: "+pair);
-                                if(pair.first!=null) {
-                                    l.warning(id()+" pair has existing client, stopping thread!: "+pair);
-                                    l.info(id()+" new writer has: "+connection.histories.sn());
-                                    pair.first.stopThread();
+                                l.fine(id()+": with histories: "+pair.first.histories);
+                                l.info("histories 2 adding: "+reader.histories.sn()+" to"+pair.first.histories.sn());
+                                pair.first.histories.add(reader.histories);
+                                reader.histories=pair.first.histories;
+                                l.fine(id()+": resulting histories: "+pair.first.histories);
+                            }
+                        }
+                        if(pair.second!=null) { // new reader, what to do here?
+                            l.info(id()+" current: "+pair.second+", new: "+reader);
+                            l.info(id()+" current: "+pair.second.serialNumber+", new: "+reader.serialNumber);
+                            l.info(id()+": "+id()+"<-"+newId+" new reader: "+reader);
+                            l.info(id()+": "+id()+"<-"+newId+" pair has existing reader!: "+pair);
+                            l.info(id()+": new reader: "+reader);
+                            // save history?
+                            Reader old=pair.second;
+                            if(connections.remove(old)) {
+                                l.warning(id()+": "+id()+"<-"+newId+" stopping old reader: "+old);
+                                old.stopThread();
+                            } else l.warning(id()+": can not remove old writer: "+old);
+                            pair.second=reader;
+                            l.warning(id()+": "+id()+"<-"+newId+" pair was modified!: "+pair);
+                        } else { // how can we get here?
+                            // easy, connection just received first message from a new tablet
+                            pair.second=reader;
+                            l.fine(id()+": merging histories: "+reader.histories);
+                            if(id().equals(newId)) { // from ourselves
+                                l.fine(id()+": with self histories: "+histories());
+                                if(!histories.equals(reader.histories)) {
+                                    l.info("histories 3 adding: "+reader.histories.sn()+" to"+histories().sn());
+                                    histories().add(reader.histories);
+                                    reader.histories=histories();
+                                    l.fine(id()+": resulting histories: "+histories());
                                 }
-                                if(pair.second!=null) {
-                                    l.warning(id()+" pair has existing receiver!: "+pair);
-                                    l.info(id()+" new writer has: "+connection.histories.sn());
-                                    p(Thread.currentThread()+" "+id()+": adding sender to existing receiver: "+connection);
-                                }
-                                pair.first=(Writer)connection;
-                                p("adding sender: "+connection);
-                                if(pair.second!=null) {
-                                    if(!pair.first.histories.equals(pair.second.histories)) {
-                                        l.severe("histories are different!");
-                                        // use reader histories?
-                                        p("sender histories: "+pair.first.histories);
-                                        p("reader histories: "+pair.second.histories);
-                                    } else l.warning(id()+" added sender: "+connection+", modified pair: "+pair);
+                            } else { // connection just received first message from another tablet
+                                l.fine(id()+": with histories: "+pair.first.histories);
+                                if(reader.histories.sn().equals(pair.first.histories.sn())) ;
+                                else {
+                                    l.info("histories 4 adding: "+reader.histories.sn()+" to"+pair.first.histories.sn());
+                                    pair.first.histories.add(reader.histories);
+                                    reader.histories=pair.first.histories;
+                                    l.fine(id()+": resulting histories: "+pair.first.histories);
                                 }
                             }
-                        } else l.severe(id()+" strange connection type: "+connection);
-                        l.info("new map for: "+id()+" is:"+idToPair());
+                            l.info(id()+": "+id()+"<-"+newId+" added receiver: "+reader+". modified pair: "+pair);
+                        }
+                    }
+                }
+                @Override public void addConnection(String newId,Connection connection) {
+                    synchronized(this) {
+                        l.info(id()+": current map is:"+idToPair());
+                        l.info(id()+": adding: "+connection+" to server: "+id()+" has histories: "+histories.sn());
+                        check();
+                        connection.otherId=newId;
+                        Pair<Writer,Reader> pair=idToPair().get(newId);
+                        if(connection instanceof Reader) newReader(newId,(Reader)connection,pair);
+                        else if(connection instanceof Writer) newWriter(newId,(Writer)connection,pair);
+                        else l.severe(id()+": strange connection type: "+connection);
+                        l.info(id()+": new map for: "+id()+" is:"+idToPair());
                     }
                     check();
                 }
-                public Writer createAndAddSender(String destinationId,Required required) {
+                public Writer createAndAddWriter(String destinationId,Required required) {
                     Writer sender=null;
                     try {
-                        l.info("trying: "+required.host+":"+required.service);
-                        sender=new Writer(id(),destinationId,required);
+                        l.info(id()+": trying: "+required.host+":"+required.service);
+                        sender=Writer.create(id(),destinationId,required);
+                        if(sender!=null) {} else {
+                            l.warning(id()+": can not create writer!");
+                            return null;
+                        }
                         if(destinationId.equals(id())) {
-                            l.warning("adding sender to self.");
+                            l.info(id()+": adding sender to self.");
                             sender.histories=histories(); // use our histories
                         }
                         sender.otherId=destinationId;
-                        l.info("adding: "+sender);
+                        l.info(id()+": adding: "+sender);
                         addConnection(destinationId,sender);
                     } catch(IOException e) {
                         e.printStackTrace();
@@ -347,7 +404,7 @@ public interface Server {
                     heartbeat=new Thread(new Runnable() {
                         @Override public void run() {
                             while(true) {
-                                broadcast(messageFactory.other(Type.heartbeat,"1","T1"));
+                                broadcast(messageFactory.other(Type.heartbeat,"1",id()));
                                 try {
                                     Thread.sleep(100);
                                 } catch(InterruptedException e) {
@@ -370,56 +427,79 @@ public interface Server {
                     }
                 }
                 @Override public void run() {
-                    p("running: "+id()+" accepting on: "+serverSocket);
-                    l.info("running: "+id()+" accepting on: "+serverSocket);
                     while(!isShuttingDown) {
-                        try {
-                            Socket socket=serverSocket.accept();
-                            l.info("server: "+id()+" accepted connection from: "+socket);
-                            // we might be able to guess the ip and service?
-                            InetAddress iNetAddress=socket.getInetAddress();
-                            l.info("socket address: "+iNetAddress);
-                            Reader reader=new Reader(this,id(),null/* no id yet*/,socket,new Histories());
-                            synchronized(this) {
-                                newConnections.add(reader);
+                        if(serverSocket!=null) l.info(id()+" accepting on: "+serverSocket);
+                        // idea: a log server for java that uses wifi and greps into windows?
+                        if(serverSocket!=null&&!serverSocket.isClosed()&&serverSocket.isBound()) {
+                            p("try to accept: ");
+                            try {
+                                p("accepting: ");
+                                Socket socket=serverSocket.accept();
+                                l.info(id()+" accepted connection from: "+socket);
+                                // we might be able to guess the ip and service?
+                                InetAddress iNetAddress=socket.getInetAddress();
+                                l.info(id()+": socket address: "+iNetAddress);
+                                Reader reader;
+                                synchronized(this) {
+                                    reader=Reader.create(this,id(),null/* no id yet*/,socket,new Histories());
+                                    l.info(id()+" connection created: "+reader);
+                                    connections.add(reader);
+                                    if(false) {
+                                        p("connections: ");
+                                        for(Connection connection:connections)
+                                            p(connection.id+": "+connection);
+                                    }
+                                }
+                                reader.thread=new Thread(reader);
+                                reader.thread.setName(socket.getRemoteSocketAddress().toString()+"->"+id());
+                                reader.thread.start();
+                                // don't add yet, until we receive a message,so we know where he is listening.
+                            } catch(IOException e) {
+                                if(isShuttingDown) {
+                                    l.info(id()+": server: "+required.id+" is shutting down");
+                                    if(e.toString().contains("socket closed")) l.info("0 (maybe normal) server: "+id()+" caught: "+e);
+                                    else if(e.toString().contains("Socket is closed")) l.info("0 (maybe normal) server: "+id()+" caught: "+e);
+                                    else l.info(id()+": 1 server: "+id()+" caught: "+e);
+                                } else {
+                                    l.info(id()+": is not shutting down, server caught: "+e);
+                                    e.printStackTrace();
+                                }
+                                break;
                             }
-                            reader.thread=new Thread(reader);
-                            reader.thread.setName(socket.getRemoteSocketAddress().toString()+"->"+id());
-                            reader.thread.start();
-                            // don't add yet, until we receive a message,so we know where he is listening.
-                        } catch(IOException e) {
-                            if(isShuttingDown) {
-                                l.info("server: "+required.id+" is shutting down");
-                                if(e.toString().contains("socket closed")) l.info("0 (maybe normal) server: "+id()+" caught: "+e);
-                                else if(e.toString().contains("Socket is closed")) l.info("0 (maybe normal) server: "+id()+" caught: "+e);
-                                else l.info("1 server: "+id()+" caught: "+e);
-                            } else {
-                                l.info("server: "+id()+"is not shutting down, server caught: "+e);
+                            try {
+                                Thread.sleep(0);
+                            } catch(InterruptedException e) {
                                 e.printStackTrace();
                             }
-                            break;
+
+                        } else { // not bound
+                            try {
+                                Thread.sleep(1);
+                            } catch(InterruptedException e) {
+                                e.printStackTrace();
+                            }
                         }
                     } // was in the wrong place!
                     try {
-                        l.info(id()+" closing server socket.");
+                        l.info(id()+": closing server socket.");
                         serverSocket.close();
                     } catch(IOException e) {
-                        if(isShuttingDown) l.info("server: "+id()+" shutting down, server caught: "+e);
+                        if(isShuttingDown) l.info(id()+": shutting down, server caught: "+e);
                         else {
-                            l.severe("server: "+id()+" not shutting down, server caught: "+e);
+                            l.severe(id()+": is not shutting down, server caught: "+e);
                             e.printStackTrace();
                             System.exit(1);
                         }
                     }
                 }
                 void waitForServersToStart(int devices) {
-                    l.info("wait for: "+devices+" devices to connect");
+                    l.info(id()+": wait for: "+devices+" devices to connect");
                     while(idToPair.size()<devices)
                         Thread.yield();
-                    l.info(devices+" connected.");
+                    l.info(id()+": "+devices+" connected.");
                 }
                 void waitForServersToComplete(int n) throws InterruptedException {
-                    l.info("wait for: "+idToPair.size()+" servers to complete: "+n+" messages.");
+                    l.info(id()+": wait for: "+idToPair.size()+" servers to complete: "+n+" messages.");
                     for(boolean done=false;!done;) {
                         done=true;
                         for(Pair<Writer,Reader> pair:idToPair.values()) // how can this work!
@@ -427,7 +507,7 @@ public interface Server {
                         if(done) break;
                         Thread.sleep(10);
                     }
-                    l.info(idToPair.size()+" servers complete.");
+                    l.info(id()+": "+idToPair.size()+" servers complete.");
                 }
                 public void waitForServersToShutdown() throws IOException {
                     for(Pair<Writer,Reader> pair:idToPair.values())
@@ -436,38 +516,44 @@ public interface Server {
                             // how to set receiver to null?
                         }
                 }
-                @Override public void stopServer() {
-                    l.info(" stopping server: "+this);
+                @Override public void stopServer() { // sync?
                     isShuttingDown=true;
-                    l.info(" stopping senders and receivers: "+this);
-                    l.info("shutting down old connections:");
-                    for(Pair<Writer,Reader> pair:idToPair.values()) {
-                        l.info("shutting down old connection: "+pair);
-                        if(pair.first!=null) pair.first.stopThread();
-                        if(pair.second!=null) pair.second.stopThread();
-                    }
-                    l.info("shutting down new connections:");
-                    for(Reader receiver:newConnections) {
-                        l.info("shutting down new connection: "+receiver);
-                        receiver.stopThread();
-                    }
-                    try {
-                        l.info("closing server socket");
-                        serverSocket.close();
-                        l.info("server socket closed");
-                    } catch(IOException e) {
-                        l.info("caught: "+e);
-                        e.printStackTrace();
-                    }
-                    if(!this.equals(Thread.currentThread())) {
-                        l.info("joining with: "+this+", threadinterrupted: "+this.isInterrupted()+", alive: "+this.isAlive());
+                    if(serverSocket!=null) {
+                        l.info(id()+":  stopping server: "+this);
                         try {
-                            this.join();
-                        } catch(InterruptedException e) {
-                            l.info("join interrupted!");
+                            l.info(id()+": closing server socket");
+                            serverSocket.close();
+                            l.info(id()+": server socket closed");
+                        } catch(IOException e) {
+                            l.info(id()+": caught: "+e);
+                            e.printStackTrace();
+                        }
+                        serverSocket=null; // hack
+                    } else l.warning("server socket is null!");
+                    if(true) {
+                        l.info(id()+": stopping writers and readers: "+this);
+                        for(Pair<Writer,Reader> pair:idToPair.values()) {
+                            l.info(id()+": shutting down old connections: "+pair);
+                            if(pair.first!=null) pair.first.stopThread();
+                            if(pair.second!=null) pair.second.stopThread();
+                        }
+                    } else {
+                        l.info(id()+": shutting down new connections:");
+                        for(Reader receiver:connections) {
+                            l.info(id()+": shutting down new connection: "+receiver);
+                            receiver.stopThread();
                         }
                     }
-                    l.info(" exit stopping server with thread: "+this);
+                    if(!this.equals(Thread.currentThread())) {
+                        l.info(id()+": joining with: "+this+", threadinterrupted: "+this.isInterrupted()+", alive: "+this.isAlive());
+                        try {
+                            this.join();
+                            l.info(id()+": join completed: "+this);
+                        } catch(InterruptedException e) {
+                            l.info(id()+": join interrupted!");
+                        }
+                    }
+                    l.info(id()+":  exit stopping server with thread: "+this);
                 }
                 @Override public Map<String,Pair<Writer,Reader>> idToPair() {
                     return idToPair;
@@ -477,19 +563,23 @@ public interface Server {
                 }
                 @Override public String maps() {
                     StringBuffer sb=new StringBuffer();
-                    sb.append("\n id to pair: "+idToPair());
+                    sb.append("\n\tid to pair: ");
+                    for(Entry<String,Pair<Writer,Reader>> entry:idToPair().entrySet())
+                        sb.append("\n\t"+entry);
                     return sb.toString();
                 }
                 @Override public String report() {
                     StringBuffer sb=new StringBuffer();
-                    sb.append("report for: "+id()+"\n");
+                    sb.append("\nreport for: "+id()+"\n");
                     //sb.append("from this: "+histories+"\n");
-                    sb.append("maps: "+maps()+"\n");
                     synchronized(idToPair) {
+                        sb.append("\tmaps:\n");
+                        sb.append(maps());
+                        sb.append("\n");
                         for(Pair<Writer,Reader> pair:idToPair.values()) {
                             if(pair.first!=null&&pair.second!=null) {
                                 if(pair.first.histories.serialNumber!=pair.second.histories.serialNumber) {
-                                    sb.append("write and reader: "+pair.first.histories.serialNumber+"!="+pair.second.histories.serialNumber);
+                                    sb.append("\twriter and reader: "+pair.first.histories.serialNumber+"!="+pair.second.histories.serialNumber);
                                     sb.append('\n');
                                 }
                                 /* // no access to id in histories!
@@ -502,19 +592,19 @@ public interface Server {
                                     sb.append('\n');
                                 }
                                 */
-                            } else sb.append("only one!");
+                            } else sb.append("\tonly one!");
                             if(pair.first!=null) {
+                                sb.append('\t');
                                 sb.append(pair.first.id+"->"+pair.first.otherId);
-                                sb.append('\n');
                                 sb.append(pair.first.histories.senderHistory);
-                            } else sb.append("null");
+                                sb.append('\n');
+                            } else sb.append("null\n");
                             if(pair.second!=null) {
-                                sb.append('\n');
+                                sb.append('\t');
                                 sb.append(pair.second.id+"<-"+pair.second.otherId);
-                                sb.append('\n');
                                 sb.append(pair.second.histories.receiverHistory);
                                 sb.append('\n');
-                            }
+                            } else sb.append("null\n");
                             sb.append("-----\n");
                         }
                     }
@@ -525,7 +615,7 @@ public interface Server {
                 }
                 //final Set<SocketAddress> socketAddresses; // maybe add these in later?
                 Thread heartbeat;
-                final Set<Reader> newConnections=new LinkedHashSet<>();
+                final Set<Reader> connections=new LinkedHashSet<>();
                 final Map<String,Pair<Writer,Reader>> idToPair=new TreeMap<>(); // destination id!
                 public static final String ok="ok";
                 static int serialNumbers=0;

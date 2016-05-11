@@ -11,11 +11,10 @@ import static com.tayek.io.IO.*;
 public class Drive2 {
     public static void main(String[] args) throws IOException {
         Map<String,Required> requireds=new Groups().groups.get("g0");
-        String tabletId=aTabletId(99);
-        requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
+        String tabletId=Groups.add("localhost",defaultReceivePort,requireds);
         Group group=new Group("1",requireds,Model.mark1);
         p("group: "+group);
-        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(group,tabletId);
+        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(group,tabletId,group.getModelClone());
         group=null; // tablet has a clone of group;
         BufferedReader r=new BufferedReader(new InputStreamReader(System.in));
         while(true) {
@@ -26,6 +25,7 @@ public class Drive2 {
                 if(n==0) ;
                 else if(n>0) {
                     destinationId=aTabletId(n);
+                    // broken, maybe use n as index into the table if it's in build order?
                     Message message=tablet.messageFactory().other(Type.drive,tablet.group().groupId,tablet.tabletId());
                     InetSocketAddress inetSocketAddress=tablet.group().socketAddress(destinationId);
                     Client.send(tablet.tabletId(),message,destinationId,inetSocketAddress,tablet.group().required(destinationId).histories());

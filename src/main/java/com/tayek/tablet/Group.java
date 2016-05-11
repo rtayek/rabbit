@@ -17,31 +17,27 @@ import com.tayek.utilities.*;
 import static com.tayek.utilities.Utility.*;
 public class Group implements Cloneable { // maybe this belongs in sender?
     public static class Groups {
+        public static String add(String host,Integer service,Map<String,Required> map) {
+            Required required=new Required(host,service);
+            map.put(required.id,required);
+            return required.id;
+        }
         public Groups() {
             // this needs to take testing prefix
             // really? for socket logging or what?
             boolean old=false;
             if(!old) {
-                int tablets=6;
-                for(int tabletId=1;tabletId<=tablets;tabletId++)
-                    g0.put(aTabletId(tabletId),new Required(aTabletId(tabletId),tabletRouterPrefix+(10+tabletId),defaultReceivePort));
-                tablets=10;
+                int tablets=10;
                 String host,id;
                 for(int i=1;i<=tablets;i++) {
                     host=tabletRouterPrefix+(10+i);
-                    id=Required.defaultId(host,defaultReceivePort);
-                    Required required=new Required(id,host,defaultReceivePort);
-                    big0.put(id,required);
+                    add(host,defaultReceivePort,g0);
                 }
                 host=raysPcOnTabletNetworkToday;
-                id=Required.defaultId(host,defaultReceivePort);
-                Required required=new Required(id,host,defaultReceivePort);
-                big0.put(id,required);
+                add(host,defaultReceivePort,g0);
                 host=laptopToday;
-                id=Required.defaultId(host,defaultReceivePort);
-                required=new Required(id,host,defaultReceivePort);
-                big0.put(id,required);
-                groups.put("big0",big0);
+                add(host,defaultReceivePort,g0);
+                groups.put("g0",g0);
             } else {
                 g0.put(aTabletId(1),new Required("fire 1",tabletRouterPrefix+21,defaultReceivePort));
                 g0.put(aTabletId(2),new Required("fire 2",tabletRouterPrefix+22,defaultReceivePort));
@@ -54,40 +50,39 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                 //g0.put(99,new Info("nexus 4",99,IO.defaultReceivePort)));
             }
             groups.put("g0",g0);
-            g2OnPc.put("pc-4",new Required("pc-4",testingHost,defaultReceivePort+4));
-            g2OnPc.put("pc-5",new Required("pc-5",testingHost,defaultReceivePort+5));
+            add(testingHost,defaultReceivePort+4,g2OnPc);
+            add(testingHost,defaultReceivePort+5,g2OnPc);
             groups.put("g2OnPc",g2OnPc);
-            g2OnRouter.put("pc-4",new Required("pc-4",defaultHost,defaultReceivePort+4));
-            g2OnRouter.put("pc-5",new Required("pc-5",defaultHost,defaultReceivePort+5));
+            add(defaultHost,defaultReceivePort+4,g2OnRouter);
+            add(defaultHost,defaultReceivePort+5,g2OnRouter);
             groups.put("g2OnRouter",g2OnRouter);
             //g1each.put(3,new Info("nexus 7",Main.networkPrefix+70,Main.defaultReceivePort));
             // two fake tablets on pc, but on different networks.
             // the 100 is dhcp'ed, so it may change once in a while.
-            g1each.put("pc-4",new Required("pc-4",defaultHost,defaultReceivePort+4));
-            g1each.put("pc-5",new Required("pc-5",testingHost,defaultReceivePort+4));
+            add(defaultHost,defaultReceivePort+4,g1each);
+            add(testingHost,defaultReceivePort+5,g1each);
             groups.put("g1each",g1each);
         }
         private final Map<String,Required> g2OnPc=new TreeMap<>();
         private final Map<String,Required> g2OnRouter=new TreeMap<>();
         private final Map<String,Required> g0=new TreeMap<>();
-        private final Map<String,Required> big0=new TreeMap<>();
         private final Map<String,Required> g1each=new TreeMap<>();
         public final Map<String,Map<String,Required>> groups=new TreeMap<>();
         // hack, change the above before calling new Groups!
     }
-    public class TabletImpl2 extends TabletABC {
+    public static class TabletImpl2 extends TabletABC {
         // get group out of constructor!
         // or fix all of the callers!
-        public TabletImpl2(String tabletId) {
-            super(Group.this,tabletId,Group.this.getModelClone(),Group.this.required(tabletId).histories());
+        public TabletImpl2(Group group,String tabletId,Model model) {
+            super(group,tabletId,model,group.required(tabletId).histories());
             messageFactory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
-            int n=keys().size();
+            int n=group.keys().size();
             executorService=Executors.newFixedThreadPool(4*n+2);
             canceller=Executors.newScheduledThreadPool(4*n+2);
             model().histories=histories();
         }
         public Group group() {
-            return Group.this;
+            return group;
         }
         // strange dream about two ways to do something
         // (kike get host and service?)
@@ -98,12 +93,12 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             // to all of the tablets.
             // then add it in?
             l.info("broadcasting: "+message);
-            for(String destinationTabletId:keys()) {
-                InetSocketAddress inetSocketAddress=socketAddress(destinationTabletId);
-                SendCallable sendCallable=new SendCallable(tabletId(),message,destinationTabletId,required(destinationTabletId).histories(),inetSocketAddress);
+            for(String destinationTabletId:group.keys()) {
+                InetSocketAddress inetSocketAddress=group.socketAddress(destinationTabletId);
+                SendCallable sendCallable=new SendCallable(tabletId(),message,destinationTabletId,group.required(destinationTabletId).histories(),inetSocketAddress);
                 if(config.useExecutorService)
                     Client.executeTaskAndCancelIfItTakesTooLong(executorService,sendCallable,config.sendTimeout,config.runCanceller?canceller:null,config.waitForSendCallable);
-                else new Thread(new SendCallable(tabletId(),message,destinationTabletId,required(destinationTabletId).histories(),inetSocketAddress)).start();
+                else new Thread(new SendCallable(tabletId(),message,destinationTabletId,group.required(destinationTabletId).histories(),inetSocketAddress)).start();
                 try {
                     Thread.sleep(5); // to out of order
                 } catch(InterruptedException e) {
@@ -116,15 +111,15 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             if(histories.reportPeriod>0&&histories.anyAttempts()&&clientHistory.history.attempts()%(10*histories.reportPeriod)==0) l.warning("report histories from client: "+report(tabletId()));
         }
         @Override public String report(String id) {
-            return Group.this.report(tabletId());
+            return group.report(tabletId());
         }
         public void accumulateToAll() { // adds send times for all tablets together
             // not quite what we want accumulate to do.
             // seems to be only used by driver.
             Histories histories=histories();
             p("before: "+histories.senderHistory.allSendTimes);
-            for(String destinationTabletId:keys()) {
-                Histories h=required(destinationTabletId).histories();
+            for(String destinationTabletId:group.keys()) {
+                Histories h=group.required(destinationTabletId).histories();
                 //p("adding: "+h.clientHistory.client.successHistogram);
                 //p("to: "+history.clientHistory.allSendTimes);
                 histories.senderHistory.allSendTimes.add(h.senderHistory.history.successHistogram);
@@ -134,9 +129,9 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             p("after: "+histories.senderHistory.allSendTimes);
         }
         boolean historiesAreInconsitant() {
-            if(tabletId()!=null&&keys()!=null) if(!histories.equals(required(tabletId()).histories())) {
+            if(tabletId()!=null&&group.keys()!=null) if(!histories.equals(group.required(tabletId()).histories())) {
                 p("history in tablet: "+histories.serialNumber);
-                if(tabletId()!=null&&keys()!=null) p("history in tablet: "+required(tabletId()).histories().serialNumber);
+                if(tabletId()!=null&&group.keys()!=null) p("history in tablet: "+group.required(tabletId()).histories().serialNumber);
                 l.severe("histories are not equal");
                 return true;
             }
@@ -149,12 +144,12 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         @Override public String toString() {
             return tabletId()+" "+model();
         }
-        public boolean startListening() {
+        @Override public boolean startServer() {
             // should need only enough information to bind to the correct interface 
             // but at this point we should know our ip address for the correct interface
             l.info(tabletId()+" binding to: "+required.host+':'+required.service);
             InetSocketAddress inetSocketAddress=new InetSocketAddress(required.host,required.service);
-            Receiver.ReceiverImpl receiver=new Receiver.ReceiverImpl(tabletId(),this,keys(),model());
+            Receiver.ReceiverImpl receiver=new Receiver.ReceiverImpl(tabletId(),this,group.keys(),model());
             ServerSocket serverSocket=serverSocket(inetSocketAddress);
             if(serverSocket!=null&&serverSocket.isBound()) {
                 server=new Server(this,serverSocket,receiver,config,histories());
@@ -165,7 +160,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                 return false;
             }
         }
-        public void stopListening() {
+        @Override public void stopServer() {
             if(server!=null) {
                 server.stopServer();
                 server=null;
@@ -219,7 +214,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         }
         void forever() {
             for(int k=1;k<1000&&!stopDriving;k++) {
-                Message message=messageFactory.other(Type.reset,groupId,tabletId());
+                Message message=messageFactory.other(Type.reset,group.groupId,tabletId());
                 broadcast(message);
                 try {
                     Thread.sleep(5_000);
@@ -235,7 +230,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                     }
                 }
                 report(tabletId());
-                message=messageFactory.other(Type.rolloverLogNow,groupId,tabletId());
+                message=messageFactory.other(Type.rolloverLogNow,group.groupId,tabletId());
                 broadcast(message);
                 try {
                     Thread.sleep(1_000);
@@ -254,7 +249,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         }
         public void startSimulating() {
             if(simulationTimer!=null) stopSimulating();
-            ArrayList<String> ids=new ArrayList<>(keys());
+            ArrayList<String> ids=new ArrayList<>(group.keys());
             final int dt=500;
             final Random random=new Random();
             simulationTimer=new Timer();
@@ -263,7 +258,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                     int i=random.nextInt(model().buttons-1);
                     click(i+1);
                 }
-            },1_000+ids.indexOf(tabletId())*dt,dt*keys().size());
+            },1_000+ids.indexOf(tabletId())*dt,dt*group.keys().size());
         }
         public void stopSimulating() {
             if(simulationTimer!=null) {
@@ -295,8 +290,10 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     }
     private Group(String id,Group group,int serialNumber) { // same serial #, copy of map, same requireds!
         groupId=id;
-        if(group.idToRequired!=null) this.idToRequired.putAll(group.idToRequired);
-        prototype=group.prototype;
+        synchronized(group) {
+            if(group.idToRequired!=null) this.idToRequired.putAll(group.idToRequired);
+            prototype=group.prototype;
+        }
     }
     @Override public Group clone() {
         //super.clone();
@@ -306,7 +303,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     public Set<Tablet> createAll() { // mostly for testing
         Set<Tablet> tablets=new LinkedHashSet<>();
         for(String tabletId:keys())
-            tablets.add(Tablet.factory.create2(this,tabletId));
+            tablets.add(Tablet.factory.create2(this,tabletId,getModelClone()));
         return tablets;
     }
     public static Set<Tablet> createGroupAndstartTablets(String groupId,Map<String,Required> requireds) {
@@ -315,25 +312,36 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         Set<Tablet> tablets=group.createAll();
         for(Tablet tablet:tablets) {
             tablet.model().addObserver(new AudioObserver(tablet.model())); // maybe not if testing?
-            if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).startListening();
+            if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).startServer();
         }
         return tablets;
+    }
+    public Set<String> onHost(String host) { // sync?
+        Set<String> set=new TreeSet<>();
+        for(String key:keys())
+            if(idToRequired.get(key).host.equals(host)) set.add(key);
+        return set;
     }
     public InetSocketAddress socketAddress(String tabletId) {
         Required required=required(tabletId);
         return required==null?null:new InetSocketAddress(required.host,required.service);
     }
     public Set<String> keys() {
-        return idToRequired!=null?idToRequired.keySet():null;
+        if(idToRequired!=null) synchronized(F) {
+            return idToRequired.keySet();
+        }
+        else return null;
     }
-    public Required required(String id) {
+    public Required required(String id) { // sync this?
         return id==null?null:idToRequired!=null?idToRequired.get(id):null;
     }
     public String getTabletIdFromHost(String host,Integer service) {
         // this is called on the android!
-        for(String i:keys()) // fragile!
-            if(required(i)!=null&&host.equals(required(i).host)&&(service==null||service==0||service.equals(required(i).service))) return i;
-        return null;
+        synchronized(idToRequired) {
+            for(String i:keys()) // fragile!
+                if(required(i)!=null&&host.equals(required(i).host)&&(service==null||service==0||service.equals(required(i).service))) return i;
+            return null;
+        }
     }
     public String getTabletIdFromInetAddress(InetAddress inetAddress,Integer service) {
         // this is called on the android!
@@ -356,7 +364,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     // need to clone the map?
     // tablet ctor is smart enough to copy the histories from the map
     // and they are all different
-    public String report(String id) {
+    public String report(String id) { // sync?
         // need to find the tablet to get the right history?
         // looks like the server history only makes sense for the driving tablet when testing.
         // so maybe check for that when driving and omit the print.

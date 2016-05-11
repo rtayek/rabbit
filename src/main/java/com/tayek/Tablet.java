@@ -20,6 +20,8 @@ public interface Tablet {
     Histories histories();
     String report(String id);
     boolean isHeatbeatOn();
+    boolean startServer();
+    void stopServer();
     void startHeatbeat();
     void stopHeartbeat();
     interface HasATablet {
@@ -29,24 +31,23 @@ public interface Tablet {
     }
     interface Factory {
         Tablet create1(Group group,String id);
-        Tablet create2(Group group,String id);
+        Tablet create2(Group group,String id,Model model);
         class FactoryImpl implements Factory {
             @Override public TabletImpl1 create1(Group group,String id) {
                 Server server=Server.factory.create(group.required(id));
                 return new TabletImpl1(group.clone(),id,server,group.getModelClone());
             }
-            @Override public TabletImpl2 create2(Group group,String id) {
+            @Override public TabletImpl2 create2(Group group,String id,Model model) {
                 Group clone=group.clone();
-                return clone.new TabletImpl2(id);
+                return new TabletImpl2(clone,id,model);
             }
-            // second just needs an id?
-            // first needs group or map: id->required
             public static abstract class TabletABC implements Tablet {
                 public TabletABC(Group group,String tabletId,Model model,Histories histories) {
                     this.group=group;
                     required=group.required(tabletId);
                     this.tabletId=tabletId;
                     this.model=model;
+                    if(!model.serialNumber.equals(group.getModelClone().serialNumber)) l.severe("models have different serial numbers! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
                     this.histories=histories;
                 }
                 @Override public Group group() {
@@ -73,6 +74,7 @@ public interface Tablet {
                 // move this to model!
                 // is this a controller?
                 @Override public void click(int id) {
+                    l.info("click: "+id+" in: "+this);
                     try {
                         if(1<=id&&id<=model().buttons) synchronized(model()) {
                             if(model().resetButtonId!=null&&id==model().resetButtonId) {
@@ -131,6 +133,12 @@ public interface Tablet {
                 TabletImpl1(Group group,String id,Server server,Model model) {
                     super(group,id,model,server.histories());
                     this.server=server;
+                }
+                @Override public boolean startServer() {
+                    return server.startServer();
+                }
+                @Override public void stopServer() {
+                    server.stopServer();
                 }
                 @Override public com.tayek.tablet.Message.Factory messageFactory() {
                     return server.messageFactory();

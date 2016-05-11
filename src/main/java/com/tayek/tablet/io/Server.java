@@ -46,8 +46,8 @@ public class Server implements Runnable {
             l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", try to read");
             string=in.readLine();
             if(string==null||string.isEmpty()) {
-                p("1eof or empty string!");
-                throw new RuntimeException("eof or empty string");
+                l.warning("1eof or empty string!");
+                if(!isShuttingDown) throw new RuntimeException("eof or empty string");
             }
             if(shutdownOptions.closeInput) {
                 l.fine("#"+(histories.receiverHistory.history.attempts()+1)+", read, try to close input");
@@ -109,7 +109,7 @@ public class Server implements Runnable {
                 synchronized(histories) { // try to find missing
                     l.info("#"+(histories.receiverHistory.history.attempts()+1)+", "+id+" time to sync: "+et);
                     String string=read(id,socket);
-                    if(string==null||string.isEmpty()) l.severe("server: "+id+", read eof or empty string!");
+                    if(string==null||string.isEmpty()) if(!isShuttingDown) l.severe("server: "+id+", read eof or empty string!");
                     if(receiver!=null) if(string!=null) receiver.receive(string);
                     l.info("#"+histories.receiverHistory.history.attempts()+", "+id+" time to sync and read: "+et);
                     if(histories.receiverHistory.history.attempts()>0&&reportPeriod>0&&histories.receiverHistory.history.attempts()%reportPeriod==0) l.warning(id+", history from server: "+histories);
@@ -172,7 +172,7 @@ public class Server implements Runnable {
         thread.start();
     }
     public void stopServer() {
-        l.info(id+" stopping server");
+        l.warning(id+" stopping server");
         isShuttingDown=true;
         try {
             l.fine(id+", closing server socket");

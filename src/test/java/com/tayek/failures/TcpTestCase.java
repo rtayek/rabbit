@@ -41,13 +41,14 @@ import com.tayek.utilities.Single;
         config.replying=replying;
         if(socketAddress instanceof InetSocketAddress) {
             InetSocketAddress inetSocketAddress=(InetSocketAddress)socketAddress;
-            Required required=new Required("T0",inetSocketAddress.getHostName(),inetSocketAddress.getPort());
+            Required required=new Required(inetSocketAddress.getHostName(),inetSocketAddress.getPort());
             messages=Message.instance.create(required.host,required.service,new Single<Integer>(0));
         } else throw new RuntimeException(socketAddress+" is not an InetSocketAddress!");
     }
     @Parameters public static Collection<Object[]> data() throws UnknownHostException,InterruptedException,ExecutionException {
         Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(networkStub));
         LoggingHandler.init();
+        int serviceOffset=6000; // hackish, reconcile with the one in the abstract test case. 
         l.info("addresses: "+inetAddresses);
         List<InetSocketAddress> list=new ArrayList<>();
         list.add(new InetSocketAddress("localhost",defaultReceivePort+serviceOffset));
@@ -83,6 +84,7 @@ import com.tayek.utilities.Single;
         return isOk;
     }
     @Test() public void testConnectAndClose() throws Exception {
+        LoggingHandler.setLevel(Level.INFO);
         Histories histories=new Histories();
         Receiver.DummyReceiver receiver=new Receiver.DummyReceiver();
         Config config=new Config();
@@ -95,6 +97,7 @@ import com.tayek.utilities.Single;
         server.startServer();
         Socket socket=Client.connect(socketAddress,100,config,null);
         if(socket!=null) p("connected to: "+socket);
+        else p("check to see if network interface is up!");
         assertTrue(socket!=null);
         Thread.sleep(100);
         socket.close();

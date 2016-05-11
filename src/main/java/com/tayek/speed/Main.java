@@ -17,8 +17,8 @@ public class Main {
         Set<Server> servers=new LinkedHashSet<>();
         // map<string,Pair<String,Integer> map again?
         for(Integer i=1;i<=n;i++)
-            if(i==1) servers.add(factory.create(new Required("T"+i,raysPcOnRaysNetwork,defaultReceivePort+i)));
-            else servers.add(factory.create(new Required("T"+i,defaultHost,defaultReceivePort+i)));
+            if(i==1) servers.add(factory.create(new Required(raysPcOnRaysNetwork,defaultReceivePort+i)));
+            else servers.add(factory.create(new Required(defaultHost,defaultReceivePort+i)));
         for(Server server:servers)
             p(""+server);
         for(Server tablet:servers)
@@ -31,7 +31,7 @@ public class Main {
                 for(Server server2:servers)
                     if(server!=server2) {
                         Required required=new Required(server2.id(),server2.host(),server2.service());
-                        server.createAndAddSender(server2.id(),required);
+                        server.createAndAddWriter(server2.id(),required);
                     }
         } else {
             Iterator<Server> i=servers.iterator();
@@ -40,7 +40,7 @@ public class Main {
                 if(n>j) {
                     next=i.next();
                     Required required=new Required(next.id(),next.host(),next.service());
-                    first.createAndAddSender(next.id(),required);
+                    first.createAndAddWriter(next.id(),required);
                 }
         }
         Thread.sleep(200);
@@ -49,7 +49,7 @@ public class Main {
         Et et=new Et();
         for(int i=0;i<messages;i++) {
             for(Server server:servers) {
-                server.broadcast(server.messageFactory().other(Type.dummy,"1","T1"));
+                server.broadcast(server.messageFactory().other(Type.dummy,"1",server.id()));
             }
             Thread.sleep(10);
         }
@@ -74,11 +74,11 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.WARNING);
-        Map<String,Required> requireds=new TreeMap<>(new Group.Groups().groups.get("big0"));
+        Map<String,Required> requireds=new TreeMap<>(new Group.Groups().groups.get("g0"));
         p("requireds: "+requireds);
         if(true) run(4);
         else {
-            Server server=factory.create(new Required("T1","localhost",defaultReceivePort));
+            Server server=factory.create(new Required("localhost",defaultReceivePort));
             Thread.sleep(100);
             server.broadcast("foo");
             Thread.sleep(100);

@@ -81,7 +81,17 @@ public class LoggingHandler {
     }
     public static SocketHandler startSocketHandler(String host,int service) {
         SocketHandler socketHandler=null;
-        SocketHandlerCallable task=new SocketHandlerCallable(host,service);
+        final SocketHandlerCallable task=new SocketHandlerCallable(host,service);
+        if(false) { // badness, we usually need to wait!
+            // maybe always wait?
+            // was just tryiing to get rid of threads that hang around after send callables
+            new Thread(new Runnable() {
+                @Override public void run() {
+                    task.run();
+                }
+            }).start();
+        }
+        else
         try {
             socketHandler=runAndWait(task);
         } catch(InterruptedException|ExecutionException e) {

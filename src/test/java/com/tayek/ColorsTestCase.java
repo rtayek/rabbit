@@ -1,9 +1,12 @@
 package com.tayek;
 import static org.junit.Assert.*;
 import org.junit.*;
+import org.junit.rules.TestRule;
 import com.tayek.utilities.Colors;
 import static com.tayek.io.IO.*;
 public class ColorsTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {}

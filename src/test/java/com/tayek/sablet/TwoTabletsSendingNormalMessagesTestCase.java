@@ -48,13 +48,17 @@ public class TwoTabletsSendingNormalMessagesTestCase extends AbstractTabletTestC
             assertEquals(model.toString(),tablet.model().toString());
         }
     }
-    @Test() public void testOneNormalMessage() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test() public void testOneNormalMessages() throws InterruptedException,UnknownHostException,ExecutionException {
         sendMessagesToTablets(1);
     }
-    @Test() public void testThreeNormalMessage() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test() public void testThreeNormalMessages() throws InterruptedException,UnknownHostException,ExecutionException {
         sendMessagesToTablets(3);
     }
-    @Test() public void testFiveNormalMessage() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test() public void testThreeNormalMessagesWithOldMissing() throws InterruptedException,UnknownHostException,ExecutionException {
+        Histories.useOldMissing=true;
+        sendMessagesToTablets(3);
+    }
+    @Test() public void testFiveNormalMessages() throws InterruptedException,UnknownHostException,ExecutionException {
         sendMessagesToTablets(5);
     }
 }

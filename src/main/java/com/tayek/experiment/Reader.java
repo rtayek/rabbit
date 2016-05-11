@@ -11,7 +11,7 @@ class Reader extends Connection { // Supplier<Message>
         this.otherId=otherId;
         this.server=server;
         in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        l.info("constructed: "+this);
+        l.info(id+": constructed: "+this);
     }
     private java.io.Writer sendReply(Socket socket,String string) { // server
         if(string!=null&&!string.isEmpty()) {
@@ -48,22 +48,22 @@ class Reader extends Connection { // Supplier<Message>
             // what do we do with these failures?
             // how to handle?
             if(e.toString().contains("java.net.SocketException: Socket closed")) {
-                if(isShuttingDown) l.info(this+" #"+(histories.receiverHistory.history.attempts()+1)+", server caught: "+e+" when shutting down.");
+                if(isShuttingDown) l.info(id+": "+this+" #"+(histories.receiverHistory.history.attempts()+1)+", server caught: "+e+" when shutting down.");
                 else {
                     histories.receiverHistory.history.reportFailure(et,e.toString());
-                    l.warning(this+" #"+(histories.receiverHistory.history.attempts()+1)+", server caught: "+e);
+                    l.warning(id+": "+this+" #"+(histories.receiverHistory.history.attempts()+1)+", server caught: "+e);
                 }
             } else {
-                l.severe(this+" #"+(histories.receiverHistory.history.attempts()+1)+", server caught: "+e);
+                l.severe(id+": "+this+" #"+(histories.receiverHistory.history.attempts()+1)+", server caught: "+e);
                 histories.receiverHistory.history.reportFailure(et,e.toString());
             }
         }
         if(histories.receiverHistory.history.attempts()>0&&reportPeriod>0&&histories.receiverHistory.history.attempts()%reportPeriod==0) {
-            l.warning("histories from: "+this+": "+histories);
+            l.warning(id+": "+"histories from: "+this+": "+histories);
             if(histories.receiverHistory.history.attempts()%(10*reportPeriod)==0) ; // print report!
         }
-        l.info(this+" exit read for #"+histories.receiverHistory.history.attempts());
-        if(string==null||string.isEmpty()) l.info(this+" read eof or empty string!");
+        l.info(id+": "+this+" exit read for #"+histories.receiverHistory.history.attempts());
+        if(string==null||string.isEmpty()) l.info(id+": "+this+" read eof or empty string!");
         return string;
     }
     // how to get socket address?
@@ -74,7 +74,7 @@ class Reader extends Connection { // Supplier<Message>
     // and try to connect with everyone on the list
     // maybe Map<Pair<host,service>,pair<reader,Writer>>
     @Override public void run() {
-        l.info(this+" enter run()");
+        l.info(id+": "+this+" enter run()");
         while(true) {
             String string=read(socket);
             l.info(this+" received: "+string);
@@ -96,7 +96,6 @@ class Reader extends Connection { // Supplier<Message>
                 } catch(InterruptedException e1) {
                     e1.printStackTrace();
                 }
-                p("adding new reader: "+this);
                 synchronized(server.newConnections) {
                     
                     server.newConnections.add(this);

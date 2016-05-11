@@ -2,6 +2,7 @@ package com.tayek.tablet;
 import java.util.*;
 import java.util.logging.Level;
 import org.junit.*;
+import org.junit.rules.TestRule;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.*;
 import com.tayek.io.LoggingHandler;
@@ -9,30 +10,14 @@ import com.tayek.tablet.io.*;
 import static com.tayek.io.IO.*;
 import static org.junit.Assert.*;
 import com.tayek.tablet.Enums.*;
-import com.tayek.tablet.Enums_.*;
 import com.tayek.tablet.Group.*;
-class Enums_ {
-    interface Item {
-        void f();
-    }
-    enum Color implements Item {
-        r,g,b;
-        @Override public void f() {
-            p(""+this);
-        }
-    }
-    enum Unit implements Item {
-        gram,meter,second;
-        @Override public void f() {
-            p(""+this);
-        }
-    }
-}
 public class EnumsTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     static Set<Class> classes=new LinkedHashSet<>();
     static {
-        classes.add(Color.class);
-        classes.add(Unit.class);
+        classes.add(MenuItem.class);
+        classes.add(LevelSubMenuItem.class);
     }
     public static <T extends Enum<T>> T getInstance(final String value,final Class<T> enumClass) {
         T t=null;
@@ -52,10 +37,10 @@ public class EnumsTestCase {
         return null;
     }
     @Test public void testFindEnum() {
-        String expected=Color.r.name();
+        String expected=MenuItem.Connect.name();
         Enum actual=findEnum(expected);
         assertEquals(expected,actual.name());
-        String expected2=Unit.second.name();
+        String expected2=LevelSubMenuItem.all.name();
         Enum actual2=findEnum(expected2);
         assertEquals(expected2,actual2.name());
     }
@@ -66,13 +51,13 @@ public class EnumsTestCase {
     @Before public void setUp() throws Exception {
         Map<String,Required> requireds=new Groups().groups.get("g2OnPc");
         Group group=new Group("1",requireds,Model.mark1);
-        tablet=(TabletImpl2)Tablet.factory.create2(group,group.keys().iterator().next());
+        tablet=(TabletImpl2)Tablet.factory.create2(group,group.keys().iterator().next(),group.getModelClone());
         group=null; // tablet has a clone of group!
     }
     @After public void tearDown() throws Exception {}
     @Test public void testDoItem() {
         for(MenuItem menuItem:MenuItem.values()) {
-            p("menu item: "+menuItem);
+            //p("menu item: "+menuItem);
             menuItem.doItem(tablet);
             // not really testing these are we?
             // also, getting socket closed exceptions

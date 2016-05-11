@@ -2,13 +2,16 @@ package com.tayek.tablet;
 import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
-import com.tayek.Required;
+import org.junit.rules.TestRule;
+import com.tayek.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.Message.Factory;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.utilities.Single;
 import static com.tayek.io.IO.*;
 public class ModelTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     @BeforeClass public static void setUpBeforeClass() throws Exception {
         LoggingHandler.init();
     }

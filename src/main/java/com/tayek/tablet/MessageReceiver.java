@@ -191,7 +191,7 @@ public interface MessageReceiver {
             Model model=new Model(7,null);
             p(model.toString());
         }
-        public final int serialNumber;
+        public final Integer serialNumber;
         public final Integer buttons;
         public final Integer resetButtonId;
         public final Colors colors;

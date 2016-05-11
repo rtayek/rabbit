@@ -4,11 +4,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import static com.tayek.utilities.Range.*;
 import static com.tayek.io.IO.*;
-@SuppressWarnings("serial") class MissingException extends RuntimeException {
-    MissingException(String string) {
-        super(string);
-    }
-}
 abstract class MissingABC<T extends Comparable,R> implements Missing<T,R> {
     MissingABC(T t) {
         range=range(t,t);
@@ -30,7 +25,7 @@ abstract class MissingABC<T extends Comparable,R> implements Missing<T,R> {
     @Override public synchronized boolean isDuplicate(T n) {
         //if(n<0) throw new MissingException("oops");
         if(n.compareTo(largest)<0&&!isMissing(n)) {
-            l.severe("strange duplicate: "+this); // getting this on tablets
+            l.severe(n+" is strange duplicate: "+this); // getting this on tablets
             System.err.flush();
         }
         return n.compareTo(largest)<0&&!isMissing(n); // maybe should just return n<largest?

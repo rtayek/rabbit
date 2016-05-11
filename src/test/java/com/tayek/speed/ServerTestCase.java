@@ -3,6 +3,7 @@ import static org.junit.Assert.*;
 import java.util.logging.Level;
 import org.junit.*;
 import com.tayek.io.LoggingHandler;
+import static com.tayek.io.IO.*;
 public class ServerTestCase extends AbstractServerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
@@ -17,9 +18,10 @@ public class ServerTestCase extends AbstractServerTestCase {
         createTestTablets(1);
         stopServers();
         Thread.sleep(100);
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(false);
     }
     @Test public void testCreateStartServersAndStopServers1() throws InterruptedException {
+        printThreads();
         createStartAndStop(1);
     }
     @Test public void testCreateStartServersAndStopServers2() throws InterruptedException {
@@ -32,27 +34,28 @@ public class ServerTestCase extends AbstractServerTestCase {
         createStartAndStop(10);
     }
     @Test public void test1_1() throws InterruptedException {
+        //LoggingHandler.setLevel(Level.ALL);
         run(1,1);
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(false);
     }
     @Test public void test2_1() throws InterruptedException {
         run(2,1);
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(false);
     }
     @Test public void test5_1() throws InterruptedException {
         run(5,1);
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(false);
     }
     @Test public void test1_10() throws InterruptedException {
         run(1,10);
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(false);
     }
     @Test public void test2_10() throws InterruptedException {
         run(2,10);
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(false);
     }
     @Test public void test5_10() throws InterruptedException {
         run(5,10);
-        assertTrue(Thread.activeCount()<=threads);
+        checkThreads(false);
     }
 }

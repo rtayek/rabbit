@@ -24,7 +24,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         super.setUp();
         LogManager.getLogManager().reset();
         printThreads();
-        logServer=new LogServer(host,++service,getClass().getName());
+        logServer=new LogServer(host,LogServer.defaultService+serviceOffset,getClass().getName());
         thread=new Thread(new Runnable() {
             @Override public void run() {
                 logServer.run();
@@ -33,8 +33,9 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         thread.start();
     }
     @After public void tearDown() throws Exception {
-        p("copiers: "+logServer.copiers);
+        if(logServer!=null) {
         logServer.stop();
+        } else fail("log server is null!");
         printThreads();
         int big=2*Thread.activeCount();
         Thread[] threads=new Thread[big];
@@ -50,7 +51,6 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         LoggingHandler.once=false;
         LoggingHandler.init();
         LoggingHandler.toggleSockethandlers();
-        p("hanlders; "+Arrays.asList(IO.l.getHandlers()));
         // start tablets
         tablets=createForTest(2,serviceOffset);
         startListening();
@@ -79,5 +79,5 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     LogServer logServer;
     Thread thread;
     final String expected="i am a duck.";
-    static int service=LogServer.defaultService+1000;
+    static int staticService=LogServer.defaultService+4000;
 }

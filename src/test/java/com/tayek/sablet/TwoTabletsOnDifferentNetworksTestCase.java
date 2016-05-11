@@ -17,6 +17,7 @@ public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCas
         for(Object tabletId:requireds.keySet()) {
             Required required=requireds.get(tabletId);
             requireds2.put(required.id,new Required(required.id,required.host,required.service+serviceOffset));
+            // abobe offset looks wierd!
         }
         p("service offset: "+serviceOffset);
         Group group=new Group("1",requireds2,Model.mark1); // why 2?
@@ -33,7 +34,7 @@ public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCas
         for(Tablet tablet:tablets)
             if(tablet instanceof TabletImpl2) {
                 TabletImpl2 t2=(TabletImpl2)tablet;
-                t2.stopListening(); // so send will fail
+                t2.stopServer(); // so send will fail
             } else {
                 // how to break!
             }

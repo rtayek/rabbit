@@ -19,14 +19,14 @@ public class OneKnowsTestCase extends AbstractServerTestCase {
     }
     @After public void tearDown() throws Exception {}
     void addSenders2() { // just add senders to the first tablet
-        p("adding sender(s): "+servers+" -------------------------------------");
+        p("2 adding sender(s) -------------------------------------");
         Iterator<Server> i=servers.iterator();
         Server first=i.next(),next;
         while(i.hasNext()) {
             next=i.next();
             //p(first.id()+" is adding sender for: "+next.id());
             Required required=new Required(next.id(),next.host(),next.service());
-            first.createAndAddSender(next.id(),required);
+            first.createAndAddWriter(next.id(),required);
         }
     }
     void run2(int n,Integer messages) throws InterruptedException {
@@ -35,32 +35,40 @@ public class OneKnowsTestCase extends AbstractServerTestCase {
         Thread.sleep(1_000);
         addSenders2();
         Thread.sleep(1_000);
-        p("servers: "+servers);
+        p("servers: ");
+        for(Server server:servers)
+            p("server: "+server);
         // maybe do the brofcasting one tablet at a time?
         p("broadcasting -------------------------------------");
         for(int i=0;i<messages;i++) {
             for(Server server:servers) {
-                server.broadcast(server.messageFactory().other(Type.dummy,"1","T1"));
+                server.broadcast(server.messageFactory().other(Type.dummy,"1",server.id()));
             }
         }
         p("sleeping -------------------------------------");
         Thread.sleep(1_000);
+        for(Server server:servers)
+            p(server+": "+server.report());
         Server first=servers.iterator().next();
         for(Server server:servers) {
             p("for server: "+server);
             for(Entry<String,Pair<Writer,Reader>> entry:server.idToPair().entrySet()) {
                 Pair<Writer,Reader> pair=entry.getValue();
-                p("pair: "+pair);
+                //p("pair: "+pair);
                 if(server.equals(first)) {
                     // will have more sends and no more receives
                     if(entry.getKey().equals(server.id())) {
+                        //p("entry: "+entry);
+                        //p("server: "+server);
                         assertEquals(messages,pair.first.histories.senderHistory.history.successes());
-                        assertEquals(messages,pair.second.histories.receiverHistory.history.successes());
+                        if(pair.second!=null) assertEquals(messages,pair.second.histories.receiverHistory.history.successes());
+                        else; //p("reader is null in pair: "+entry);
                     } else {
-                        p("pair.first: "+pair.first);
-                        assertEquals(messages,pair.first.histories.senderHistory.history.successes());
+                        //p("pair.first: "+pair.first);
+                        if(pair.first!=null) assertEquals(messages,pair.first.histories.senderHistory.history.successes());
+                        else; //p("writer is null in pair: "+entry);
                         if(pair.second!=null) {
-                            p("pair.second in not null: "+pair.second);
+                            //p("pair.second is not null: "+pair.second);
                             if(true) assertEquals(zero,pair.second.histories.receiverHistory.history.successes());
                         } else assertNull(pair.second); // others have not sent us anything yet
                     }
@@ -92,7 +100,7 @@ public class OneKnowsTestCase extends AbstractServerTestCase {
         p("second broadcast -------------------------------------");
         for(int i=0;i<messages;i++) {
             for(Server server:servers) {
-                server.broadcast(server.messageFactory().other(Type.dummy,"1","T1"));
+                server.broadcast(server.messageFactory().other(Type.dummy,"1",server.id()));
             }
         }
         p("sleeping -------------------------------------");
@@ -121,17 +129,20 @@ public class OneKnowsTestCase extends AbstractServerTestCase {
                     // will have no more sends and more receives
                     if(entry.getKey().equals(server.id())) assertEquals(Integer.valueOf(2*messages),pair.first.histories.senderHistory.history.successes());
                     else {
-                        if(entry.getKey().equals(first.id())) {
+                        if(pair.first!=null) if(entry.getKey().equals(first.id())) {
                             // receive is adding a sender
                             if(true) assertEquals(Integer.valueOf(messages),pair.first.histories.senderHistory.history.successes());
                         } else assertEquals(messages,pair.first.histories.senderHistory.history.successes());
+                        else p("writer is null in: "+entry);
                     }
                     assertEquals(Integer.valueOf(2*messages),pair.second.histories.receiverHistory.history.successes());
                 }
             }
         }
-        p("stopping -------------------------------------");
-        stopServers();
+        if(false) {
+            p("stopping -------------------------------------");
+            stopServers();
+        }
         Thread.sleep(1_000);
         for(Server server:servers)
             p("server: "+server);

@@ -72,10 +72,10 @@ public class Enums {
                     }
                     break;
                 case Disconnect:
-                    if(tablet!=null) ((TabletImpl2)tablet).stopListening();
+                    if(tablet!=null) ((TabletImpl2)tablet).stopServer();
                     break;
                 case Connect:
-                    if(tablet!=null) if(!((TabletImpl2)tablet).startListening()) l.info(Utility.method()+" startListening() failed!");
+                    if(tablet!=null) if(!((TabletImpl2)tablet).startServer()) l.info(Utility.method()+" startListening() failed!");
                     break;
                 case Log:
                     // gui.textView.setVisible(!gui.textView.isVisible());

@@ -2,7 +2,11 @@ package com.tayek.tablet.io;
 import static org.junit.Assert.*;
 import java.util.concurrent.*;
 import org.junit.*;
+import org.junit.rules.TestRule;
+import com.tayek.MyTestWatcher;
 public class StandAloneCallableTestCase {
+    @Rule public TestRule watcher=new MyTestWatcher();
+
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {

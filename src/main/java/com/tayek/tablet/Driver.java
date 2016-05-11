@@ -15,19 +15,19 @@ import com.tayek.utilities.Et;
 public class Driver {
     public static TabletImpl2 driveRealTablets() throws InterruptedException {
         Map<String,Required> requireds=new Groups().groups.get("g0");
-        String tabletId=aTabletId(99);
+        String tabletId=Groups.add("localhost",defaultReceivePort,requireds);
         requireds.put(tabletId,new Required(tabletId,"localhost",defaultReceivePort));
         Group group=new Group("1",requireds,Model.mark1);
-        Tablet tablet=(TabletImpl2)com.tayek.Tablet.factory.create2(group,tabletId);
+        Tablet tablet=(TabletImpl2)com.tayek.Tablet.factory.create2(group,tabletId,group.getModelClone());
         int n=3;
         tablet.histories().reportPeriod=n<100?100:n;;
-        ((TabletImpl2)tablet).startListening();
+        ((TabletImpl2)tablet).startServer();
         ((TabletImpl2)tablet).server.reportPeriod=n<100?100:n;
         if(false)
             ((TabletImpl2)tablet).drive(n,Config.defaultDriveWait,false);
         else ((TabletImpl2)tablet).forever();
         ((TabletImpl2)tablet).stopDriving=false;
-        ((TabletImpl2)tablet).stopListening();
+        ((TabletImpl2)tablet).stopServer();
         ((TabletImpl2)tablet).accumulateToAll();
         l.severe("drive from pc: "+tablet.histories());
         p("drive from pc: "+tablet.histories());

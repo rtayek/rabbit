@@ -8,6 +8,7 @@ public interface Prefs {
     String get(String key);
     void put(String key,String value);
     Map<String,?> map();
+    void clear();
     interface Factory {
         Prefs create();
         class FactoryImpl implements Factory {
@@ -15,7 +16,13 @@ public interface Prefs {
             @Override public Prefs create() {
                 return isAndroid()?new AndroidPrefs():new WindowsPrefs();
             }
-            public static class AndroidPrefs implements Prefs {
+            private abstract static class PrefsABC implements Prefs {
+                @Override public void clear() {
+                    for(String x:map().keySet())
+                        put(x,"");
+                }
+            }
+            public static class AndroidPrefs extends PrefsABC {
                 public void setDelegate(Prefs prefs) {
                     this.prefs=prefs;
                 }
@@ -33,14 +40,11 @@ public interface Prefs {
                 }
                 private Prefs prefs;
             }
-            private static class WindowsPrefs implements Prefs {
+            private static class WindowsPrefs extends PrefsABC {
                 WindowsPrefs() {
                     URL url=Parameters.class.getResource(filename);
                     if(url!=null) {
-                        
-                        p("loading properties.");
                         Parameters.loadPropertiesFile(properties,filename);
-                        p("loaded: "+properties);
                     } else {
                         p("creating: "+filename);
                         Parameters.writePropertiesFile(properties,filename);
@@ -50,7 +54,6 @@ public interface Prefs {
                     return properties.getProperty(key);
                 }
                 @Override public void put(String key,String value) {
-                    p("properties: "+properties+" "+key+" "+value);
                     properties.setProperty(key,value);
                     Parameters.writePropertiesFile(properties,filename);
                 }

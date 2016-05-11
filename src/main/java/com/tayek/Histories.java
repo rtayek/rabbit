@@ -118,7 +118,7 @@ public class Histories implements Addable<Histories> {
             return string;
         }
         public final History history=new History(),replies=new History(),missing=new History();
-        public final Missing<Integer,Integer> missed=Missing.factory.createNormal(1);
+        public final Missing<Integer,Integer> missed=useOldMissing?new OldMissing():Missing.factory.createNormal(1);
     }
     public class ModelHistory implements Addable<ModelHistory> {
         @Override public void add(ModelHistory modelHistory) {
@@ -206,5 +206,7 @@ public class Histories implements Addable<Histories> {
         l.fine("created "+getClass().getSimpleName()+"("+serialNumber+").");
     }
     static int serialNumbers=0;
+    public static boolean useOldMissing=false;
+
     public static Integer defaultReportPeriod=100;
 }

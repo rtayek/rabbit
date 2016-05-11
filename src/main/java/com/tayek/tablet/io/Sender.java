@@ -85,25 +85,31 @@ public interface Sender {
                 socket.connect(socketAddress,timeout);
                 return socket;
             } catch(SocketTimeoutException e) {
-                senderHistory.history.reportFailure(et,e.toString());
-                if(config.logErrors) {
-                    l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-                    l.warning("history: "+senderHistory.history);
-                }
+                if(senderHistory!=null) {
+                    senderHistory.history.reportFailure(et,e.toString());
+                    if(config.logErrors) {
+                        l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+                        l.warning("history: "+senderHistory.history);
+                    }
+                } else l.warning("failed to connect to: "+socketAddress);
             } catch(IOException e) {
-                senderHistory.history.reportFailure(et,e.toString());
-                if(config.logErrors) {
-                    l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-                    l.warning("history: "+senderHistory.history);
-                }
+                if(senderHistory!=null) {
+                    senderHistory.history.reportFailure(et,e.toString());
+                    if(config.logErrors) {
+                        l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+                        l.warning("history: "+senderHistory.history);
+                    }
+                } else l.warning("failed to connect to: "+socketAddress);
             } catch(Exception e) {
-                senderHistory.history.reportFailure(et,e.toString());
-                if(config.logErrors) {
-                    
-                    l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
-                    l.warning("history: "+senderHistory.history);
-                    e.printStackTrace();
-                }
+                if(senderHistory!=null) {
+                    senderHistory.history.reportFailure(et,e.toString());
+                    if(config.logErrors) {
+                        
+                        l.warning("#"+(senderHistory.history.attempts()+1)+", after: "+et+", with timeout: "+timeout+", caught: '"+e+"'");
+                        l.warning("history: "+senderHistory.history);
+                        e.printStackTrace();
+                    }
+                } else l.warning("failed to connect to: "+socketAddress);
             }
             return null;
         }
@@ -126,7 +132,7 @@ public interface Sender {
                         histories.senderHistory.retries.failure("second");
                         histories.senderHistory.retries.successHistogram.add(Double.NaN);
                         histories.senderHistory.replies.failureHistogram.add(et.etms());
-                        if(config.logErrors)l.severe("second time failed sending to: "+socketAddress);
+                        if(config.logErrors) l.severe("second time failed sending to: "+socketAddress);
                     }
                 }
             } catch(Exception e) {
