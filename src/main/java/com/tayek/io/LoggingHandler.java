@@ -90,9 +90,7 @@ public class LoggingHandler {
                     task.run();
                 }
             }).start();
-        }
-        else
-        try {
+        } else try {
             socketHandler=runAndWait(task);
         } catch(InterruptedException|ExecutionException e) {
             l.warning("caught: '"+e+"'");
@@ -100,17 +98,21 @@ public class LoggingHandler {
         return socketHandler;
     }
     public static void stopSocketHandler(SocketHandler socketHandler) {
-        if(socketHandler!=null) socketHandler.close();
+        if(socketHandler!=null) {
+            l.warning("closing: "+socketHandler);
+            socketHandler.close();
+        }
     }
     public static void startSocketHandler(final String host) {
         // make this another callable?
         new Thread(new Runnable() {
             @Override public void run() {
                 try {
-                    IO.l.info("start socket handler");
+                    p("start socket handler");
                     SocketHandler socketHandler=startSocketHandler(host,LogServer.defaultService);
                     if(socketHandler!=null) {
                         p("got socket handler: "+socketHandler);
+                        p("sever message.");
                         LoggingHandler.addSocketHandler(socketHandler);
                         synchronized(logServerHosts) {
                             logServerHosts.put(host,socketHandler);
@@ -118,9 +120,9 @@ public class LoggingHandler {
                         Logger global=Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
                         global.addHandler(socketHandler);
                         global.warning("global with socket handler.");
-                    } else IO.l.warning("could not start socket handler to: "+host);
+                    } else p("could not start socket handler to: "+host);
                 } catch(Exception e) {
-                    IO.l.info("caught: "+e);
+                    p("caught: "+e);
                 }
             }
         }).start();
@@ -130,13 +132,16 @@ public class LoggingHandler {
         synchronized(logServerHosts) {
             for(String host:logServerHosts.keySet())
                 if(logServerHosts.get(host)!=null) {
+                    p("stopping socket handler to: "+host);
                     stopSocketHandler(logServerHosts.get(host));
                     logServerHosts.put(host,null);
                     wereAnyOn=true;
                 }
         }
-        if(!wereAnyOn) for(String host:logServerHosts.keySet())
+        if(!wereAnyOn) for(String host:logServerHosts.keySet()) {
+            p("starting socket handler to: "+host);
             startSocketHandler(host);
+        }
     }
     public static boolean once;
     //public static SocketHandler socketHandler;
