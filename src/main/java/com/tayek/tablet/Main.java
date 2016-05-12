@@ -38,6 +38,7 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
     // android project needs sdk location.
     // swing gui is in rabitgui2/ 
     // core fails to find gradle wrapper main. fix: run gradle wrapper directly (gradlew).
+    // when build fails because there is a lobk on the jar, stop the log server!
     // http://stackoverflow.com/questions/23081263/adb-android-device-unauthorized
     // G0K0H404542514AX - fire 1 with factory reset. (ray's 3'rd fire)
     // G0K0H40453650FLR - fire 2 (ray's 2'nd fire)
