@@ -47,7 +47,7 @@ public class Exec {
             l.warning("caught: "+e);
             e.printStackTrace();
         }
-        printThreads();
+        //printThreads();
         return this;
     }
     public void print() {

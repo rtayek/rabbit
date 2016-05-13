@@ -276,6 +276,7 @@ public class IO {
     public static final String networkStub="192.168.";
     public static final String tabletRouterPrefix="192.168.0.";
     public static final String tabletRouter="192.168.0.1";
+    public static final String tabletWifiSsid="\"tablets\"";
     public static final String raysRouterPrefix="192.168.1.";
     public static final String raysRouter="192.168.1.1";
     public static final String raysPc="192.168.1.2";

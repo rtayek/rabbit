@@ -38,7 +38,7 @@ public class Enums {
         private final Level level;
     }
     public enum MenuItem implements Item {
-        toggleExtraStatus,ToggleLogging,Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,StopDriving,Forever,Level;
+        clearPrefs,toggleExtraStatus,ToggleLogging,Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,StopDriving,Forever,Level;
         @Override public void doItem(Tablet tablet) {
             doItem(this,tablet);
         }
@@ -56,6 +56,14 @@ public class Enums {
         public static void doItem(MenuItem tabletMenuItem,final Tablet tablet) {
             if(tablet==null) l.warning("tablet is null in doItem: "+tabletMenuItem);
             switch(tabletMenuItem) {
+                case clearPrefs:
+                    Prefs prefs=Prefs.factory.create();
+                    prefs.clear();
+                    // there is one in runner also!
+                    break;
+                case toggleExtraStatus:
+                    // nyi
+                    break;
                 case ToggleLogging:
                     LoggingHandler.toggleSockethandlers();
                     break;
