@@ -69,8 +69,7 @@ public class LogServer implements Runnable {
         }
         public void close() {
             try {
-                if(verbose)
-                    p("closing: "+this);
+                if(verbose) p("closing: "+this);
                 out.flush();
                 out.close();
                 socket.shutdownInput();
@@ -90,7 +89,7 @@ public class LogServer implements Runnable {
                 while((line=br.readLine())!=null) {
                     if(!once) {
                         p("got first read: "+line);
-                        once=false;
+                        once=true;
                     }
                     if(line.contains(Type.rolloverLogNow.name())) rollover();
                     out.write(line+"\n");
@@ -102,11 +101,20 @@ public class LogServer implements Runnable {
                     }
                 }
                 p("end of file");
+                out.write("<!-- end of file -->");
             } catch(IOException e) {
-                if(isShuttingdown) ; // set this when we close it ourselves!
-                else {
-                    p("log copier caught: '"+e+"'");
-                    e.printStackTrace();
+                try {
+                    if(isShuttingdown) {
+                        p("shutting down:");
+                        out.write("<!-- expected caught: '"+e+"' -->");
+                    } else {
+                        p("log copier caught: '"+e+"'");
+                        out.write("<!-- unexpected caught: '"+e+"' -->");
+                        e.printStackTrace();
+                    }
+                } catch(IOException e1) {
+                    p("shutdown: write caught: "+e1);
+                    e1.printStackTrace();
                 }
             } finally {
                 close();

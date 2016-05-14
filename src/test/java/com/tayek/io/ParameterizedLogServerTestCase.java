@@ -38,7 +38,7 @@ import com.tayek.utilities.Utility;
             }
         },"log server");
         thread.start();
-        socketHandler=LoggingHandler.startSocketHandler(host,service);
+        socketHandler=LoggingHandler.startSocketHandlerAndWait(host,service);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(socketHandler);
     }

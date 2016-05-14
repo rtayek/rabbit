@@ -79,23 +79,33 @@ public class LoggingHandler {
             }
         }
     }
-    public static SocketHandler startSocketHandler(String host,int service) {
+    public static SocketHandler startSocketHandlerAndWait(String host,int service) {
         SocketHandler socketHandler=null;
         final SocketHandlerCallable task=new SocketHandlerCallable(host,service);
-        if(false) { // badness, we usually need to wait!
-            // maybe always wait?
-            // was just tryiing to get rid of threads that hang around after send callables
-            new Thread(new Runnable() {
-                @Override public void run() {
-                    task.run();
-                }
-            }).start();
-        } else try {
+        try {
             socketHandler=runAndWait(task);
         } catch(InterruptedException|ExecutionException e) {
             l.warning("caught: '"+e+"'");
         }
         return socketHandler;
+    }
+    static void startSocketHandler(final String host) {
+        try {
+            p("start socket handler");
+            SocketHandler socketHandler=startSocketHandlerAndWait(host,LogServer.defaultService);
+            if(socketHandler!=null) {
+                p("got socket handler: "+socketHandler);
+                LoggingHandler.addSocketHandler(socketHandler);
+                synchronized(logServerHosts) {
+                    logServerHosts.put(host,socketHandler);
+                }
+                Logger global=Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+                global.addHandler(socketHandler);
+                global.warning("global with socket handler.");
+            } else p("could not start socket handler to: "+host);
+        } catch(Exception e) {
+            p("caught: "+e);
+        }
     }
     public static void stopSocketHandler(SocketHandler socketHandler) {
         if(socketHandler!=null) {
@@ -103,31 +113,18 @@ public class LoggingHandler {
             socketHandler.close();
         }
     }
-    public static void startSocketHandler(final String host) {
-        // make this another callable?
-        new Thread(new Runnable() {
-            @Override public void run() {
-                try {
-                    p("start socket handler");
-                    SocketHandler socketHandler=startSocketHandler(host,LogServer.defaultService);
-                    if(socketHandler!=null) {
-                        p("got socket handler: "+socketHandler);
-                        p("sever message.");
-                        LoggingHandler.addSocketHandler(socketHandler);
-                        synchronized(logServerHosts) {
-                            logServerHosts.put(host,socketHandler);
-                        }
-                        Logger global=Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-                        global.addHandler(socketHandler);
-                        global.warning("global with socket handler.");
-                    } else p("could not start socket handler to: "+host);
-                } catch(Exception e) {
-                    p("caught: "+e);
+    public static boolean areAnySockethandlersOn() {
+        boolean areAnyOn=false;
+        synchronized(logServerHosts) {
+            for(String host:logServerHosts.keySet())
+                if(logServerHosts.get(host)!=null) {
+                    areAnyOn=true;
+                    break;
                 }
-            }
-        }).start();
+        }
+        return areAnyOn;
     }
-    public static void toggleSockethandlers() {
+    public static boolean stopSocketHandlers() {
         boolean wereAnyOn=false;
         synchronized(logServerHosts) {
             for(String host:logServerHosts.keySet())
@@ -138,10 +135,19 @@ public class LoggingHandler {
                     wereAnyOn=true;
                 }
         }
-        if(!wereAnyOn) for(String host:logServerHosts.keySet()) {
+        return wereAnyOn;
+    }
+    public static void startSocketHandlers() {
+        // startSocketHandler is sync'ed on logServerHosts
+        // should we sync also?
+        for(String host:logServerHosts.keySet()) {
             p("starting socket handler to: "+host);
             startSocketHandler(host);
         }
+    }
+    public static void toggleSockethandlers() {
+        boolean wereAnyOn=stopSocketHandlers();
+        if(!wereAnyOn) startSocketHandlers();
     }
     public static boolean once;
     //public static SocketHandler socketHandler;

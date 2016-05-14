@@ -76,7 +76,7 @@ public class LogServerTestCase {
             }
         },"log server");
         thread.start();
-        socketHandler=LoggingHandler.startSocketHandler(host,service);
+        socketHandler=LoggingHandler.startSocketHandlerAndWait(host,service);
         p("socket handler: "+socketHandler);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(socketHandler);
@@ -95,7 +95,7 @@ public class LogServerTestCase {
             }
         },"log server");
         thread.start();
-        socketHandler=LoggingHandler.startSocketHandler(host,service);
+        socketHandler=LoggingHandler.startSocketHandlerAndWait(host,service);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(socketHandler);
         IO.l.severe(expected);
@@ -120,7 +120,7 @@ public class LogServerTestCase {
             }
         },"log server");
         thread.start();
-        socketHandler=LoggingHandler.startSocketHandler(host,service);
+        socketHandler=LoggingHandler.startSocketHandlerAndWait(host,service);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(socketHandler);
         IO.l.info(expected);
@@ -144,7 +144,7 @@ public class LogServerTestCase {
         LogManager.getLogManager().reset();
         LoggingHandler.once=false;
         LoggingHandler.init();
-        socketHandler=LoggingHandler.startSocketHandler(host,service);
+        socketHandler=LoggingHandler.startSocketHandlerAndWait(host,service);
         p("socket handler: "+socketHandler);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(socketHandler);

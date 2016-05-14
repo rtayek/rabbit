@@ -83,9 +83,7 @@ public class RunnerABC implements Runnable {
             if(oldTablet!=null) {
                 p("using old tablet.");
                 tablet=oldTablet;
-            }
-            p("calling createTabletAndStart. "+Thread.currentThread());
-            createTabletAndStart(tabletId);
+            } else createTabletAndStart(tabletId);
         }
     }
     protected void stop() {
@@ -100,12 +98,23 @@ public class RunnerABC implements Runnable {
         }
     }
     protected void loop(int n) {
+        p(Thread.activeCount()+" threads.");
         isNetworkInterfaceUp=isNetworkInterfaceUp();
         p("network interface is "+(isNetworkInterfaceUp?"up":"not up!"));
         isRouterOk=isRouterOk();
         p("router is "+(isRouterOk?"ok":"not ok!"));
         // mainActivity.waitForWifi(); // do we need this?
         // does not seem to work anymore :(
+        if(isNetworkInterfaceUp()) {
+            if(!LoggingHandler.areAnySockethandlersOn())  {
+                p("waiting to start socket handlers at: "+et);
+                LoggingHandler.startSocketHandlers();
+                p("end of waiting to start socket handlers at: "+et);
+            }
+            ; // maybe stop and restart just in case the laptop cycled power or ?
+        } else {
+            LoggingHandler.stopSocketHandlers();
+        }
         if(tablet==null) if(isNetworkInterfaceUp&&isRouterOk) tryToStartTablet();
         else if(hasATablet!=null) hasATablet.setStatusText("can not start tablet, check wifi and router!");
         else {
@@ -134,7 +143,7 @@ public class RunnerABC implements Runnable {
         p("before loop, host: "+host+", tabletId: "+tabletId);
         while(true)
             try {
-                p("loop at: "+et+" -------------------");
+                p("stat looping at: "+et);
                 if(hasATablet!=null) hasATablet.setStatusText(status());
                 loop(n++);
                 if(hasATablet!=null) hasATablet.setStatusText(status());
@@ -194,5 +203,5 @@ public class RunnerABC implements Runnable {
     protected boolean isNetworkInterfaceUp,isRouterOk;
     public int restarts,n;
     public int loopSleep=10_000;
-    final int heartbeatperiod=10;
+    final int heartbeatperiod=1;
 }

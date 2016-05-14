@@ -56,7 +56,7 @@ public class Driver {
     }
     public static void main(String[] arguments) throws IOException,InterruptedException {
         LoggingHandler.init();
-        SocketHandler socketHandler=LoggingHandler.startSocketHandler(defaultHost,LogServer.defaultService);
+        SocketHandler socketHandler=LoggingHandler.startSocketHandlerAndWait(defaultHost,LogServer.defaultService);
         LoggingHandler.addSocketHandler(socketHandler);
         LoggingHandler.setLevel(Level.WARNING);
         //tryConnect();

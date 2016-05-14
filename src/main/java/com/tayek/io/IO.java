@@ -286,6 +286,7 @@ public class IO {
     public static final String defaultHost=raysPcOnTabletNetworkToday;
     public static final String testingHost=raysPcOnRaysNetwork;
     public static final Map<String,SocketHandler> logServerHosts=new TreeMap<>();
+    // maybe key should be Pair<String,Integer> to allow for more than one log server on a host?
     static {
         logServerHosts.put(raysPc,null); // static ip on my pc
         logServerHosts.put(raysPcOnTabletNetworkToday,null); // my pc today

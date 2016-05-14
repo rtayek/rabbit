@@ -406,7 +406,7 @@ public interface Server {
                             while(true) {
                                 broadcast(messageFactory.other(Type.heartbeat,"1",id()));
                                 try {
-                                    Thread.sleep(100);
+                                    Thread.sleep(1_000);
                                 } catch(InterruptedException e) {
                                     e.printStackTrace();
                                 }
