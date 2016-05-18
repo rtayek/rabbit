@@ -3,10 +3,12 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import com.tayek.tablet.Message.Type;
+import com.tayek.utilities.Pair;
 import static com.tayek.io.IO.*;
 public class LogServer implements Runnable {
     // need some way to end a log file when tablet stops
     // need some way to use a date or prefix.
+    // combine this class with logginghh handler?
     private class LogFile {
         private LogFile(Socket socket,String prefix,int sequenceNumber) {
             this.socket=socket;
@@ -40,7 +42,7 @@ public class LogServer implements Runnable {
             name+=address+"."+socket.getLocalPort()+".";
             name+=serverSocket.getInetAddress().getHostAddress()+".";
             name+=n;
-            name+=".log";
+            name+=".xml";
             return name;
         }
         Socket socket;
@@ -79,7 +81,7 @@ public class LogServer implements Runnable {
         }
         @Override public void run() {
             try {
-                out.write("<!-- first line -->");
+                //out.write("<!-- first line -->"); // illegal xml!
                 out.flush();
                 InputStream is=socket.getInputStream();
                 BufferedReader br=new BufferedReader(new InputStreamReader(is,"US-ASCII"));
@@ -97,22 +99,22 @@ public class LogServer implements Runnable {
                     if(verbose) p("copier wrote: "+line);
                     if(file!=null&&file.exists()&&file.length()>maxSize) if(line.equals("</record>")) {
                         rollover();
-                        out.write("<!-- rolled over -->");
+                        //out.write("<!-- rolled over -->");  // illegal xml!
                     }
                 }
                 p("end of file");
-                out.write("<!-- end of file -->");
+                //out.write("<!-- end of file -->");
             } catch(IOException e) {
                 try {
                     if(isShuttingdown) {
                         p("shutting down:");
-                        out.write("<!-- expected caught: '"+e+"' -->");
+                        //out.write("<!-- expected caught: '"+e+"' -->");
                     } else {
                         p("log copier caught: '"+e+"'");
-                        out.write("<!-- unexpected caught: '"+e+"' -->");
+                        //out.write("<!-- unexpected caught: '"+e+"' -->");
                         e.printStackTrace();
                     }
-                } catch(IOException e1) {
+                } catch(Exception e1) {
                     p("shutdown: write caught: "+e1);
                     e1.printStackTrace();
                 }
@@ -205,9 +207,9 @@ public class LogServer implements Runnable {
     }
     public static void print() {}
     public static void main(String args[]) {
-        for(String host:logServerHosts.keySet())
+        for(Pair<String,Integer> pair:logServerHosts.keySet())
             try {
-                LogServer logServer=new LogServer(host,defaultService,null);
+                LogServer logServer=new LogServer(pair.first,pair.second,null);
                 new Thread(logServer).start();
                 logServers.add(logServer);
             } catch(Exception e) {
@@ -228,7 +230,8 @@ public class LogServer implements Runnable {
     public boolean verbose;
     public final List<Copier> copiers=new ArrayList<>();
     public static final String defaultHost="127.0.0.1";
-    public static final int defaultService=5000;
+    public static final int defaultLogServerService=5000;
+    public static final int otherLogServerService=2222;
     public static final int maxSize=1_000_000;
     static final long newMillenium=978_307_200_000l;
 }

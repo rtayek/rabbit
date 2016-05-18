@@ -19,18 +19,23 @@ import com.tayek.utilities.*;
 // http://stackoverflow.com/questions/36273115/android-app-freezing-after-few-days
 // https://www.bignerdranch.com/blog/splash-screens-the-right-way/
 // http://blog.iangclifton.com/2011/01/01/android-splash-screens-done-right/
+// http://pete.akeo.ie/2013/09/rooting-your-nexus-7-2013-for-android.html
 public class Main { // http://steveliles.github.io/invoking_processes_from_java.html
+    // router login and password are both: admin
+    // put chainsaw on laptop!
     // android studio project is Cb7: https://github.com/rtayek/Cb7.git
     // core java project is rabbit: https://github.com/rtayek/rabbit.git
     // swing gui is in rabbit: https://github.com/rtayek/rabbitgui2.git?
+    // ssh root@192.168.0.11 -p 2222 password is admin
     // source on pc is in:
     // d:\ray\dev\conradapps\rabbit
     // d:\ray\dev\conradapps\rabbitgui2
     // d:\AndroidStudioProjects\Cb7
-    // source on laptop is in:
+    // projects on laptop are in:
     // c:\Users\ray\workspace\rabbit
-    // c:\Users\ray\AndroidStudioProjetcs\Cb7
+    // c:\Users\ray\Cb7
     // install notes: (mostly for laptop)
+    // git pull origin master - should get you the latest stuff in either exiting project 
     // password for ray on git is 11213 (user: rtayek)
     // password for ray on conrad's pc and git is 11213
     // password for rays network is: i am a duck

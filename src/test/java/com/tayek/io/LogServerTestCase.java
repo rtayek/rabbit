@@ -160,5 +160,5 @@ public class LogServerTestCase {
     Thread thread;
     Writer writer;
     final String expected="i am a duck.";
-    static int staticService=LogServer.defaultService+1000;
+    static int staticService=LogServer.defaultLogServerService+1000;
 }

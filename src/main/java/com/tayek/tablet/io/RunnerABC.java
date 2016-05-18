@@ -39,12 +39,16 @@ public class RunnerABC implements Runnable {
         return inetAddress!=null;
     }
     // change some of the p's to l's as we want the info!
+    private void setTablet(Tablet value) {
+        tablet=value;
+        if(hasATablet!=null) hasATablet.setTablet(value);
+        if(guiAdapterABC!=null) guiAdapterABC.setTablet(value);
+    }
     protected void createTabletAndStart(String tabletId) {
         restarts++;
         p("creating tablet and starting: "+restarts);
         tablet=Tablet.factory.create2(group,tabletId,model);
-        if(hasATablet!=null) hasATablet.setTablet(tablet);
-        if(guiAdapterABC!=null) guiAdapterABC.setTablet(tablet);
+        setTablet(tablet);
         if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).startServer();
     }
     public String status() {
@@ -82,7 +86,8 @@ public class RunnerABC implements Runnable {
         if(tabletId!=null&&host!=null) {
             if(oldTablet!=null) {
                 p("using old tablet.");
-                tablet=oldTablet;
+                setTablet(oldTablet);
+                
             } else createTabletAndStart(tabletId);
         }
     }
@@ -98,7 +103,8 @@ public class RunnerABC implements Runnable {
         }
     }
     protected void loop(int n) {
-        p(Thread.activeCount()+" threads.");
+        p("loop: "+n+", "+Thread.activeCount()+" threads.");
+        if(Thread.activeCount()>=10) printThreads();
         isNetworkInterfaceUp=isNetworkInterfaceUp();
         p("network interface is "+(isNetworkInterfaceUp?"up":"not up!"));
         isRouterOk=isRouterOk();
@@ -106,24 +112,21 @@ public class RunnerABC implements Runnable {
         // mainActivity.waitForWifi(); // do we need this?
         // does not seem to work anymore :(
         if(isNetworkInterfaceUp()) {
-            if(!LoggingHandler.areAnySockethandlersOn())  {
+            if(!LoggingHandler.areAnySockethandlersOn()) {
                 p("waiting to start socket handlers at: "+et);
                 LoggingHandler.startSocketHandlers();
                 p("end of waiting to start socket handlers at: "+et);
+                ; // maybe stop and restart just in case the laptop cycled power or ?
             }
-            ; // maybe stop and restart just in case the laptop cycled power or ?
+        } else LoggingHandler.stopSocketHandlers();
+        if(tablet==null) {
+            if(isNetworkInterfaceUp&&isRouterOk) tryToStartTablet();
+            else if(hasATablet!=null) hasATablet.setStatusText("can not start tablet, check wifi and router!");
         } else {
-            LoggingHandler.stopSocketHandlers();
-        }
-        if(tablet==null) if(isNetworkInterfaceUp&&isRouterOk) tryToStartTablet();
-        else if(hasATablet!=null) hasATablet.setStatusText("can not start tablet, check wifi and router!");
-        else {
             if(isNetworkInterfaceUp&&isRouterOk) {
-                if(tablet!=null) {
-                    if(heartbeatperiod!=0) if(n%heartbeatperiod==0) if(n>0) {
-                        Message message=tablet.messageFactory().other(Type.heartbeat,tablet.group().groupId,tablet.tabletId());
-                        tablet.broadcast(message);
-                    }
+                if(tablet!=null&&heartbeatperiod!=0&&n%heartbeatperiod==0&&n>0) {
+                    Message message=tablet.messageFactory().other(Type.heartbeat,tablet.group().groupId,tablet.tabletId());
+                    tablet.broadcast(message);
                 }
             } else {
                 stop();
@@ -143,7 +146,7 @@ public class RunnerABC implements Runnable {
         p("before loop, host: "+host+", tabletId: "+tabletId);
         while(true)
             try {
-                p("stat looping at: "+et);
+                p("start looping at: "+et);
                 if(hasATablet!=null) hasATablet.setStatusText(status());
                 loop(n++);
                 if(hasATablet!=null) hasATablet.setStatusText(status());

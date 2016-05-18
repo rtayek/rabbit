@@ -112,7 +112,7 @@ public class IO {
             this.service=service;
         }
         @Override public void run() {
-            Thread.currentThread().setName(getClass().getSimpleName()+" "+host+":"+service);
+            Thread.currentThread().setName("SHC "+" "+host+":"+service);
             try {
                 socketHandler=new SocketHandler(host,service);
                 // socketHandler.setFormatter(new LoggingHandler());
@@ -285,12 +285,15 @@ public class IO {
     public static final String laptopToday="192.168.0.100";
     public static final String defaultHost=raysPcOnTabletNetworkToday;
     public static final String testingHost=raysPcOnRaysNetwork;
-    public static final Map<String,SocketHandler> logServerHosts=new TreeMap<>();
+    public static final Map<Pair<String,Integer>,SocketHandler> logServerHosts=new LinkedHashMap<>();
     // maybe key should be Pair<String,Integer> to allow for more than one log server on a host?
     static {
-        logServerHosts.put(raysPc,null); // static ip on my pc
-        logServerHosts.put(raysPcOnTabletNetworkToday,null); // my pc today
-        logServerHosts.put(laptopToday,null); // laptop today
+        //logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.defaultLogServerService),null); // static ip on my pc
+        //logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.otherLogServerService),null); // static ip on my pc
+        logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,LogServer.defaultLogServerService),null); // static ip on my pc
+        logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,LogServer.otherLogServerService),null); // static ip on my pc
+        logServerHosts.put(new Pair<String,Integer>(laptopToday,LogServer.defaultLogServerService),null); // static ip on my pc
+        logServerHosts.put(new Pair<String,Integer>(laptopToday,LogServer.otherLogServerService),null); // static ip on my pc
     }
     public static final Map<Integer,String> androidIds=new TreeMap<>();
     static {

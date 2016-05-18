@@ -3,6 +3,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
 import java.util.logging.Formatter;
+import com.tayek.utilities.Pair;
 import static com.tayek.io.IO.*;
 public class LoggingHandler {
     public static class MyFormatter extends Formatter {
@@ -32,14 +33,14 @@ public class LoggingHandler {
     }
     public static void addMyHandlerAndSetLevel(Logger logger,Level level) {
         Handler handler=new ConsoleHandler();
-        handler.setLevel(Level.FINEST);
+        handler.setLevel(Level.ALL);
         logger.setUseParentHandlers(false);
         handler.setFormatter(MyFormatter.instance);
         logger.addHandler(handler);
         logger.setLevel(level);
     }
     private static Map<Class<?>,Logger> makeMapAndSetLevels(Set<Class<?>> classes) {
-        LoggingHandler.addMyHandlerAndSetLevel(Logger.getGlobal(),Level.FINEST);
+        LoggingHandler.addMyHandlerAndSetLevel(Logger.getGlobal(),Level.ALL);
         Map<Class<?>,Logger> map=new LinkedHashMap<Class<?>,Logger>();
         for(Class<?> clazz:classes) {
             Logger logger=Logger.getLogger(clazz.getName());
@@ -79,6 +80,7 @@ public class LoggingHandler {
             }
         }
     }
+    // class    class org.apache.log4j.net.XMLSocketReceiver
     public static SocketHandler startSocketHandlerAndWait(String host,int service) {
         SocketHandler socketHandler=null;
         final SocketHandlerCallable task=new SocketHandlerCallable(host,service);
@@ -89,20 +91,20 @@ public class LoggingHandler {
         }
         return socketHandler;
     }
-    static void startSocketHandler(final String host) {
+    static void startSocketHandler(Pair<String,Integer> pair) {
         try {
             p("start socket handler");
-            SocketHandler socketHandler=startSocketHandlerAndWait(host,LogServer.defaultService);
+            SocketHandler socketHandler=startSocketHandlerAndWait(pair.first,pair.second);
             if(socketHandler!=null) {
-                p("got socket handler: "+socketHandler);
+                p("got socket handler: "+socketHandler+" to: "+pair);
                 LoggingHandler.addSocketHandler(socketHandler);
                 synchronized(logServerHosts) {
-                    logServerHosts.put(host,socketHandler);
+                    logServerHosts.put(pair,socketHandler);
                 }
                 Logger global=Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
                 global.addHandler(socketHandler);
                 global.warning("global with socket handler.");
-            } else p("could not start socket handler to: "+host);
+            } else p("could not start socket handler to: "+pair.first+':'+pair.second);
         } catch(Exception e) {
             p("caught: "+e);
         }
@@ -116,8 +118,8 @@ public class LoggingHandler {
     public static boolean areAnySockethandlersOn() {
         boolean areAnyOn=false;
         synchronized(logServerHosts) {
-            for(String host:logServerHosts.keySet())
-                if(logServerHosts.get(host)!=null) {
+            for(Pair<String,Integer> pair:logServerHosts.keySet())
+                if(logServerHosts.get(pair)!=null) {
                     areAnyOn=true;
                     break;
                 }
@@ -127,22 +129,29 @@ public class LoggingHandler {
     public static boolean stopSocketHandlers() {
         boolean wereAnyOn=false;
         synchronized(logServerHosts) {
-            for(String host:logServerHosts.keySet())
-                if(logServerHosts.get(host)!=null) {
-                    p("stopping socket handler to: "+host);
-                    stopSocketHandler(logServerHosts.get(host));
-                    logServerHosts.put(host,null);
+            for(Pair<String,Integer> pair:logServerHosts.keySet())
+                if(logServerHosts.get(pair)!=null) {
+                    p("stopping socket handler to: "+pair.first+':'+pair.second);
+                    stopSocketHandler(logServerHosts.get(pair));
+                    logServerHosts.put(pair,null);
                     wereAnyOn=true;
                 }
         }
         return wereAnyOn;
     }
     public static void startSocketHandlers() {
+        p("threads before startSocketHandlers()");
+        printThreads();
         // startSocketHandler is sync'ed on logServerHosts
         // should we sync also?
-        for(String host:logServerHosts.keySet()) {
-            p("starting socket handler to: "+host);
-            startSocketHandler(host);
+        // 
+        for(final Pair<String,Integer> pair:logServerHosts.keySet()) {
+            new Thread(new Runnable() {
+                @Override public void run() {
+                    p("starting socket handler to: "+pair.first+'.'+pair.second);
+                    startSocketHandler(pair); // currently this waits, so ...
+                }
+            },"start: "+pair).start();
         }
     }
     public static void toggleSockethandlers() {
