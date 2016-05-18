@@ -144,12 +144,10 @@ public interface Audio {
                 @Override public void play(final Sound sound) {
                     if(Audio.Instance.sound) if(runOnSeparateThread) {
                         l.info("starting audio thread for: "+sound);
-                        if(useFuture) executorService.submit((Callable<Void>)new AudioCallable(sound));
-                        else new Thread(new AudioCallable(sound)).start();
+                        new Thread(new AudioCallable(sound)).start();
                     } else play_(sound);
                 }
-                boolean runOnSeparateThread=true,useFuture=false;
-                ExecutorService executorService=Executors.newSingleThreadExecutor();
+                boolean runOnSeparateThread=true;
             }
         }
     }

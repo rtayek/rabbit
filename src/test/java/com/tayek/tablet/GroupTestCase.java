@@ -26,7 +26,9 @@ public class GroupTestCase {
         assertTrue(id instanceof String);
     }
     @Test public void testGetTabletTabletIdFromInetAddressForG2() throws UnknownHostException,InterruptedException,ExecutionException {
-        Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(testingHost));
+        AddressesWithCallable addressesWithCallable=new AddressesWithCallable(testingHost);
+        addressesWithCallable.run();
+        Set<InetAddress> inetAddresses=addressesWithCallable.addresses;
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next();
@@ -45,7 +47,9 @@ public class GroupTestCase {
         assertEquals(tablet.tabletId(),group.keys().iterator().next()); // fails now since 1 is not forst!
     }
     @Test public void testGetTabletWithService() throws UnknownHostException,InterruptedException,ExecutionException {
-        Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(testingHost));
+        AddressesWithCallable addressesWithCallable=new AddressesWithCallable(testingHost);
+        addressesWithCallable.run();
+        Set<InetAddress> inetAddresses=addressesWithCallable.addresses;
         assertTrue(inetAddresses.size()>0);
         if(inetAddresses.size()>1) p("more than one nic: "+inetAddresses);
         InetAddress inetAddress=inetAddresses.iterator().next(); // works by accident!

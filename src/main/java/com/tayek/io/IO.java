@@ -57,27 +57,25 @@ public class IO {
     public interface Callback<T> { // should be Consumer<T>
         void call(T t);
     }
-    public static <T> T runAndWait(java.util.concurrent.Callable<T> callable) throws InterruptedException,ExecutionException {
-        ExecutorService executorService=Executors.newFixedThreadPool(1);
-        Future<T> future=executorService.submit(callable);
-        while(!future.isDone())
-            Thread.yield();
-        return future.get();
-    }
     public static class ShutdownOptions {
         public boolean shutdownInput,shutdownOutput,closeInput,closeOutput,closeSocket=true;
     }
-    public static class GetByNameCallable implements java.util.concurrent.Callable<java.net.InetAddress> {
+    public static class GetByNameCallable implements Runnable,java.util.concurrent.Callable<java.net.InetAddress> {
         public GetByNameCallable(String host) {
             this.host=host;
         }
-        @Override public InetAddress call() throws Exception {
+        @Override public void run() {
             Thread.currentThread().setName(getClass().getName());
-            InetAddress inetAddress=null;
-            inetAddress=InetAddress.getByName(host);
+            try {
+                inetAddress=InetAddress.getByName(host);
+            } catch(UnknownHostException e) {}
+        }
+        @Override public InetAddress call() throws Exception {
+            run();
             return inetAddress;
         }
         final String host;
+        public InetAddress inetAddress;
     }
     public static Set<InetAddress> addressesWith(String networkPrefix) {
         Set<InetAddress> set=new LinkedHashSet<>(); // 
@@ -96,15 +94,20 @@ public class IO {
         if(inetAddresses.size()>1) l.severe("more than one inetAddress: "+inetAddresses);
         return inetAddresses.size()>0?inetAddresses.iterator().next():null;
     }
-    public static class AddressesWithCallable implements java.util.concurrent.Callable<java.util.Set<java.net.InetAddress>> {
+    public static class AddressesWithCallable implements Runnable,java.util.concurrent.Callable<java.util.Set<java.net.InetAddress>> {
         public AddressesWithCallable(String networkPrefix) {
             this.networkPrefix=networkPrefix;
         }
+        @Override public void run() {
+            addresses=addressesWith(networkPrefix);
+        }
         @Override public Set<InetAddress> call() throws Exception {
             Thread.currentThread().setName(getClass().getName());
-            return addressesWith(networkPrefix);
+            run();
+            return addresses;
         }
         final String networkPrefix;
+        public Set<InetAddress> addresses;
     }
     public static class SocketHandlerCallable implements Runnable,java.util.concurrent.Callable<java.util.logging.SocketHandler> {
         public SocketHandlerCallable(String host,int service) {
@@ -112,10 +115,11 @@ public class IO {
             this.service=service;
         }
         @Override public void run() {
-            Thread.currentThread().setName("SHC "+" "+host+":"+service);
+            Thread.currentThread().setName("SHC "+serialNumber+" "+host+":"+service);
             try {
                 socketHandler=new SocketHandler(host,service);
                 // socketHandler.setFormatter(new LoggingHandler());
+                l.info("got socket handler on: "+host+":"+service);
                 socketHandler.setLevel(Level.ALL);
             } catch(IOException e) {
                 l.info("caught: '"+e+"' constructing socket handler on: "+host+":"+service);
@@ -125,9 +129,11 @@ public class IO {
             run();
             return socketHandler;
         }
+        final Integer serialNumber=++serialNumbers;
         final String host;
         final int service;
         SocketHandler socketHandler;
+        static int serialNumbers;
     }
     static void printNetworkInterface(NetworkInterface netint) {
         p("Display name: "+netint.getDisplayName()+", Name: "+netint.getName());
@@ -288,8 +294,8 @@ public class IO {
     public static final Map<Pair<String,Integer>,SocketHandler> logServerHosts=new LinkedHashMap<>();
     // maybe key should be Pair<String,Integer> to allow for more than one log server on a host?
     static {
-        //logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.defaultLogServerService),null); // static ip on my pc
-        //logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.otherLogServerService),null); // static ip on my pc
+        logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.defaultLogServerService),null); // static ip on my pc
+        logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.otherLogServerService),null); // static ip on my pc
         logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,LogServer.defaultLogServerService),null); // static ip on my pc
         logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,LogServer.otherLogServerService),null); // static ip on my pc
         logServerHosts.put(new Pair<String,Integer>(laptopToday,LogServer.defaultLogServerService),null); // static ip on my pc

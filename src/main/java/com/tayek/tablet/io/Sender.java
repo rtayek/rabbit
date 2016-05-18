@@ -8,8 +8,8 @@ import com.tayek.Tablet.*;
 import com.tayek.io.IO.ShutdownOptions;
 import com.tayek.utilities.*;
 public interface Sender {
-    boolean send(Object message);
-    public static class Client implements Sender {
+    boolean send(Object message); // Consumer<Object>
+    public class Client implements Sender {
         public Client(SocketAddress socketAddress,Config config,Histories histories) {
             this.socketAddress=socketAddress;
             this.config=config;
@@ -114,7 +114,7 @@ public interface Sender {
             return null;
         }
         public static void send(String id,final Object message,String destinationId,SocketAddress socketAddress,Histories histories) {
-            Config config=new Config(); // maybe pass ths in?
+            Config config=new Config(); // maybe pass this in?
             Client client=new Client(socketAddress,config,histories);
             l.info(id+" sending: "+message+" to tablet "+destinationId);
             try {
@@ -167,27 +167,6 @@ public interface Sender {
             private final String destinationId;
             private final Histories histories;
             private final SocketAddress socketAddress;
-        }
-        public static Future<Void> executeTaskAndCancelIfItTakesTooLong(ExecutorService executorService,final SendCallable callable,final long timeoutMS,ScheduledExecutorService canceller,
-                boolean wait) {
-            final Future<Void> future=executorService.submit((Callable<Void>)callable);
-            // awk this makes another thread!
-            Et et=new Et();
-            if(wait) {
-                while(!callable.sendCalled) // wait until the are all called
-                    Thread.yield();
-                l.fine("send called took: "+et);
-            }
-            if(canceller!=null) canceller.schedule(new Callable<Void>() {
-                public Void call() {
-                    if(!future.isDone()) {
-                        l.warning("future: "+future+", callable: "+callable+" task is not finished after: "+timeoutMS);
-                        future.cancel(true);
-                    }
-                    return null;
-                }
-            },timeoutMS,TimeUnit.MILLISECONDS);
-            return future;
         }
         private final SocketAddress socketAddress;
         public final Config config;

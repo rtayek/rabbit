@@ -155,32 +155,25 @@ public interface Tablet {
     }
     class Config implements Cloneable {
         public Config() {}
-        public Config(boolean useExecutorService,boolean waitForSendCallable,boolean runCanceller,boolean replying,boolean logErrors,Integer connectTimeout,Integer sendTimeout) {
+        public Config(boolean replying,boolean logErrors,Integer connectTimeout,Integer sendTimeout) {
             super();
-            this.useExecutorService=useExecutorService;
-            this.waitForSendCallable=waitForSendCallable;
-            this.runCanceller=runCanceller;
             this.replying=replying;
             this.logErrors=logErrors;
             this.connectTimeout=connectTimeout;
             this.sendTimeout=sendTimeout;
         }
         @Override public Config clone() {
-            Config config=new Config(useExecutorService,waitForSendCallable,runCanceller,replying,logErrors,connectTimeout,sendTimeout);
+            Config config=new Config(replying,logErrors,connectTimeout,sendTimeout);
             return config;
         }
         // put all the switches in here
         // maybe all the static stuff in io also?
-        public boolean useExecutorService;
-        public boolean waitForSendCallable=true;
-        public boolean runCanceller;
         public boolean replying;
         public boolean logErrors=false;
         public Integer connectTimeout=defaultConnectTimeout; // set by tablet
         public Integer sendTimeout=defaultSendTimeout; // set by tablet
         @Override public String toString() {
-            return "Config [replying="+replying+", connectTimeout="+connectTimeout+", sendTimeout="+sendTimeout+", waitForSendCallable="+waitForSendCallable+", useExecutorService="+useExecutorService
-                    +", runCanceller="+runCanceller+"]";
+            return "Config [replying="+replying+", logErrors="+logErrors+", connectTimeout="+connectTimeout+", sendTimeout="+sendTimeout+"]";
         }
         public static Integer defaultConnectTimeout=1_000; // 40;
         public static Integer defaultSendTimeout=defaultConnectTimeout+50; // 60;

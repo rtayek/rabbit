@@ -77,8 +77,6 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             super(group,tabletId,model,group.required(tabletId).histories());
             messageFactory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
             int n=group.keys().size();
-            executorService=Executors.newFixedThreadPool(4*n+2);
-            canceller=Executors.newScheduledThreadPool(4*n+2);
             model().histories=histories();
         }
         public Group group() {
@@ -96,9 +94,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             for(String destinationTabletId:group.keys()) {
                 InetSocketAddress inetSocketAddress=group.socketAddress(destinationTabletId);
                 SendCallable sendCallable=new SendCallable(tabletId(),message,destinationTabletId,group.required(destinationTabletId).histories(),inetSocketAddress);
-                if(config.useExecutorService)
-                    Client.executeTaskAndCancelIfItTakesTooLong(executorService,sendCallable,config.sendTimeout,config.runCanceller?canceller:null,config.waitForSendCallable);
-                else new Thread(new SendCallable(tabletId(),message,destinationTabletId,group.required(destinationTabletId).histories(),inetSocketAddress)).start();
+                new Thread(new SendCallable(tabletId(),message,destinationTabletId,group.required(destinationTabletId).histories(),inetSocketAddress)).start();
                 try {
                     Thread.sleep(5); // to out of order
                 } catch(InterruptedException e) {
@@ -270,8 +266,6 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             return messageFactory;
         }
         boolean stopDriving;
-        public final ScheduledExecutorService canceller;
-        public final ExecutorService executorService;
         public Server server;
         Timer simulationTimer;
         public final Message.Factory messageFactory;
@@ -372,7 +366,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         sb.append("histories: "+id+" ------------------------------------");
         for(String i:keys()) {
             Histories histories=required(i).histories();
-            if(histories.anyFailures()||histories.senderHistory.history.attempts()!=0) sb.append("\n\tfor "+id+" to: "+i+", history: "+histories.toString());
+            if(histories.anyFailures()||histories.senderHistory.history.attempts()!=0) sb.append("\n\tfor "+id+" to: "+i+", history: "+histories.toString("report"));
             else sb.append("\n\tfrom "+id+" to: "+i+", history: no failures.");
         }
         Map<Object,Float> failures=new LinkedHashMap<>();

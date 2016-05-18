@@ -1,6 +1,6 @@
 package com.tayek.io;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.Map.Entry;
 import java.util.logging.*;
 import java.util.logging.Formatter;
 import com.tayek.utilities.Pair;
@@ -80,21 +80,14 @@ public class LoggingHandler {
             }
         }
     }
-    // class    class org.apache.log4j.net.XMLSocketReceiver
-    public static SocketHandler startSocketHandlerAndWait(String host,int service) {
-        SocketHandler socketHandler=null;
+    public static SocketHandler createSocketHandlerAndWait(String host,int service) {
         final SocketHandlerCallable task=new SocketHandlerCallable(host,service);
-        try {
-            socketHandler=runAndWait(task);
-        } catch(InterruptedException|ExecutionException e) {
-            l.warning("caught: '"+e+"'");
-        }
-        return socketHandler;
+        task.run();
+        return task.socketHandler;
     }
     static void startSocketHandler(Pair<String,Integer> pair) {
         try {
-            p("start socket handler");
-            SocketHandler socketHandler=startSocketHandlerAndWait(pair.first,pair.second);
+            SocketHandler socketHandler=createSocketHandlerAndWait(pair.first,pair.second);
             if(socketHandler!=null) {
                 p("got socket handler: "+socketHandler+" to: "+pair);
                 LoggingHandler.addSocketHandler(socketHandler);
@@ -112,7 +105,11 @@ public class LoggingHandler {
     public static void stopSocketHandler(SocketHandler socketHandler) {
         if(socketHandler!=null) {
             l.warning("closing: "+socketHandler);
+            try {
             socketHandler.close();
+            } catch(Exception e) {
+                l.warning("caught: "+e);
+            }
         }
     }
     public static boolean areAnySockethandlersOn() {
@@ -126,12 +123,13 @@ public class LoggingHandler {
         }
         return areAnyOn;
     }
+    // these can't really be static if we are testing multile tablets - fix!
     public static boolean stopSocketHandlers() {
         boolean wereAnyOn=false;
         synchronized(logServerHosts) {
             for(Pair<String,Integer> pair:logServerHosts.keySet())
                 if(logServerHosts.get(pair)!=null) {
-                    p("stopping socket handler to: "+pair.first+':'+pair.second);
+                    p("stopping socket handler to: "+pair);
                     stopSocketHandler(logServerHosts.get(pair));
                     logServerHosts.put(pair,null);
                     wereAnyOn=true;
@@ -139,16 +137,30 @@ public class LoggingHandler {
         }
         return wereAnyOn;
     }
+    public static String socketHandlers() {
+        StringBuffer sb=new StringBuffer();
+        synchronized(logServerHosts) {
+            for(Entry<Pair<String,Integer>,SocketHandler> entry:logServerHosts.entrySet())
+                sb.append(entry.getKey()).append(':').append(entry.getValue()!=null).append(',');
+        }
+        return sb.toString();
+        
+    }
+    public static void printSocketHandlers() {
+        p("socket handlers:");
+        synchronized(logServerHosts) {
+            for(Entry<Pair<String,Integer>,SocketHandler> entry:logServerHosts.entrySet())
+                p(entry.getKey()+";"+entry.getValue());
+        }
+        
+    }
     public static void startSocketHandlers() {
-        p("threads before startSocketHandlers()");
-        printThreads();
         // startSocketHandler is sync'ed on logServerHosts
         // should we sync also?
         // 
         for(final Pair<String,Integer> pair:logServerHosts.keySet()) {
             new Thread(new Runnable() {
                 @Override public void run() {
-                    p("starting socket handler to: "+pair.first+'.'+pair.second);
                     startSocketHandler(pair); // currently this waits, so ...
                 }
             },"start: "+pair).start();

@@ -77,7 +77,9 @@ public class LogServer implements Runnable {
                 socket.shutdownInput();
                 socket.shutdownOutput();
                 socket.close();
-            } catch(IOException e) {}
+            } catch(IOException e) {
+               // p("caught: "+e);
+            }
         }
         @Override public void run() {
             try {
@@ -107,14 +109,14 @@ public class LogServer implements Runnable {
             } catch(IOException e) {
                 try {
                     if(isShuttingdown) {
-                        p("shutting down:");
+                        p("shutting down, caught: "+e);
                         //out.write("<!-- expected caught: '"+e+"' -->");
                     } else {
-                        p("log copier caught: '"+e+"'");
+                        p("not shutting down, caught: '"+e+"'");
                         //out.write("<!-- unexpected caught: '"+e+"' -->");
-                        e.printStackTrace();
+                        //e.printStackTrace();
                     }
-                } catch(Exception e1) {
+                } catch(Exception e1) { // not needed if no writes!
                     p("shutdown: write caught: "+e1);
                     e1.printStackTrace();
                 }
@@ -137,7 +139,7 @@ public class LogServer implements Runnable {
         Writer out;
         public File file; // may be null for testing
         LogFile logFile; // may be null for testing
-        private boolean isShuttingdown;
+        public volatile boolean isShuttingdown;
     }
     public LogServer(String host,int service,String prefix) throws IOException {
         this(host,service,null,prefix);
@@ -208,7 +210,7 @@ public class LogServer implements Runnable {
     public static void print() {}
     public static void main(String args[]) {
         for(Pair<String,Integer> pair:logServerHosts.keySet())
-            try {
+            if(pair.second.equals(defaultLogServerService)) try {
                 LogServer logServer=new LogServer(pair.first,pair.second,null);
                 new Thread(logServer).start();
                 logServers.add(logServer);

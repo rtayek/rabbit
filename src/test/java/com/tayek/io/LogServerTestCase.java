@@ -76,7 +76,7 @@ public class LogServerTestCase {
             }
         },"log server");
         thread.start();
-        socketHandler=LoggingHandler.startSocketHandlerAndWait(host,service);
+        socketHandler=LoggingHandler.createSocketHandlerAndWait(host,service);
         p("socket handler: "+socketHandler);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(socketHandler);
@@ -95,12 +95,13 @@ public class LogServerTestCase {
             }
         },"log server");
         thread.start();
-        socketHandler=LoggingHandler.startSocketHandlerAndWait(host,service);
+        socketHandler=LoggingHandler.createSocketHandlerAndWait(host,service);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(socketHandler);
         IO.l.severe(expected);
         Thread.sleep(100); // need to wait a bit
         Copier copier=logServer.copiers.iterator().next();
+        copier.isShuttingdown=true;
         copier.close();
         StringBuffer stringBuffer=new StringBuffer();
         Utility.fromFile(stringBuffer,copier.file);
@@ -120,7 +121,7 @@ public class LogServerTestCase {
             }
         },"log server");
         thread.start();
-        socketHandler=LoggingHandler.startSocketHandlerAndWait(host,service);
+        socketHandler=LoggingHandler.createSocketHandlerAndWait(host,service);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(socketHandler);
         IO.l.info(expected);
@@ -128,6 +129,7 @@ public class LogServerTestCase {
         Thread.sleep(100); // need to wait a bit
         if(true) {
             Copier copier=logServer.copiers.iterator().next();
+            copier.isShuttingdown=true;
             copier.flush();
         } else {
             Copier copier=logServer.copiers.iterator().next();
@@ -144,7 +146,7 @@ public class LogServerTestCase {
         LogManager.getLogManager().reset();
         LoggingHandler.once=false;
         LoggingHandler.init();
-        socketHandler=LoggingHandler.startSocketHandlerAndWait(host,service);
+        socketHandler=LoggingHandler.createSocketHandlerAndWait(host,service);
         p("socket handler: "+socketHandler);
         LoggingHandler.setLevel(Level.ALL);
         LoggingHandler.addSocketHandler(socketHandler);

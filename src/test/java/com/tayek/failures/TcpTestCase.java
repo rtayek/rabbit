@@ -46,7 +46,9 @@ import com.tayek.utilities.Single;
         } else throw new RuntimeException(socketAddress+" is not an InetSocketAddress!");
     }
     @Parameters public static Collection<Object[]> data() throws UnknownHostException,InterruptedException,ExecutionException {
-        Set<InetAddress> inetAddresses=IO.runAndWait(new AddressesWithCallable(networkStub));
+        AddressesWithCallable addressesWithCallable=new AddressesWithCallable(testingHost);
+        addressesWithCallable.run();
+        Set<InetAddress> inetAddresses=addressesWithCallable.addresses;
         LoggingHandler.init();
         int serviceOffset=6000; // hackish, reconcile with the one in the abstract test case. 
         l.info("addresses: "+inetAddresses);

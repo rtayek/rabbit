@@ -35,7 +35,7 @@ public abstract class AbstractTabletTestCase {
         staticServiceOffset+=100;
         serviceOffset=staticServiceOffset; // find out why this meeds to be 100, try to make it 1!
     }
-    @After public void tearDown() throws Exception { //Thread.sleep(100); // apparently not needed since we shutdown the executor service now.
+    @After public void tearDown() throws Exception { 
         boolean anyFailures=false;
         if(tablets!=null) for(Tablet tablet:tablets)
             anyFailures|=tablet.histories().anyFailures();
@@ -181,28 +181,11 @@ public abstract class AbstractTabletTestCase {
             if(history.receiverHistory.history.successes()>tablets.size()) l.warning(tablet+" received too many messages: "+history.receiverHistory.history.successes());
         }
     }
-    void shutdownAndAwaitTermination(ExecutorService pool) {
-        pool.shutdown(); // Disable new tasks from being submitted
-        try {
-            // Wait a while for existing tasks to terminate
-            if(!pool.awaitTermination(100,TimeUnit.MILLISECONDS)) {
-                pool.shutdownNow(); // Cancel currently executing tasks
-                // Wait a while for tasks to respond to being cancelled
-                if(!pool.awaitTermination(100,TimeUnit.MILLISECONDS)) System.err.println("Pool did not terminate");
-            }
-        } catch(InterruptedException ie) {
-            pool.shutdownNow(); // (Re-)Cancel if current thread also interrupted
-            Thread.currentThread().interrupt(); // Preserve interrupt status
-        }
-    }
     protected void shutdown() {
         for(Tablet tablet:tablets) {
             if(tablet instanceof TabletImpl2) {
                 TabletImpl2 t2=(TabletImpl2)tablet;
                 t2.stopServer();
-                if(!t2.executorService.isShutdown()) shutdownAndAwaitTermination(t2.executorService);
-                if(!t2.canceller.isShutdown()) t2.canceller.shutdown();
-                // don't do this if we are testing and all using the same service.
             }
         }
     }
@@ -291,9 +274,6 @@ public abstract class AbstractTabletTestCase {
     static boolean staticPrintThreads;
     protected boolean printStats;
     protected Set<Tablet> tablets;
-    public boolean useExecutorService;
-    public boolean runCanceller;
-    public boolean waitForSendCallable;
     public static Level defaultLevel=Level.WARNING;
     public Integer serviceOffset;
     public static int staticServiceOffset=1_000; // too many places, fix!

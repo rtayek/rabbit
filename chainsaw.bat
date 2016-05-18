@@ -1,2 +1,1 @@
-cd d:\dev\chainsaw-bundle
-call chainsaw.bat
+D:\dev\chainsaw2.1.0\apache-chainsaw-2.1.0-SNAPSHOT\bin\chainsaw.bat
