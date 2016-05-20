@@ -66,6 +66,10 @@ abstract class Connection implements Runnable {
 // looks like this implements sender!
 // try to combine!
 // yes, see if reader can implement receiver!
+// yes, but it's a pretty trivial interface
+// not sure how useful it is
+// maybe genericize if to Sender<T>, and Receiver<T>
+// which are really just consumer and producer.
 public class Writer extends Connection { // Consumer<Message>
     static Writer create(String id,String otherId,Required required) throws IOException {
         l.info(id+": "+"connecting to: "+required);

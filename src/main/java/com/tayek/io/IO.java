@@ -294,12 +294,12 @@ public class IO {
     public static final Map<Pair<String,Integer>,SocketHandler> logServerHosts=new LinkedHashMap<>();
     // maybe key should be Pair<String,Integer> to allow for more than one log server on a host?
     static {
-        logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.defaultLogServerService),null); // static ip on my pc
         logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.otherLogServerService),null); // static ip on my pc
-        logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,LogServer.defaultLogServerService),null); // static ip on my pc
+        logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.defaultLogServerService),null); // static ip on my pc
         logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,LogServer.otherLogServerService),null); // static ip on my pc
-        logServerHosts.put(new Pair<String,Integer>(laptopToday,LogServer.defaultLogServerService),null); // static ip on my pc
+        logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,LogServer.defaultLogServerService),null); // static ip on my pc
         logServerHosts.put(new Pair<String,Integer>(laptopToday,LogServer.otherLogServerService),null); // static ip on my pc
+        logServerHosts.put(new Pair<String,Integer>(laptopToday,LogServer.defaultLogServerService),null); // static ip on my pc
     }
     public static final Map<Integer,String> androidIds=new TreeMap<>();
     static {

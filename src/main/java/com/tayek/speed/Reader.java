@@ -77,6 +77,39 @@ class Reader extends Connection { // Supplier<Message>
         if(string==null||string.isEmpty()) l.info(id+": "+this+" read eof or empty string!");
         return string;
     }
+    void newConnection(Message message) {
+        String newId=message.from();
+        this.otherId=newId;
+        l.info(id+": "+this+" received first message:  "+message);
+        if(false) try {
+            Thread.sleep(1_000);
+            // this sleep makes the one knows test case work
+            // why exactly is that? - probably a sync problem
+            // looks like it may have been
+        } catch(InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        server.addConnection(newId,this); // yuck! - nope, necessary
+        // maybe not
+        thread.setName(this.toString());
+        Pair<Writer,Reader> pair=server.idToPair().get(newId);
+        if(false) // let's wait and see what happens
+            // bad idea, nothing happens :)
+            // true, but that's because we don't need to add a writer
+            // now that we know all of them up front.
+            // but we do if we don't create them up front.
+            if(pair.first==null) try {
+                // check that new id is equal to host:service?
+            Required required=new Required(newId,message.host(),message.service());
+            Writer writer=Writer.create(id,newId,required);
+            if(writer!=null) {
+            l.info(id+": "+this+" adding sender: "+writer);
+            server.addConnection(newId,writer);
+            } else l.warning(id+": "+"can not create writer!");
+            } catch(IOException e) {
+            e.printStackTrace();
+            }
+    }
     // how to get socket address?
     // id, host, and service will be in each message
     // end of problem
@@ -100,37 +133,7 @@ class Reader extends Connection { // Supplier<Message>
                 }
                 Message message=server.messageFactory().from(string);
                 if(otherId==null) { // new connection?
-                    String newId=message.from();
-                    this.otherId=newId;
-                    l.info(id+": "+this+" received first message:  "+message);
-                    if(false) try {
-                        Thread.sleep(1_000);
-                        // this sleep makes the one knows test case work
-                        // why exactly is that? - probably a sync problem
-                        // looks like it may have been
-                    } catch(InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
-                    server.addConnection(newId,this); // yuck! - nope, necessary
-                    // maybe not
-                    thread.setName(this.toString());
-                    Pair<Writer,Reader> pair=server.idToPair().get(newId);
-                    if(false) // let's wait and see what happens
-                        // bad idea, nothing happens :)
-                        // true, but that's because we don't need to add a writer
-                        // now that we know all of them up front.
-                        // but we do if we don't create them up front.
-                        if(pair.first==null) try {
-                            // check that new id is equal to host:service?
-                        Required required=new Required(newId,message.host(),message.service());
-                        Writer writer=Writer.create(id,newId,required);
-                        if(writer!=null) {
-                        l.info(id+": "+this+" adding sender: "+writer);
-                        server.addConnection(newId,writer);
-                        } else l.warning(id+": "+"can not create writer!");
-                        } catch(IOException e) {
-                        e.printStackTrace();
-                        }
+                    newConnection(message);
                 }
                 l.info(id+": "+this+" received: "+message);
             }

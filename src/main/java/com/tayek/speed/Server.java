@@ -227,9 +227,12 @@ public interface Server {
                     return ok;
                 }
                 @Override public void broadcast(Object message) {
+                    p("broadcating: "+message);
                     synchronized(this) {
-                        for(Pair<Writer,Reader> pair:idToPair.values())
+                        for(Pair<Writer,Reader> pair:idToPair.values()) {
+                            p("write to: "+pair.first);
                             if(pair.first!=null) pair.first.write(message);
+                        }
                     }
                 }
                 @Override public Histories histories() {

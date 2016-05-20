@@ -129,7 +129,7 @@ public interface Tablet {
                 public final Histories histories;
                 protected Timer heartbeatTimer;
             }
-            private class TabletImpl1 extends TabletABC { // stays connected
+            /* private */ public class TabletImpl1 extends TabletABC { // stays connected
                 TabletImpl1(Group group,String id,Server server,Model model) {
                     super(group,id,model,server.histories());
                     this.server=server;
@@ -149,7 +149,7 @@ public interface Tablet {
                 @Override public String report(String id) {
                     return id+": "+server.report();
                 }
-                final Server server;
+                public final Server server;
             }
         }
     }
