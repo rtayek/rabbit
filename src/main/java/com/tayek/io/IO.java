@@ -309,6 +309,8 @@ public class IO {
         androidIds.put(4,"0ab62207");
         androidIds.put(5,"0b029b33"); // 3bcdcfbdd2cd4e42
         androidIds.put(6,"0ab61d9b"); // 7c513f24bfe99daa
+        androidIds.put(7,"0b03ae31"); // #7 on 192.168.1.19
+        androidIds.put(8,"015d2109aa080e1a"); // my nexus 7 on 192.168.0.18
     }
     public static final Logger l=Logger.getLogger(IO.class.getName());
 }

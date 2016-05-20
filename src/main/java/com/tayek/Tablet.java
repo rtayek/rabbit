@@ -169,12 +169,13 @@ public interface Tablet {
         // put all the switches in here
         // maybe all the static stuff in io also?
         public boolean replying;
-        public boolean logErrors=false;
+        public boolean logErrors=defaultLogErrors;
         public Integer connectTimeout=defaultConnectTimeout; // set by tablet
         public Integer sendTimeout=defaultSendTimeout; // set by tablet
         @Override public String toString() {
             return "Config [replying="+replying+", logErrors="+logErrors+", connectTimeout="+connectTimeout+", sendTimeout="+sendTimeout+"]";
         }
+        public static Boolean defaultLogErrors=false;
         public static Integer defaultConnectTimeout=1_000; // 40;
         public static Integer defaultSendTimeout=defaultConnectTimeout+50; // 60;
         public static Integer defaultDriveWait=200; // 100;

@@ -1,8 +1,9 @@
 package com.tayek.tablet.io;
 import static com.tayek.io.IO.*;
 import java.net.*;
+import java.util.logging.Level;
 import com.tayek.Tablet;
-import com.tayek.Tablet.HasATablet;
+import com.tayek.Tablet.*;
 import com.tayek.io.*;
 import com.tayek.io.Audio.AudioObserver;
 import com.tayek.tablet.*;
@@ -38,7 +39,6 @@ public class RunnerABC implements Runnable {
         InetAddress inetAddress=addressWith(routerPrefix);
         return inetAddress!=null;
     }
-    // change some of the p's to l's as we want the info!
     private void setTablet(Tablet value) {
         tablet=value;
         if(hasATablet!=null) hasATablet.setTablet(value);
@@ -57,43 +57,45 @@ public class RunnerABC implements Runnable {
     }
     private void tryToStartTablet() {
         if(tabletId==null&&host==null) {
-            p("no tablet id and no host, gettin inetAddress from nic.");
+            l.warning("no tablet id and no host, gettin inetAddress from nic.");
             InetAddress inetAddress=addressWith(routerPrefix);
             if(inetAddress!=null) {
-                p("got inetAddress from nic: "+inetAddress);
+                l.warning("got inetAddress from nic: "+inetAddress);
                 host=inetAddress.getHostAddress();
                 prefs.put("host",host);
                 tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
                 if(tabletId!=null) {
-                    p("got tabletId from group: "+tabletId);
+                    l.warning("got tabletId from group: "+tabletId);
                     prefs.put("tabletId",tabletId);
-                } else p("can not get tabletId from group!");
-            } else p("can not get inetAddress despite network being up!");
+                } else l.warning("can not get tabletId from group!");
+            } else l.warning("can not get inetAddress despite network being up!");
         }
         if(tablet!=null) if(host==null) { // assume that they will all be the same!
             String host=group.required(tabletId).host;
             if(host!=null) {
-                p("found host from group: : "+host);
+                l.warning("found host from group: : "+host);
                 prefs.put("host",host);
-            } else p("group can not find host for tableiId: "+tabletId);
+            } else l.warning("group can not find host for tableiId: "+tabletId);
         }
         if(host!=null) if(tabletId==null) { // maybe use network interface instead?
             tabletId=group.getTabletIdFromHost(host,null);
             if(tabletId!=null) {
-                p("got tabletId from group: "+tabletId);
+                l.warning("got tabletId from group: "+tabletId);
                 prefs.put("tabletId",tabletId);
-            } else p("can not get tabletId from group!");
+            } else l.warning("can not get tabletId from group!");
         }
         if(tabletId!=null&&host!=null) if(tablet==null) {
             if(oldTablet==null) createTabletAndStart(tabletId);
-            else { // this needs to be tested!
-                p("using old tablet.");
+            else {
+                l.warning("using old tablet.");
                 setTablet(oldTablet);
+                tablet.config().logErrors=true;
+                tablet.startServer(); // don't forget to start accepting
             }
             if(tablet!=null) {
                 if(isNetworkInterfaceUp()) {
                     if(!LoggingHandler.areAnySockethandlersOn()) {
-                        p("trying to start socket handlers at: "+et);
+                        l.warning("trying to start socket handlers at: "+et);
                         LoggingHandler.startSocketHandlers();
                         ; // maybe stop and restart just in case the laptop cycled power or ?
                     }
@@ -103,7 +105,7 @@ public class RunnerABC implements Runnable {
     }
     protected void stop() {
         if(tablet!=null) {
-            p("stopping tablet: "+tabletId);
+            l.warning("stopping tablet: "+tabletId);
             if(audioObserver.isChimimg()) audioObserver.stopChimer();
             if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).stopServer();
             oldTablet=tablet;
@@ -141,61 +143,29 @@ public class RunnerABC implements Runnable {
     }
     @Override public void run() {
         thread=Thread.currentThread();
-        p("enter run() at: "+et+", tabletId: "+tabletId);
+        l.warning("enter run() at: "+et+", tabletId: "+tabletId);
         init(model);
-        p("building gui");
+        l.warning("building gui");
         buildGui(model); // clone group if more than one tablet on this guy?
-        p("prefs: "+prefs);
+        l.warning("prefs: "+prefs);
         if(prefs.get("tabetId")!=null&&!prefs.get("tabetId").equals("")) tabletId=prefs.get("tabetId");
         if(prefs.get("host")!=null&&!prefs.get("host").equals("")) host=prefs.get("host");
-        p("before loop, host: "+host+", tabletId: "+tabletId);
+        l.warning("before loop, host: "+host+", tabletId: "+tabletId);
         while(true)
             try {
-                p("start looping at: "+et);
+                l.info("start looping at: "+et);
                 if(hasATablet!=null) hasATablet.setStatusText(status());
                 loop(n++);
                 if(hasATablet!=null) hasATablet.setStatusText(status());
                 try {
                     Thread.sleep(loopSleep);
                 } catch(Exception e) {
-                    p("sleep was interrupted at: "+et);
+                    l.warning("sleep was interrupted at: "+et);
                 }
             } catch(Exception e) {
                 l.severe("runner caught: "+e);
             }
     }
-    /*
-    if(false) {
-    if(!Exec.canWePing("127.0.0.1",1_000))
-        l.severe("can not ping 127.0.0.1!");
-    if(!Exec.canWePing("localhost",1_000))
-        l.severe("can not ping localhost!");
-    if(!Exec.canWePing(tabletRouter,2_000))
-        l.severe("can not ping tabletRouter!");
-    if(Exec.canWePing("google.com",5_000))
-        l.severe("oops, we seem to be on the internet!");
-    }
-    if(false)
-    new Thread(new Runnable() { // does not seem to find 192.168.0.x
-        @Override
-        public void run() {
-            Nics.main(new String[0]);
-        }
-    }).start();
-    try {
-    Thread.sleep(5_000);
-    } catch(Exception e) {
-    }
-    Timer timer=new Timer();
-    if(false)
-    timer.schedule(new TimerTask() {
-        @Override
-        public void run() {
-            printThreads();
-        }
-    },60_000,60_000);
-    Timer timer2=new Timer();
-    */
     public final String router,routerPrefix;
     public final Prefs prefs;
     public final Model model;
@@ -210,6 +180,6 @@ public class RunnerABC implements Runnable {
     protected GuiAdapterABC guiAdapterABC;
     protected boolean isNetworkInterfaceUp,isRouterOk;
     public int restarts,n;
-    public int loopSleep=20_000;
+    public int loopSleep=30_000;
     final int heartbeatperiod=1;
 }
