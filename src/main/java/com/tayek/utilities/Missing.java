@@ -1,7 +1,7 @@
 package com.tayek.utilities;
 import java.util.Set;
 import com.tayek.utilities.*;
-public interface Missing<T extends Comparable,R /*should be T or Range<T>*/ > {
+public interface Missing<T extends Comparable<T>,R /*should be T or Range<T>*/ > {
     @SuppressWarnings("serial") class MissingException extends RuntimeException {
         MissingException(String string) {
             super(string);

@@ -38,7 +38,6 @@ public class Controller {
         p(out,"a add/remove audio observer");
         p(out,"b <buttonId> - click on button");
         p(out,"c - add/remove a command line view");
-        p(out,"H - toggle heartbeat");
         p(out,"h - help");
         p(out,"l - toggle logging");
         p(out,"L - toggle logging socket handler");
@@ -96,10 +95,6 @@ public class Controller {
                     p(out,"removed command line view: "+commandLineView);
                     commandLineView=null;
                 }
-                break;
-            case 'H':
-                if(tablet.isHeatbeatOn()) tablet.startHeatbeat();
-                else tablet.stopHeartbeat();
                 break;
             case 'l':
                 if(IO.l.getLevel()==Level.OFF) LoggingHandler.setLevel(Level.ALL);

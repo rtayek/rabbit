@@ -22,8 +22,6 @@ public interface Server {
     void broadcast(Object message);
     String report();
     void stopServer();
-    void startHeartbeat();
-    void stopHeartbeat();
     Histories histories();
     String maps();
     void addConnection(String newId,Connection connection);
@@ -124,12 +122,6 @@ public interface Server {
                 @Override public String report() {
                     throw new UnsupportedOperationException("nyi");
                     //return null;
-                }
-                @Override public void startHeartbeat() {
-                    throw new UnsupportedOperationException("nyi");
-                }
-                @Override public void stopHeartbeat() {
-                    throw new UnsupportedOperationException("nyi");
                 }
                 @Override public Histories histories() {
                     throw new UnsupportedOperationException("nyi");
@@ -403,32 +395,6 @@ public interface Server {
                     }
                     return sender;
                 }
-                @Override public void startHeartbeat() {
-                    heartbeat=new Thread(new Runnable() {
-                        @Override public void run() {
-                            while(true) {
-                                broadcast(messageFactory.other(Type.heartbeat,"1",id()));
-                                try {
-                                    Thread.sleep(1_000);
-                                } catch(InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    });
-                    heartbeat.start();
-                }
-                @Override public void stopHeartbeat() {
-                    if(heartbeat!=null) {
-                        heartbeat.interrupt();
-                        try {
-                            heartbeat.join();
-                        } catch(InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        heartbeat=null;
-                    }
-                }
                 @Override public void run() {
                     while(!isShuttingDown) {
                         if(serverSocket!=null) l.info(id()+" accepting on: "+serverSocket);
@@ -617,7 +583,6 @@ public interface Server {
                     return "server: "+id()+", "+host()+":"+service()+", "+idToPair;
                 }
                 //final Set<SocketAddress> socketAddresses; // maybe add these in later?
-                Thread heartbeat;
                 final Set<Reader> connections=new LinkedHashSet<>();
                 final Map<String,Pair<Writer,Reader>> idToPair=new TreeMap<>(); // destination id!
                 public static final String ok="ok";

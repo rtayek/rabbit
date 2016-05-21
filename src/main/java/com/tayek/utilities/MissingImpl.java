@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import static com.tayek.utilities.Range.*;
 import static com.tayek.io.IO.*;
-abstract class MissingABC<T extends Comparable,R> implements Missing<T,R> {
+abstract class MissingABC<T extends Comparable<T>,R> implements Missing<T,R> {
     MissingABC(T t) {
         range=range(t,t);
         largest=range.sequence(t).previous().value();
@@ -33,7 +33,7 @@ abstract class MissingABC<T extends Comparable,R> implements Missing<T,R> {
     protected T largest;
     protected Range<T> range; // initial value
 }
-public class MissingImpl<T extends Comparable,R>extends MissingABC<T,R> { // tracks missing messages from consecutive messages.
+public class MissingImpl<T extends Comparable<T>,R>extends MissingABC<T,R> { // tracks missing messages from consecutive messages.
     public MissingImpl(T t) { // expect to start with n.
         super(t);
     }

@@ -4,7 +4,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import com.tayek.sablet.*;
 import static com.tayek.io.IO.*;
-@RunWith(Suite.class) @Suite.SuiteClasses({TabletTestCase.class,TwoTabletsTestCase.class,HeartbeatTestCase.class,})
+@RunWith(Suite.class) @Suite.SuiteClasses({TabletTestCase.class,TwoTabletsTestCase.class,})
 public class TabletTestSuite {
     @BeforeClass public static void setUpBeforeClass() {
         p("static suite setup");

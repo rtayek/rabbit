@@ -38,7 +38,7 @@ public class Enums {
         private final Level level;
     }
     public enum MenuItem implements Item {
-        clearPrefs,toggleExtraStatus,ToggleLogging,Reset,Ping,Heartbeat,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,StopDriving,Forever,Level;
+        clearPrefs,toggleExtraStatus,ToggleLogging,Reset,Ping,Connect,Disconnect,Log,Sound,Simulate,Quit,Drive,StopDriving,Forever,Level;
         @Override public void doItem(Tablet tablet) {
             doItem(this,tablet);
         }
@@ -72,12 +72,6 @@ public class Enums {
                     break;
                 case Ping:
                     if(tablet!=null) tablet.broadcast(tablet.messageFactory().other(Type.ping,tablet.group().groupId,tablet.tabletId()));
-                    break;
-                case Heartbeat:
-                    if(tablet!=null) {
-                        if(tablet.isHeatbeatOn()) tablet.startHeatbeat();
-                        else tablet.stopHeartbeat();
-                    }
                     break;
                 case Disconnect:
                     if(tablet!=null) ((TabletImpl2)tablet).stopServer();

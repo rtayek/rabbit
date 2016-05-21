@@ -3,13 +3,13 @@ import java.lang.reflect.Constructor;
 import java.text.*;
 import java.util.*;
 import static com.tayek.io.IO.*;
-public class Range<T extends Comparable> implements Comparable<Range<T>>,Iterable<T> {
+public class Range<T extends Comparable<T>> implements Comparable<Range<T>>,Iterable<T> {
     // https://gleichmann.wordpress.com/2008/01/21/declarative-programming-a-range-type-for-java/
     public interface Sequence<T> {
         T value();
         Sequence<T> next();
         Sequence<T> previous();
-        static public class IntegerSequence implements Sequence<Integer> {
+        public class IntegerSequence implements Sequence<Integer> {
             
             public IntegerSequence(Integer value) {
                 this.value=value;
@@ -25,7 +25,7 @@ public class Range<T extends Comparable> implements Comparable<Range<T>>,Iterabl
             }
             Integer value=null;
         }
-        public static class CharacterSequence implements Sequence<Character> {
+        public class CharacterSequence implements Sequence<Character> {
             public CharacterSequence(Character value) {
                 this.value=value;
             }
@@ -41,7 +41,7 @@ public class Range<T extends Comparable> implements Comparable<Range<T>>,Iterabl
             Character value=null;
         }
     }
-    public static class RangeIterator<T extends Comparable> implements Iterator<T> {
+    public static class RangeIterator<T extends Comparable<T>> implements Iterator<T> {
         public RangeIterator(Sequence<T> sequence,T end) {
             this.sequence=sequence;
             this.to=end;
@@ -115,13 +115,13 @@ public class Range<T extends Comparable> implements Comparable<Range<T>>,Iterabl
         } catch(Exception e) {
             throw new RuntimeException("No Sequence found for type "+from.getClass());
         }
-        return new RangeIterator(sequence,to);
+        return new RangeIterator<T>(sequence,to);
     }
     @Override public String toString() {
         if(from.equals(to)) return "("+from+')';
         return "("+from+'-'+to+')';
     }
-    public static <S extends Comparable> Range<S> range(S from,S to) {
+    public static <S extends Comparable<S>> Range<S> range(S from,S to) {
         return new Range<S>(from,to);
     }
     public static java.util.Date date(String date) {
@@ -131,9 +131,9 @@ public class Range<T extends Comparable> implements Comparable<Range<T>>,Iterabl
             throw new RuntimeException(e);
         }
     }
-    public static <T extends Comparable,R> void reduce(Set<R> set) { // assume disjoint
+    public static <T extends Comparable<T>,R> void reduce(Set<R> set) { // assume disjoint
         synchronized(set) {
-            Range<T>[] ranges=set.toArray(new Range[0]);
+            @SuppressWarnings("unchecked") Range<T>[] ranges=set.toArray(new Range[0]);
             boolean any=true;
             int i=0;
             while(any) {

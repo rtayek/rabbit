@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import static com.tayek.utilities.Range.*;
 import static com.tayek.io.IO.*;
-@SuppressWarnings("serial") public class MissingRanges<T extends Comparable,R>extends MissingABC<T,R> {
+@SuppressWarnings("serial") public class MissingRanges<T extends Comparable<T>,R>extends MissingABC<T,R> {
     public MissingRanges(T n) {
         super(n);
     }

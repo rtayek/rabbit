@@ -19,11 +19,8 @@ public interface Tablet {
     void toggle(int id);
     Histories histories();
     String report(String id);
-    boolean isHeatbeatOn();
     boolean startServer();
     void stopServer();
-    void startHeatbeat();
-    void stopHeartbeat();
     interface HasATablet {
         Tablet tablet();
         void setTablet(Tablet tablet);
@@ -98,36 +95,12 @@ public interface Tablet {
                 @Override public Histories histories() {
                     return histories;
                 }
-                @Override public boolean isHeatbeatOn() {
-                    return heartbeatTimer!=null;
-                }
-                @Override public void startHeatbeat() {
-                    if(heartbeatTimer!=null) stopHeartbeat();
-                    if(true) {
-                        final int dt=500;
-                        ArrayList<String> ids=new ArrayList<>(tablets());
-                        l.info(""+System.currentTimeMillis());
-                        heartbeatTimer=new Timer();
-                        heartbeatTimer.schedule(new TimerTask() {
-                            @Override public void run() {
-                                broadcast(messageFactory().other(Type.heartbeat,group().groupId,tabletId()));
-                            }
-                        },1_000+ids.indexOf(tabletId())*dt,dt*tablets());
-                    }
-                }
-                @Override public void stopHeartbeat() {
-                    if(heartbeatTimer!=null) {
-                        heartbeatTimer.cancel();
-                        heartbeatTimer=null;
-                    }
-                }
                 protected final Group group;
                 protected final Required required;
                 private final String tabletId;
                 private final Model model;
                 public Config config=new Config();
                 public final Histories histories;
-                protected Timer heartbeatTimer;
             }
             /* private */ public class TabletImpl1 extends TabletABC { // stays connected
                 TabletImpl1(Group group,String id,Server server,Model model) {
