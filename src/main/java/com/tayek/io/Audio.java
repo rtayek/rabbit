@@ -21,43 +21,38 @@ public interface Audio {
         public AudioObserver(Model model) {
             this.model=model;
         }
-        public boolean isChimimg() {
+        public synchronized boolean isChimimg() {
             return timer!=null;
         }
-        public void startChimer() {
+        public synchronized void startChimer() {
             if(!isChimimg()) {
                 timer=new Timer();
                 timer.schedule(new TimerTask() {
                     @Override public void run() {
-                        p("chimer is playing sound.");
+                        p("start chimer.");
                         Audio.audio.play(Sound.electronic_chime_kevangc_495939803);
                     }
                 },0,10_000);
             }
         }
-        public void stopChimer() {
+        public synchronized void stopChimer() {
             if(isChimimg()) {
+                p("stop chimer.");
                 timer.cancel();
                 timer=null;
             }
         }
         @Override public void update(Observable observable,Object hint) {
-            p("update in: "+getClass().getSimpleName());
             l.fine("hint: "+hint);
             if(observable instanceof Model) if(this.model.equals(observable)) {
                 if(hint instanceof Sound) Audio.audio.play((Sound)hint);
-                if(model.areAnyButtonsOn()) {
-                    p("start chimer");
-                    startChimer();
-                } else {
-                    p("stop chimer");
-                    stopChimer();
-                }
+                if(model.areAnyButtonsOn()) startChimer();
+                else stopChimer();
             } else l.warning("not our model!");
             else l.warning("not a model!");
         }
         private final Model model;
-        Timer timer;
+        volatile Timer timer;
     }
     class Instance {
         public static void main(String[] args) throws InterruptedException {

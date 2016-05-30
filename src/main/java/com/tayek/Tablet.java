@@ -73,23 +73,26 @@ public interface Tablet {
                 @Override public void click(int id) {
                     l.info("click: "+id+" in: "+this);
                     try {
-                        if(1<=id&&id<=model().buttons) synchronized(model()) {
-                            if(model().resetButtonId!=null&&id==model().resetButtonId) {
-                                model().reset();
-                                Message message=messageFactory().other(Type.reset,group().groupId,tabletId());
-                                broadcast(message);
-                            } else {
-                                Boolean state=!model().state(id);
-                                model().setState(id,state);
-                                Message message=messageFactory().normal(group().groupId,tabletId(),id,model().toCharacters());
-                                broadcast(message);
+                        if(1<=id&&id<=model().buttons) {
+                            p("sync on: "+model());
+                            synchronized(model()) {
+                                if(model().resetButtonId!=null&&id==model().resetButtonId) {
+                                    model().reset();
+                                    Message message=messageFactory().other(Type.reset,group().groupId,tabletId());
+                                    broadcast(message);
+                                } else {
+                                    Boolean state=!model().state(id);
+                                    model().setState(id,state);
+                                    Message message=messageFactory().normal(group().groupId,tabletId(),id,model().toCharacters());
+                                    broadcast(message);
+                                }
                             }
-                        }
-                        else {
+                        } else {
                             l.warning(id+" is not a model button!");
                         }
                     } catch(Exception e) {
                         l.severe("click caught: "+e);
+                        e.printStackTrace();
                     }
                 }
                 @Override public Histories histories() {

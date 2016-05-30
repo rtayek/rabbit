@@ -17,12 +17,13 @@ public interface Server {
     String host();
     int service();
     boolean startServer();
-    ServerSocket serverSocket();
-    Message.Factory messageFactory();
+    void stopServer();
     void broadcast(Object message);
     String report();
-    void stopServer();
     Histories histories();
+    
+    ServerSocket serverSocket();
+    Message.Factory messageFactory();
     String maps();
     void addConnection(String newId,Connection connection);
     Map<String,Pair<Writer,Reader>> idToPair();
@@ -30,7 +31,6 @@ public interface Server {
     Writer createAndAddWriter(String destinationId,Required required);
     interface Factory {
         Server create(Required required);
-        Server create2(Required required);
         static class FactoryImpl implements Factory {
             @Override public Server create(Required required) {
                 Server server=null;
@@ -40,15 +40,6 @@ public interface Server {
                 } catch(IOException e) {
                     e.printStackTrace();
                     p("can not start server: "+required);
-                }
-                return server;
-            }
-            @Override public Server create2(Required required) {
-                Server server=null;
-                try {
-                    server=new ServerImpl2(required);
-                } catch(IOException e) {
-                    e.printStackTrace();
                 }
                 return server;
             }
@@ -96,112 +87,6 @@ public interface Server {
                 ServerSocket serverSocket;
                 final Message.Factory messageFactory;
                 public volatile boolean isShuttingDown;
-            }
-            private static class ServerImpl2 extends ServerABC implements Server {
-                // why did i start this again?
-                // something to do with x?
-                // this is in speed, though, so maybe it is for x
-                ServerImpl2(Required required) throws IOException {
-                    super(required);
-                    messageFactory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
-                    //serverSocket=new ServerSocket(required.service,100/* what should this be?*/,inetAddress);
-                    serverSocket=new ServerSocket();
-                    if(serverSocket==null) throw new RuntimeException("bind failed!");
-                    isShuttingDown=false;
-                }
-                @Override public void stopServer() {
-                    throw new UnsupportedOperationException("nyi");
-                }
-                @Override public com.tayek.tablet.Message.Factory messageFactory() {
-                    throw new UnsupportedOperationException("nyi");
-                    //return null;
-                }
-                @Override public void broadcast(Object message) {
-                    throw new UnsupportedOperationException("nyi");
-                }
-                @Override public String report() {
-                    throw new UnsupportedOperationException("nyi");
-                    //return null;
-                }
-                @Override public Histories histories() {
-                    throw new UnsupportedOperationException("nyi");
-                    //return null;
-                }
-                @Override public String maps() {
-                    throw new UnsupportedOperationException("nyi");
-                    //return null;
-                }
-                @Override public void addConnection(String newId,Connection connection) {
-                    throw new UnsupportedOperationException("nyi");
-                }
-                @Override public Map<String,Pair<Writer,Reader>> idToPair() {
-                    throw new UnsupportedOperationException("nyi");
-                    //return null;
-                }
-                @Override public Map<InetAddress,Pair<String,Histories>> iNetAddressToPair() {
-                    throw new UnsupportedOperationException("nyi");
-                    //return null;
-                }
-                @Override public Writer createAndAddWriter(String destinationId,Required required) {
-                    throw new UnsupportedOperationException("nyi");
-                    //return null;
-                }
-                @Override public void run() {
-                    l.info(id()+" is accepting on: "+serverSocket);
-                    while(!isShuttingDown) {
-                        try {
-                            Socket socket=serverSocket.accept();
-                            l.info(id()+" accepted connection from: "+socket);
-                            // we might be able to guess the ip and service?
-                            InetAddress iNetAddress=socket.getInetAddress();
-                            l.info(id()+" socket address: "+iNetAddress);
-                            Reader reader=Reader.create(this,id(),null/* no id yet*/,socket,new Histories());
-                            synchronized(this) {
-                                newConnections.add(reader);
-                            }
-                            reader.thread=new Thread(reader);
-                            reader.thread.setName(socket.getRemoteSocketAddress().toString()+"->"+id());
-                            reader.thread.start();
-                            // don't add yet, until we receive a message,so we know where he is listening.
-                        } catch(IOException e) {
-                            if(isShuttingDown) {
-                                l.info(id()+" is shutting down");
-                                if(e.toString().contains("socket closed")) l.info("0 (maybe normal) server: "+id()+" caught: "+e);
-                                else if(e.toString().contains("Socket is closed")) l.info("0 (maybe normal) server: "+id()+" caught: "+e);
-                                else l.info(id()+" 1 server: "+id()+" caught: "+e);
-                            } else {
-                                l.info(id()+" server is not shutting down, server caught: "+e);
-                                e.printStackTrace();
-                            }
-                            break;
-                        }
-                    } // was in the wrong place!
-                    try {
-                        l.info(id()+" closing server socket.");
-                        serverSocket.close();
-                    } catch(IOException e) {
-                        if(isShuttingDown) l.info(id()+" shutting down, server caught: "+e);
-                        else {
-                            l.severe(id()+" not shutting down, server caught: "+e);
-                            e.printStackTrace();
-                            System.exit(1);
-                        }
-                    }
-                }
-                final Message.Factory messageFactory;
-                final Histories histories=new Histories();
-                private volatile boolean isShuttingDown;
-                final Set<Reader> newConnections=new LinkedHashSet<>();
-                // maybe Map<Pair<host,service>,pair<reader,Writer>>
-                Map<Pair<String,Integer>,Pair<Reader,Writer>> map=new TreeMap<>();
-                // old
-                //final Map<String,Pair<Writer,Reader>> idToPair=new TreeMap<>(); // destination id!
-                //public static final String ok="ok";
-                //static int serialNumbers=0;
-                @Override public ServerSocket serverSocket() {
-                    // TODO Auto-generated method stub
-                    return null;
-                }
             }
             private static class ServerImpl extends ServerABC implements Server {
                 ServerImpl(Required required) throws IOException {

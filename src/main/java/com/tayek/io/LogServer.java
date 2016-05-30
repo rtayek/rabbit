@@ -231,9 +231,6 @@ public class LogServer implements Runnable {
     private final Factory factory;
     public boolean verbose;
     public final List<Copier> copiers=new ArrayList<>();
-    public static final String defaultHost="127.0.0.1";
-    public static final int defaultLogServerService=5000;
-    public static final int otherLogServerService=2222;
     public static final int maxSize=1_000_000;
     static final long newMillenium=978_307_200_000l;
 }

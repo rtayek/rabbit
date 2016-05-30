@@ -48,22 +48,22 @@ public class TabletTestCase extends AbstractTabletTestCase {
     @Test(timeout=800) public void testDummy8() throws InterruptedException,UnknownHostException,ExecutionException {
         test(8);
     }
-    @Test(timeout=1_000) public void testDummy10() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test(timeout=1_200) public void testDummy10() throws InterruptedException,UnknownHostException,ExecutionException {
         test(10);
     }
-    @Test(timeout=1_200) public void testDummy12() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test(timeout=1_600) public void testDummy12() throws InterruptedException,UnknownHostException,ExecutionException {
         test(12);
     }
-    @Test(timeout=1_400) public void testDummy14() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test(timeout=2_500) public void testDummy14() throws InterruptedException,UnknownHostException,ExecutionException {
         test(14);
     }
-    @Test(timeout=1_600) public void testDummy16() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test(timeout=3_000) public void testDummy16() throws InterruptedException,UnknownHostException,ExecutionException {
         test(16);
     }
-    @Test(timeout=6_500) public void testDummy32() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test(timeout=10_000) public void testDummy32() throws InterruptedException,UnknownHostException,ExecutionException {
         test(32);
     }
-    @Test(timeout=6_400) public void testDummy64() throws InterruptedException,UnknownHostException,ExecutionException {
+    @Test(timeout=12_000) public void testDummy64() throws InterruptedException,UnknownHostException,ExecutionException {
         test(32);
     }
     @Test public void test2RealSimple() throws InterruptedException,UnknownHostException,ExecutionException {

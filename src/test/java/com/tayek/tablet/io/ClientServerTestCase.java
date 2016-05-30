@@ -5,11 +5,11 @@ import java.net.*;
 import org.junit.*;
 import org.junit.rules.TestRule;
 import com.tayek.*;
+import com.tayek.Sender.Client;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.*;
 import com.tayek.Tablet.*;
 import com.tayek.tablet.Message.*;
-import com.tayek.tablet.io.Sender.Client;
 import com.tayek.utilities.Single;
 public class ClientServerTestCase {
     @Rule public TestRule watcher=new MyTestWatcher();

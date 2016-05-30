@@ -3,10 +3,10 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import com.tayek.*;
+import com.tayek.Sender.Client;
 import com.tayek.tablet.Group.*;
 import com.tayek.tablet.Message.Type;
 import com.tayek.tablet.MessageReceiver.Model;
-import com.tayek.tablet.io.Sender.Client;
 import static com.tayek.io.IO.*;
 public class Drive2 {
     public static void main(String[] args) throws IOException {

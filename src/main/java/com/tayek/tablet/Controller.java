@@ -6,12 +6,12 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.*;
 import com.tayek.*;
+import com.tayek.Sender.Client;
 import com.tayek.io.*;
 import com.tayek.tablet.Group.*;
 import com.tayek.io.Audio.AudioObserver;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.*;
-import com.tayek.tablet.io.Sender.Client;
 public class Controller {
     Controller(Group group,boolean other) throws UnknownHostException {
         this(group,other,System.in,System.out);

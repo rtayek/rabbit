@@ -50,10 +50,21 @@ public class RunnerABC implements Runnable {
         tablet=Tablet.factory.create2(group,tabletId,model);
         setTablet(tablet);
         p("config: "+tablet.config());
-        if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).startServer();
+        boolean ok=tablet.startServer(); // don't forget to start accepting
+        if(ok) l.warning("startServer() succeeded.");
+        else l.severe("startServer() failed!");
     }
     public String status() {
         return "tabletId: "+tabletId+", host: "+host+", status: "+(tablet!=null?"on":"off");
+    }
+    protected void startSocetHandlersIfNoneAreOn() {
+        if(isNetworkInterfaceUp()) {
+            if(!LoggingHandler.areAnySockethandlersOn()) {
+                l.warning("trying to start socket handlers at: "+et);
+                LoggingHandler.startSocketHandlers();
+                // maybe stop and restart just in case the laptop cycled power or ?
+            }
+        } else LoggingHandler.stopSocketHandlers();
     }
     private void tryToStartTablet() {
         if(tabletId==null&&host==null) {
@@ -85,21 +96,16 @@ public class RunnerABC implements Runnable {
             } else l.warning("can not get tabletId from group!");
         }
         if(tabletId!=null&&host!=null) if(tablet==null) {
-            if(oldTablet==null) createTabletAndStart(tabletId);
+            if(true||oldTablet==null) createTabletAndStart(tabletId);
             else {
                 l.warning("using old tablet.");
                 setTablet(oldTablet);
                 tablet.config().logErrors=true;
-                tablet.startServer(); // don't forget to start accepting
+                boolean ok=tablet.startServer(); // don't forget to start accepting
+                if(!ok) l.severe("startServer() failed!");
             }
             if(tablet!=null) {
-                if(isNetworkInterfaceUp()) {
-                    if(!LoggingHandler.areAnySockethandlersOn()) {
-                        l.warning("trying to start socket handlers at: "+et);
-                        LoggingHandler.startSocketHandlers();
-                        ; // maybe stop and restart just in case the laptop cycled power or ?
-                    }
-                } else LoggingHandler.stopSocketHandlers();
+                if(false) startSocetHandlersIfNoneAreOn();
             }
         }
     }
@@ -116,14 +122,25 @@ public class RunnerABC implements Runnable {
         }
     }
     protected void loop(int n) {
-        p("base class loop iteration: "+n+", has: "+Thread.activeCount()+" threads.");
-        if(Thread.activeCount()>=10) printThreads();
+        p("model: "+model);
+        if(!model.areAnyButtonsOn()&&audioObserver.isChimimg()) {
+            pl("had to stop chimer in runner loop!");
+            audioObserver.stopChimer();
+        }
+        p(this+" base class loop iteration: "+n+", has: "+Thread.activeCount()+" threads.");
+        if(true||Thread.activeCount()>=10) {
+            printThreads();
+            p(this+" base class loop iteration: "+n+", has: "+Thread.activeCount()+" threads.");
+        }
         isNetworkInterfaceUp=isNetworkInterfaceUp();
         p("network interface is "+(isNetworkInterfaceUp?"up":"not up!"));
         isRouterOk=isRouterOk();
         p("router is "+(isRouterOk?"ok":"not ok!"));
         //p("socket handlers: "+LoggingHandler.socketHandlers());
-        LoggingHandler.printSocketHandlers();
+        if(true) {
+            LoggingHandler.printSocketHandlers();
+            if(isNetworkInterfaceUp) startSocetHandlersIfNoneAreOn();
+        }
         // mainActivity.waitForWifi(); // do we need this?
         // does not seem to work anymore :(
         if(tablet==null) {
@@ -151,9 +168,10 @@ public class RunnerABC implements Runnable {
         if(prefs.get("tabetId")!=null&&!prefs.get("tabetId").equals("")) tabletId=prefs.get("tabetId");
         if(prefs.get("host")!=null&&!prefs.get("host").equals("")) host=prefs.get("host");
         l.warning("before loop, host: "+host+", tabletId: "+tabletId);
-        while(true)
+        isShuttingDown=false;
+        while(!isShuttingDown)
             try {
-                l.info("start looping at: "+et);
+                l.info("start looping at: "+et+", "+isShuttingDown);
                 if(hasATablet!=null) hasATablet.setStatusText(status());
                 loop(n++);
                 if(hasATablet!=null) hasATablet.setStatusText(status());
@@ -166,6 +184,7 @@ public class RunnerABC implements Runnable {
                 l.severe("runner caught: "+e);
             }
     }
+    public volatile Boolean isShuttingDown=false;
     public final String router,routerPrefix;
     public final Prefs prefs;
     public final Model model;

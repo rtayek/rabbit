@@ -1,5 +1,5 @@
 package com.tayek.io;
-import static com.tayek.io.IO.p;
+import static com.tayek.io.IO.*;
 import static org.junit.Assert.*;
 import java.io.*;
 import java.net.Socket;
@@ -11,7 +11,6 @@ import com.tayek.io.LogServer.Copier;
 import com.tayek.utilities.Utility;
 public class LogServerTestCase {
     @Rule public TestRule watcher=new MyTestWatcher();
-
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
@@ -162,5 +161,5 @@ public class LogServerTestCase {
     Thread thread;
     Writer writer;
     final String expected="i am a duck.";
-    static int staticService=LogServer.defaultLogServerService+1000;
+    static int staticService=defaultLogServerService+1000;
 }

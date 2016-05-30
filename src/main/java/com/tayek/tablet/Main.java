@@ -22,15 +22,12 @@ import com.tayek.utilities.*;
 // http://pete.akeo.ie/2013/09/rooting-your-nexus-7-2013-for-android.html
 public class Main { // http://steveliles.github.io/invoking_processes_from_java.html
     // router login and password are both: admin
-    // put chainsaw on laptop!
-    // android studio project is Cb7: https://github.com/rtayek/Cb7.git
-    // core java project is rabbit: https://github.com/rtayek/rabbit.git
-    // swing gui is in rabbit: https://github.com/rtayek/rabbitgui2.git?
+    // android studio project is d:\AnsdroidStudioProjectsCb7 and https://github.com/rtayek/Cb7.git
+    // core java project is d:/ray/dev/conradapps/rabbit and https://github.com/rtayek/rabbit.git
+    // swing gui is in d:/ray/dev/conradapps/rabbitgui2
     // ssh root@192.168.0.11 -p 2222 password is admin
-    // source on pc is in:
-    // d:\ray\dev\conradapps\rabbit
-    // d:\ray\dev\conradapps\rabbitgui2
-    // d:\AndroidStudioProjects\Cb7
+    // run cywin as admin if you get ping problems.
+    // adb shell dmesg
     // projects on laptop are in:
     // c:\Users\ray\workspace\rabbit
     // c:\Users\ray\Cb7
@@ -41,9 +38,8 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
     // password for rays network is: i am a duck
     // password for tablets network is: i am a duck 2
     // android project needs sdk location.
-    // swing gui is in rabitgui2/ 
     // core fails to find gradle wrapper main. fix: run gradle wrapper directly (gradlew).
-    // when build fails because there is a lobk on the jar, stop the log server!
+    // when build fails because there is a lock on the jar, stop the log server! (fixed by copying jar)
     // http://stackoverflow.com/questions/23081263/adb-android-device-unauthorized
     // G0K0H404542514AX - fire 1 with factory reset. (ray's 3'rd fire)
     // G0K0H40453650FLR - fire 2 (ray's 2'nd fire)

@@ -91,5 +91,5 @@ import com.tayek.utilities.Utility;
     Writer writer;
     Integer service;
     final String expected="i am a duck.";
-    static int staticService=LogServer.defaultLogServerService+3000;
+    static int staticService=defaultLogServerService+3000;
 }

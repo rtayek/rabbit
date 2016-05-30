@@ -24,7 +24,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         super.setUp();
         LogManager.getLogManager().reset();
         printThreads();
-        logServer=new LogServer(host,LogServer.defaultLogServerService+serviceOffset,getClass().getName());
+        logServer=new LogServer(host,defaultLogServerService+serviceOffset,getClass().getName());
         thread=new Thread(new Runnable() {
             @Override public void run() {
                 logServer.run();
@@ -79,5 +79,5 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     LogServer logServer;
     Thread thread;
     final String expected="i am a duck.";
-    static int staticService=LogServer.defaultLogServerService+4000;
+    static int staticService=defaultLogServerService+4000;
 }

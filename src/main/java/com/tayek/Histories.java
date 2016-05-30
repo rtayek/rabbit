@@ -132,6 +132,18 @@ public class Histories implements Addable<Histories> {
         }
         public final History history=new History();
     }
+    public class TabletHistory implements Addable<TabletHistory> {
+        @Override public void add(TabletHistory tabletHistory) {
+            history.add(tabletHistory.history);
+        }
+        @Override public String toString() {
+            String string="",prefix="\t\t";
+            if(history.attempts()!=0) string+="\n"+history.toString(prefix+"history: ");
+            else string+="no attempts";
+            return string;
+        }
+        public final History history=new History();
+    }
     @Override public void add(Histories histories) {
         senderHistory.add(histories.senderHistory);
         receiverHistory.add(histories.receiverHistory);
@@ -161,7 +173,7 @@ public class Histories implements Addable<Histories> {
         return "(#"+serialNumber+')';
     }
     public String toString(String prefix) {
-        return prefix+"\n\t"+"sender"+sn()+": "+senderHistory+"\n\t"+"receiver"+sn()+": "+receiverHistory+"\n\t"+"model"+sn()+": "+modelHistory;
+        return prefix+"\n\t"+"tablet"+sn()+": "+tabletHistory+"\n\t"+"sender"+sn()+": "+senderHistory+"\n\t"+"receiver"+sn()+": "+receiverHistory+"\n\t"+"model"+sn()+": "+modelHistory;
     }
     @Override public String toString() {
         return toString("no prefix");
@@ -194,12 +206,18 @@ public class Histories implements Addable<Histories> {
         histories.receiverHistory.missing.failure("corge");
         histories.modelHistory.history.success();
         histories.modelHistory.history.failure("grault");
+        histories.modelHistory.history.failure("garply");
+        histories.modelHistory.history.failure("waldo");
+        histories.modelHistory.history.failure("fred");
+        histories.modelHistory.history.failure("plugh");
+        histories.modelHistory.history.failure("xyzzy");
+        histories.modelHistory.history.failure("thud");
         p("'"+histories.toString("histories for Tx: ")+"'");
-        //qux, quux, corge, grault, garply, waldo, fred, plugh, xyzzy, thud
     }
     public final SenderHistory senderHistory=new SenderHistory();
     public final ReceiverHistory receiverHistory=new ReceiverHistory();
     public final ModelHistory modelHistory=new ModelHistory();
+    public final TabletHistory tabletHistory=new TabletHistory();
     public Integer reportPeriod=defaultReportPeriod;
     public final Integer serialNumber=++serialNumbers;
     {

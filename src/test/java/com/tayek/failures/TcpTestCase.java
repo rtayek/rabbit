@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import com.tayek.*;
+import com.tayek.Sender.Client;
 import com.tayek.io.*;
 import com.tayek.io.IO.AddressesWithCallable;
 import com.tayek.sablet.AbstractTabletTestCase;
@@ -20,7 +21,6 @@ import com.tayek.Tablet.*;
 import com.tayek.tablet.Message.*;
 import com.tayek.tablet.MessageReceiver.DummyReceiver;
 import com.tayek.tablet.io.*;
-import com.tayek.tablet.io.Sender.Client;
 import com.tayek.utilities.Single;
 @RunWith(Parameterized.class) public class TcpTestCase extends AbstractTabletTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {

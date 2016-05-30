@@ -23,6 +23,10 @@ public class IO {
             p(System.out,string);
         }
     }
+    public static void pl(String string) {
+            l.warning(string);
+            p(System.out,string);
+    }
     public static String toString(Thread thread) {
         return thread.toString()+", state: "+thread.getState()+", is alive: "+thread.isAlive()+", is interrupted:  "+thread.isInterrupted();
     }
@@ -291,15 +295,17 @@ public class IO {
     public static final String laptopToday="192.168.0.100";
     public static final String defaultHost=raysPcOnTabletNetworkToday;
     public static final String testingHost=raysPcOnRaysNetwork;
+    public static final int defaultLogServerService=5000;
+    public static final int chainsawLogServerService=2222;
+    public static final int lilithLogServerService=11020;
     public static final Map<Pair<String,Integer>,SocketHandler> logServerHosts=new LinkedHashMap<>();
     // maybe key should be Pair<String,Integer> to allow for more than one log server on a host?
     static {
-        logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.otherLogServerService),null); // static ip on my pc
-        logServerHosts.put(new Pair<String,Integer>(raysPc,LogServer.defaultLogServerService),null); // static ip on my pc
-        logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,LogServer.otherLogServerService),null); // static ip on my pc
-        logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,LogServer.defaultLogServerService),null); // static ip on my pc
-        logServerHosts.put(new Pair<String,Integer>(laptopToday,LogServer.otherLogServerService),null); // static ip on my pc
-        logServerHosts.put(new Pair<String,Integer>(laptopToday,LogServer.defaultLogServerService),null); // static ip on my pc
+        for(Integer service:new Integer[] {defaultLogServerService,/*chainsawLogServerService,lilithLogServerService,*/}) {
+            //logServerHosts.put(new Pair<String,Integer>(raysPc,service),null);
+            logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,service),null);
+            //logServerHosts.put(new Pair<String,Integer>(laptopToday,service),null);
+        }
     }
     public static final Map<Integer,String> androidIds=new TreeMap<>();
     static {

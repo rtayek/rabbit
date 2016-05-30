@@ -5,14 +5,15 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import com.tayek.*;
+import com.tayek.Sender.Client;
+import com.tayek.Sender.Client.SendCallable;
 import com.tayek.Tablet.Factory.FactoryImpl.TabletABC;
 import com.tayek.io.Audio.AudioObserver;
 import com.tayek.Tablet.Config;
+import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.tablet.Message.*;
 import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.Server;
-import com.tayek.tablet.io.Sender.Client;
-import com.tayek.tablet.io.Sender.Client.SendCallable;
 import com.tayek.utilities.*;
 import static com.tayek.utilities.Utility.*;
 public class Group implements Cloneable { // maybe this belongs in sender?
@@ -70,6 +71,106 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         public final Map<String,Map<String,Required>> groups=new TreeMap<>();
         // hack, change the above before calling new Groups!
     }
+    public static class ReceiverImpl implements Receiver {
+        ReceiverImpl(Object id,TabletImpl2 tablet,Set<? extends Object> ids,MessageReceiver messageReceiver) {
+            // get rid of tablet
+            // use a set of Id's
+            this.id=id;
+            this.tablet=tablet;
+            this.messageReceiver=messageReceiver;
+            receiverHistory=tablet.histories().receiverHistory;
+            if(ids!=null) for(Object x:ids)
+                lastMessageNumbers.put(x,null);
+            l.info("initial lastMessageNumbers: "+lastMessageNumbers);
+            this.messageFactory=tablet.messageFactory(); // maybe only needs a from?
+        }
+        @Override public void receive(Object message) {
+            if(Message.empty.equals(message)) l.severe("empty message received by: "+id);
+            else processMessageObject(id,message.toString());
+        }
+        void checkForMissing(Message message) {
+            if(!lastMessageNumbers.containsKey(message.from())) l.severe("message from foreign tablet: "+message);
+            Integer lastMessageNumber=lastMessageNumbers.get(message.from());
+            boolean ignoreMissingOrOutOfOrder=true;
+            // move this to config!
+            if(lastMessageNumber!=null) {
+                l.info("last: "+lastMessageNumber+", current: "+message.number());
+                if(message.number()==lastMessageNumber+1) receiverHistory.missing.success();
+                else {
+                    l.warning(id+": got #"+receiverHistory.history.attempts()+", expected number: "+(lastMessageNumber+1)+" from: "+message.from()+", but got: "+message.number());
+                    if(message.number()<lastMessageNumber+1) {
+                        l.warning("#"+receiverHistory.history.attempts()+", out of order!");
+                        if(ignoreMissingOrOutOfOrder) receiverHistory.missing.success(); // count first as success
+                        else receiverHistory.missing.failure("out of order: "+(message.number()-(lastMessageNumber+1)));
+                    } else {
+                        l.warning("#"+receiverHistory.history.attempts()+", missing or out of order, expected number: "+(lastMessageNumber+1)+", but got: "+message.number());
+                        if(ignoreMissingOrOutOfOrder) receiverHistory.missing.success(); // count first as success
+                        else receiverHistory.missing.failure("missing: "+(message.number()-(lastMessageNumber+1)));
+                    }
+                }
+            } else {
+                // maybe missed a whole bunch!
+                if(message.number()!=1) l.severe("first message is: #"+message.number()+", "+message);
+                receiverHistory.missing.success(); // count first as success
+            }
+            lastMessageNumbers.put(message.from(),message.number());
+            l.info(id+" put last #"+message.number()+" into: "+message.from());
+            if(receiverHistory.missed.isDuplicate(message.number())) {
+                l.severe(id+": missing detected a duplicate!: "+receiverHistory.missed);
+            }
+            receiverHistory.missed.adjust(message.number());
+        }
+        // move this to messages?
+        private void processMessageObject(Object id,String string) {
+            l.info("enter process message: "+string+", lastMessageNumbers: "+lastMessageNumbers);
+            if(string!=null&&!string.isEmpty()) {
+                Message message=messageFactory.from(string);
+                //checkForMissing(message); // makse no sense in this context
+                // since we get messages from all the tablets 
+                l.fine(id+" received: "+message+" at: "+System.currentTimeMillis());
+                switch(message.type()) {
+                    case ping:
+                        l.warning("i got a ping!");
+                        Message ack=messageFactory.other(Type.ack,tablet.group().groupId,tablet.tabletId());
+                        ackEt=new Et();
+                        InetSocketAddress inetSocketAddress=tablet.group().socketAddress(message.from());
+                        new Thread(new SendCallable(tablet.tabletId(),ack,message.from(),tablet.group().required(message.from()).histories(),inetSocketAddress),"ack").start();
+                        break;
+                    case ack:
+                        p(id+", received ack: "+message+", after: "+ackEt);
+                        l.warning(id+", received ack: "+message+", after: "+ackEt);
+                        ackEt=null;
+                        break;
+                    case rolloverLogNow:
+                        p(id+", received rollover: "+message);
+                        l.warning(id+", received rollover: "+message);
+                        break;
+                    case drive:
+                        tablet.driveInThread(true);
+                        break;
+                    case stopDriving:
+                        tablet.stopDriving=true;
+                        break;
+                    case forever:
+                        tablet.foreverInThread();
+                        break;
+                    default:
+                        if(!message.from().equals(id)) tablet.model().receive(message);
+                        else l.fine("discarding message from self");
+                }
+            }
+            l.info("exit lastMessageNumbers: "+lastMessageNumbers);
+        }
+        final TabletImpl2 tablet; // try to remove this
+        // maybe just use group?
+        final Object id;
+        final MessageReceiver messageReceiver;
+        final Histories.ReceiverHistory receiverHistory; // change to histories?
+        
+        Et ackEt;
+        private final Factory messageFactory;
+        private final Map<Object,Integer> lastMessageNumbers=new LinkedHashMap<>();
+    }
     public static class TabletImpl2 extends TabletABC {
         // get group out of constructor!
         // or fix all of the callers!
@@ -96,7 +197,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                 SendCallable sendCallable=new SendCallable(tabletId(),message,destinationTabletId,group.required(destinationTabletId).histories(),inetSocketAddress);
                 new Thread(new SendCallable(tabletId(),message,destinationTabletId,group.required(destinationTabletId).histories(),inetSocketAddress)).start();
                 try {
-                    Thread.sleep(5); // to out of order
+                    Thread.sleep(10); // to out of order
                 } catch(InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -145,14 +246,16 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             // but at this point we should know our ip address for the correct interface
             l.info(tabletId()+" binding to: "+required.host+':'+required.service);
             InetSocketAddress inetSocketAddress=new InetSocketAddress(required.host,required.service);
-            Receiver.ReceiverImpl receiver=new Receiver.ReceiverImpl(tabletId(),this,group.keys(),model());
+            ReceiverImpl receiver=new ReceiverImpl(tabletId(),this,group.keys(),model());
             ServerSocket serverSocket=serverSocket(inetSocketAddress);
             if(serverSocket!=null&&serverSocket.isBound()) {
                 server=new Server(this,serverSocket,receiver,config,histories());
                 server.startServer();
+                histories().tabletHistory.history.success();
                 return true;
             } else {
-                l.warning("tablet: "+tabletId()+", can not bind to: "+required.host+':'+required.service);
+                l.warning("tablet: "+tabletId()+", looks like we can not bind to: "+required.host+':'+required.service);
+                histories().tabletHistory.history.failure("looks like we can not bind to: "+required.host+':'+required.service);
                 return false;
             }
         }

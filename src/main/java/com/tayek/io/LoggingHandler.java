@@ -106,7 +106,7 @@ public class LoggingHandler {
         if(socketHandler!=null) {
             l.warning("closing: "+socketHandler);
             try {
-            socketHandler.close();
+                socketHandler.close();
             } catch(Exception e) {
                 l.warning("caught: "+e);
             }
@@ -117,13 +117,14 @@ public class LoggingHandler {
         synchronized(logServerHosts) {
             for(Pair<String,Integer> pair:logServerHosts.keySet())
                 if(logServerHosts.get(pair)!=null) {
+                    SocketHandler socketHandler=logServerHosts.get(pair);
                     areAnyOn=true;
                     break;
                 }
         }
         return areAnyOn;
     }
-    // these can't really be static if we are testing multile tablets - fix!
+    // these can't really be static if we are testing multiple tablets - fix!
     public static boolean stopSocketHandlers() {
         boolean wereAnyOn=false;
         synchronized(logServerHosts) {
@@ -144,7 +145,6 @@ public class LoggingHandler {
                 sb.append(entry.getKey()).append(':').append(entry.getValue()!=null).append(',');
         }
         return sb.toString();
-        
     }
     public static void printSocketHandlers() {
         p("socket handlers:");
@@ -152,18 +152,17 @@ public class LoggingHandler {
             for(Entry<Pair<String,Integer>,SocketHandler> entry:logServerHosts.entrySet())
                 p(entry.getKey()+";"+entry.getValue());
         }
-        
     }
     public static void startSocketHandlers() {
-        // startSocketHandler is sync'ed on logServerHosts
-        // should we sync also?
-        // 
-        for(final Pair<String,Integer> pair:logServerHosts.keySet()) {
-            new Thread(new Runnable() {
-                @Override public void run() {
-                    startSocketHandler(pair); // currently this waits, so ...
+        synchronized(logServerHosts) {
+            for(final Pair<String,Integer> pair:logServerHosts.keySet())
+                if(logServerHosts.get(pair)==null) {
+                    new Thread(new Runnable() {
+                        @Override public void run() {
+                            startSocketHandler(pair); // currently this waits, so ...
+                        }
+                    },"start: "+pair).start();
                 }
-            },"start: "+pair).start();
         }
     }
     public static void toggleSockethandlers() {
@@ -173,7 +172,7 @@ public class LoggingHandler {
     public static boolean once;
     //public static SocketHandler socketHandler;
     //private static final Level levels[]= {Level.SEVERE,Level.WARNING,Level.INFO,Level.CONFIG,Level.FINE,Level.FINER,Level.FINEST};
-    private static Map<Class<?>,Logger> map;
+    static Map<Class<?>,Logger> map;
     public static final Set<Class<?>> loggers=new LinkedHashSet<>();
     static /* wow! */ {
         loggers.add(IO.class);

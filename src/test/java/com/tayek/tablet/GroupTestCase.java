@@ -21,7 +21,7 @@ public class GroupTestCase {
     @After public void tearDown() throws Exception {}
     @Test public void testATabletId(){
         Integer i=123;
-        Object id=aTabletId(i);
+        Object id=aTabletId(i); // broken!
         p("id: "+id+" "+id.getClass().getName());
         assertTrue(id instanceof String);
     }
