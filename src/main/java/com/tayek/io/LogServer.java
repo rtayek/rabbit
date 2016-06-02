@@ -189,6 +189,7 @@ public class LogServer implements Runnable {
                         e.printStackTrace();
                     }
                 } catch(Exception e) {
+                    p("log acceptor caught: '"+e+"'");
                     e.printStackTrace();
                 }
             } else break;

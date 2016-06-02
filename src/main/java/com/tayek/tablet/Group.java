@@ -244,10 +244,11 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         @Override public boolean startServer() {
             // should need only enough information to bind to the correct interface 
             // but at this point we should know our ip address for the correct interface
-            l.info(tabletId()+" binding to: "+required.host+':'+required.service);
+            l.warning(tabletId()+" binding to: "+required.host+':'+required.service);
             InetSocketAddress inetSocketAddress=new InetSocketAddress(required.host,required.service);
             ReceiverImpl receiver=new ReceiverImpl(tabletId(),this,group.keys(),model());
             ServerSocket serverSocket=serverSocket(inetSocketAddress);
+            server=null;
             if(serverSocket!=null&&serverSocket.isBound()) {
                 server=new Server(this,serverSocket,receiver,config,histories());
                 server.startServer();

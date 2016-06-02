@@ -89,6 +89,7 @@ public class IO {
                 for(InetAddress inetAddress:Collections.list(networkInterface.getInetAddresses()))
                     if(inetAddress.isSiteLocalAddress()&&inetAddress.getHostAddress().contains(networkPrefix)) set.add(inetAddress);
         } catch(SocketException e) {
+            p("caught: "+e);
             e.printStackTrace();
         }
         return set;
@@ -218,6 +219,7 @@ public class IO {
                     try {
                         socket.close();
                     } catch(IOException e) {
+                        p("caught: "+e);
                         e.printStackTrace();
                     }
                     p("adding: "+pair);

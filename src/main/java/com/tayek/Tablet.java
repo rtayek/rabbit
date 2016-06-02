@@ -12,6 +12,7 @@ public interface Tablet {
     Group group();
     String tabletId();
     int tablets();
+    //boolean isServerAccepting(); // maybe add this
     Message.Factory messageFactory();
     void broadcast(Object message);
     void click(int id);

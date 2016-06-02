@@ -1,4 +1,5 @@
 package com.tayek.io;
+import java.io.File;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.*;
@@ -39,6 +40,19 @@ public class LoggingHandler {
         logger.addHandler(handler);
         logger.setLevel(level);
     }
+    public static void addFileHandler(Logger logger,File logFileDirectory) {
+        try {
+            String pattern="tablet.%u.%g.log";
+            File logFile=new File(logFileDirectory,pattern);
+            p("log file get path: "+logFile.getPath());
+            Handler handler=new FileHandler(logFile.getPath(),10_000_000,10,true);
+            handler.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            logger.warning("added file handler: "+handler);
+        } catch(Exception e) {
+            logger.warning("file handler caught: "+e);
+        }
+    }
     private static Map<Class<?>,Logger> makeMapAndSetLevels(Set<Class<?>> classes) {
         LoggingHandler.addMyHandlerAndSetLevel(Logger.getGlobal(),Level.ALL);
         Map<Class<?>,Logger> map=new LinkedHashMap<Class<?>,Logger>();
@@ -50,6 +64,9 @@ public class LoggingHandler {
         return map;
     }
     public static void init() {
+        init(null);
+    }
+    public static void init(File logFileDirectory) {
         if(!once) {
             map=makeMapAndSetLevels(loggers);
             once=true;

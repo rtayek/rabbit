@@ -14,6 +14,7 @@ import com.tayek.tablet.io.GuiAdapter.GuiAdapterABC;
 import com.tayek.utilities.*;
 public class RunnerABC implements Runnable {
     public RunnerABC(Group group,String router,String routerPrefix) {
+        pl("construct runner: "+this);
         if(isAndroid()) printSystemProperties();
         else; // printSystemProperties(); // usually not, too long
         this.router=router;
@@ -60,7 +61,7 @@ public class RunnerABC implements Runnable {
     protected void startSocetHandlersIfNoneAreOn() {
         if(isNetworkInterfaceUp()) {
             if(!LoggingHandler.areAnySockethandlersOn()) {
-                l.warning("trying to start socket handlers at: "+et);
+                l.info("trying to start socket handlers at: "+et);
                 LoggingHandler.startSocketHandlers();
                 // maybe stop and restart just in case the laptop cycled power or ?
             }
@@ -76,7 +77,7 @@ public class RunnerABC implements Runnable {
                 prefs.put("host",host);
                 tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
                 if(tabletId!=null) {
-                    l.warning("got tabletId from group: "+tabletId);
+                    l.warning("got tabletId from group "+tabletId);
                     prefs.put("tabletId",tabletId);
                 } else l.warning("can not get tabletId from group!");
             } else l.warning("can not get inetAddress despite network being up!");
@@ -91,9 +92,9 @@ public class RunnerABC implements Runnable {
         if(host!=null) if(tabletId==null) { // maybe use network interface instead?
             tabletId=group.getTabletIdFromHost(host,null);
             if(tabletId!=null) {
-                l.warning("got tabletId from group: "+tabletId);
+                l.warning("got tabletId from host: "+tabletId);
                 prefs.put("tabletId",tabletId);
-            } else l.warning("can not get tabletId from group!");
+            } else l.warning("can not get tabletId from host!");
         }
         if(tabletId!=null&&host!=null) if(tablet==null) {
             if(true||oldTablet==null) createTabletAndStart(tabletId);
@@ -122,12 +123,12 @@ public class RunnerABC implements Runnable {
         }
     }
     protected void loop(int n) {
-        p("model: "+model);
+        p(this+", model: "+model+", is shutting down: "+isShuttingDown+", is tablet null: "+(tablet==null));
         if(!model.areAnyButtonsOn()&&audioObserver.isChimimg()) {
             pl("had to stop chimer in runner loop!");
             audioObserver.stopChimer();
         }
-        p(this+" base class loop iteration: "+n+", has: "+Thread.activeCount()+" threads.");
+        p(this+", base class loop iteration: "+n+", has: "+Thread.activeCount()+" threads.");
         if(true||Thread.activeCount()>=10) {
             printThreads();
             p(this+" base class loop iteration: "+n+", has: "+Thread.activeCount()+" threads.");
@@ -148,6 +149,10 @@ public class RunnerABC implements Runnable {
             else if(hasATablet!=null) hasATablet.setStatusText("can not start tablet, check wifi and router!");
         } else {
             if(isNetworkInterfaceUp&&isRouterOk) {
+                if(((TabletImpl2)tablet).server==null) {
+                    l.severe("server is null, trying to start.");
+                    tablet.startServer();
+                }
                 if(tablet!=null&&heartbeatperiod!=0&&n%heartbeatperiod==0&&n>0) {
                     Message message=tablet.messageFactory().other(Type.heartbeat,tablet.group().groupId,tablet.tabletId());
                     tablet.broadcast(message);
@@ -160,6 +165,7 @@ public class RunnerABC implements Runnable {
     }
     @Override public void run() {
         thread=Thread.currentThread();
+        thread.setName(this.toString());
         l.warning("enter run() at: "+et+", tabletId: "+tabletId);
         init(model);
         l.warning("building gui");
@@ -168,7 +174,7 @@ public class RunnerABC implements Runnable {
         if(prefs.get("tabetId")!=null&&!prefs.get("tabetId").equals("")) tabletId=prefs.get("tabetId");
         if(prefs.get("host")!=null&&!prefs.get("host").equals("")) host=prefs.get("host");
         l.warning("before loop, host: "+host+", tabletId: "+tabletId);
-        isShuttingDown=false;
+        //isShuttingDown=false; // looks like a race condition!
         while(!isShuttingDown)
             try {
                 l.info("start looping at: "+et+", "+isShuttingDown);
@@ -183,6 +189,10 @@ public class RunnerABC implements Runnable {
             } catch(Exception e) {
                 l.severe("runner caught: "+e);
             }
+        pl(this+" is exiting run()");
+    }
+    @Override public String toString() {
+        return "runner #"+instance;
     }
     public volatile Boolean isShuttingDown=false;
     public final String router,routerPrefix;
@@ -195,10 +205,12 @@ public class RunnerABC implements Runnable {
     public Tablet tablet,oldTablet;
     public final Et et=new Et();
     public Thread thread; // kill this thread when the app quits!
+    public final int instance=++instances;
     public HasATablet hasATablet;
     protected GuiAdapterABC guiAdapterABC;
     protected boolean isNetworkInterfaceUp,isRouterOk;
     public int restarts,n;
     public int loopSleep=30_000;
     final int heartbeatperiod=1;
+    static Integer instances=0;
 }
