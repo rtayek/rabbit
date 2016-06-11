@@ -204,7 +204,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             }
             Histories.SenderHistory clientHistory=histories.senderHistory;
             // maybe sleep for a while here?
-            if(histories.reportPeriod>0&&histories.anyAttempts()&&clientHistory.history.attempts()%histories.reportPeriod==0) l.warning("histories from client: "+histories());
+            if(histories.reportPeriod>0&&histories.anyAttempts()&&clientHistory.history.attempts()%histories.reportPeriod==0) l.warning("histories from client: "+histories.toString("broadcast"));
             if(histories.reportPeriod>0&&histories.anyAttempts()&&clientHistory.history.attempts()%(10*histories.reportPeriod)==0) l.warning("report histories from client: "+report(tabletId()));
         }
         @Override public String report(String id) {
@@ -307,7 +307,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                 @Override public void run() {
                     drive(100,Config.defaultDriveWait,sendReset);
                     l.severe("start drive histories.");
-                    l.severe("drive: "+histories());
+                    l.severe("drive: "+histories().toString("drive"));
                     l.severe("end drive histories.");
                 }
             }).start();

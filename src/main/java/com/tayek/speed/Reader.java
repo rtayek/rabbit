@@ -70,7 +70,7 @@ class Reader extends Connection { // Supplier<Message>
             }
         }
         if(histories.receiverHistory.history.attempts()>0&&reportPeriod>0&&histories.receiverHistory.history.attempts()%reportPeriod==0) {
-            l.warning(id+": "+"histories from: "+this+": "+histories);
+            l.warning(id+": "+"histories from: "+this+": "+histories.toString("receiver"));
             if(histories.receiverHistory.history.attempts()%(10*reportPeriod)==0) ; // print report!
         }
         l.info(id+": "+this+" exit read for #"+histories.receiverHistory.history.attempts());

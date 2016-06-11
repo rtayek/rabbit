@@ -115,7 +115,6 @@ public class RunnerABC implements Runnable {
             l.warning("stopping tablet: "+tabletId);
             if(audioObserver.isChimimg()) audioObserver.stopChimer();
             if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).stopServer();
-            oldTablet=tablet;
             tablet=null;
             if(hasATablet!=null) hasATablet.setTablet(null);
             if(guiAdapterABC!=null) guiAdapterABC.setTablet(null);
@@ -158,6 +157,7 @@ public class RunnerABC implements Runnable {
                     tablet.broadcast(message);
                 }
             } else {
+                pl("tablet is up, but network interface or router is down.");
                 stop();
                 if(hasATablet!=null) hasATablet.setStatusText("tablet was stopped, check wifi and router!");
             }
@@ -211,6 +211,6 @@ public class RunnerABC implements Runnable {
     protected boolean isNetworkInterfaceUp,isRouterOk;
     public int restarts,n;
     public int loopSleep=30_000;
-    final int heartbeatperiod=1;
+    final int heartbeatperiod=10;
     static Integer instances=0;
 }

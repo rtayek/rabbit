@@ -112,7 +112,6 @@ public class Server implements Runnable {
                     if(string==null||string.isEmpty()) if(!isShuttingDown) l.severe("server: "+id+", read eof or empty string!");
                     if(receiver!=null) if(string!=null) receiver.receive(string);
                     l.info("#"+histories.receiverHistory.history.attempts()+", "+id+" time to sync and read: "+et);
-                    if(histories.receiverHistory.history.attempts()>0&&reportPeriod>0&&histories.receiverHistory.history.attempts()%reportPeriod==0) l.warning(id+", history from server: "+histories);
                 } // maybe we do not need to sync this?
             } catch(SocketException e) {
                 if(isShuttingDown) {
@@ -148,7 +147,7 @@ public class Server implements Runnable {
                 }
                 break;
             }
-            if(histories.reportPeriod>0&&histories.anyAttempts()&&histories.receiverHistory.history.attempts()%histories.reportPeriod==0) l.warning("history from server: "+id+": "+histories);
+            if(histories.reportPeriod>0&&histories.anyAttempts()&&histories.receiverHistory.history.attempts()%histories.reportPeriod==0) l.warning("history from server: "+id+": "+histories.toString("server"));
         } // was in the wrong place!
         try {
             l.info(id+" is closing server socket.");

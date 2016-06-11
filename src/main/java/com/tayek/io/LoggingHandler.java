@@ -40,9 +40,9 @@ public class LoggingHandler {
         logger.addHandler(handler);
         logger.setLevel(level);
     }
-    public static void addFileHandler(Logger logger,File logFileDirectory) {
+    public static void addFileHandler(Logger logger,File logFileDirectory,String prefix) {
         try {
-            String pattern="tablet.%u.%g.log";
+            String pattern=prefix+".%u.%g.log";
             File logFile=new File(logFileDirectory,pattern);
             p("log file get path: "+logFile.getPath());
             Handler handler=new FileHandler(logFile.getPath(),10_000_000,10,true);

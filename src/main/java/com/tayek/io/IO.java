@@ -24,8 +24,8 @@ public class IO {
         }
     }
     public static void pl(String string) {
-            l.warning(string);
-            p(System.out,string);
+        l.warning(string);
+        p(System.out,string);
     }
     public static String toString(Thread thread) {
         return thread.toString()+", state: "+thread.getState()+", is alive: "+thread.isAlive()+", is interrupted:  "+thread.isInterrupted();
@@ -42,7 +42,6 @@ public class IO {
         p("system properties size: "+systemProperties.size());
         for(Entry<Object,Object> x:systemProperties.entrySet())
             p(""+x.getKey()+'='+x.getValue());
-        
     }
     // move some of these to utility?
     public static Thread[] getThreads() {
