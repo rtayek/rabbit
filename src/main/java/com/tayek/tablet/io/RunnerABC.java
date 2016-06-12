@@ -110,11 +110,11 @@ public class RunnerABC implements Runnable {
             }
         }
     }
-    protected void stop() {
+    public void stop() {
+        if(audioObserver.isChimimg()) audioObserver.stopChimer();
         if(tablet!=null) {
             l.warning("stopping tablet: "+tabletId);
-            if(audioObserver.isChimimg()) audioObserver.stopChimer();
-            if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).stopServer();
+            tablet.stopServer();
             tablet=null;
             if(hasATablet!=null) hasATablet.setTablet(null);
             if(guiAdapterABC!=null) guiAdapterABC.setTablet(null);
@@ -128,7 +128,7 @@ public class RunnerABC implements Runnable {
             audioObserver.stopChimer();
         }
         p(this+", base class loop iteration: "+n+", has: "+Thread.activeCount()+" threads.");
-        if(true||Thread.activeCount()>=10) {
+        if(Thread.activeCount()>=10) {
             printThreads();
             p(this+" base class loop iteration: "+n+", has: "+Thread.activeCount()+" threads.");
         }
@@ -189,6 +189,8 @@ public class RunnerABC implements Runnable {
             } catch(Exception e) {
                 l.severe("runner caught: "+e);
             }
+        pl("exit runner loop");
+        stop();
         pl(this+" is exiting run()");
     }
     @Override public String toString() {
@@ -211,6 +213,6 @@ public class RunnerABC implements Runnable {
     protected boolean isNetworkInterfaceUp,isRouterOk;
     public int restarts,n;
     public int loopSleep=30_000;
-    final int heartbeatperiod=10;
+    protected final int heartbeatperiod=10;
     static Integer instances=0;
 }
