@@ -74,10 +74,10 @@ public class Enums {
                     if(tablet!=null) tablet.broadcast(tablet.messageFactory().other(Type.ping,tablet.group().groupId,tablet.tabletId()));
                     break;
                 case Disconnect:
-                    if(tablet!=null) ((TabletImpl2)tablet).stopServer();
+                    if(tablet!=null) tablet.stopServer();
                     break;
                 case Connect:
-                    if(tablet!=null) if(!((TabletImpl2)tablet).startServer()) l.info(Utility.method()+" startListening() failed!");
+                    if(tablet!=null) if(!tablet.startServer()) l.info(Utility.method()+" startListening() failed!");
                     break;
                 case Log:
                     // gui.textView.setVisible(!gui.textView.isVisible());
@@ -90,8 +90,8 @@ public class Enums {
                     break;
                 case Simulate:
                     if(tablet!=null) {
-                        if(((TabletImpl2)tablet).simulationTimer==null) ((TabletImpl2)tablet).startSimulating();
-                        else((TabletImpl2)tablet).stopSimulating();
+                        if(tablet.isSimulating()) tablet.startSimulating();
+                        else tablet.stopSimulating();
                     }
                     break;
                 case Quit:
@@ -99,15 +99,6 @@ public class Enums {
                         //p("calling System.exit().");
                         //System.exit(0);
                     }
-                    break;
-                case Drive:
-                    if(tablet!=null) ((TabletImpl2)tablet).driveInThread(true);
-                    break;
-                case StopDriving:
-                    if(tablet!=null) ((TabletImpl2)tablet).stopDriving=true;
-                    break;
-                case Forever:
-                    if(tablet!=null) ((TabletImpl2)tablet).foreverInThread();
                     break;
                 default:
                     l.severe(tabletMenuItem+" was not handled!");

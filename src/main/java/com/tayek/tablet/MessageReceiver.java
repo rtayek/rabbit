@@ -5,7 +5,6 @@ import java.util.*;
 import com.tayek.*;
 import com.tayek.io.Audio;
 import com.tayek.io.Audio.Sound;
-import com.tayek.tablet.Group.TabletImpl2;
 import com.tayek.utilities.Colors;
 public interface MessageReceiver {
     void receive(Message message);
@@ -119,6 +118,7 @@ public interface MessageReceiver {
                 if(n>0) l.warning(more);
             }
             for(int i=1;i<=Math.min(buttons,message.string().length());i++) {
+                // update will get called many times!
                 if(i==message.button()) if(message.state(i)) { // turn on?
                     synchronized(idToLastOnFrom) {
                         idToLastOnFrom.put(i,message.from());

@@ -34,7 +34,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
     }
     @After public void tearDown() throws Exception {
         if(logServer!=null) {
-        logServer.stop();
+            logServer.stop();
         } else fail("log server is null!");
         printThreads();
         int big=2*Thread.activeCount();
@@ -56,12 +56,7 @@ public class TabletsWithLogServerTestCase extends AbstractTabletTestCase {
         startListening();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
         for(Tablet tablet:tablets)
-            if(tablet instanceof TabletImpl2) {
-                TabletImpl2 t2=(TabletImpl2)tablet;
-                checkHistory(t2,tablets.size(),false);
-            } else {
-                p("how do i check history?");
-            }
+            checkHistory(tablet,tablets.size(),false);
         Thread.sleep(200);
         shutdown();
         // stop socket logging

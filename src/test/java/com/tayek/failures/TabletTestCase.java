@@ -28,13 +28,7 @@ public class TabletTestCase extends AbstractTabletTestCase {
         startListening();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
         for(Tablet tablet:tablets)
-            if(tablet instanceof TabletImpl2) {
-                TabletImpl2 t2=(TabletImpl2)tablet;
-                checkHistory(t2,tablets.size(),false);
-            } else {
-                p("how do i check history?");
-            }
-        
+            checkHistory(tablet,tablets.size(),false);
     }
     @Test(timeout=200) public void testDummy2() throws InterruptedException,UnknownHostException,ExecutionException {
         test(2);

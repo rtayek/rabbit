@@ -31,7 +31,7 @@ public class ClientServerTestCase {
         client=new Client(socketAddress,config,histories);
         Integer n=1;
         for(int i=1;i<=n;i++) {
-            Message message=factory.other(Type.dummy,"1","1");
+            Message message=factory.other(Message.Type.dummy,"1","1");
             client.send(message);
         }
         while(histories.senderHistory.history.attempts()<n)
@@ -55,7 +55,7 @@ public class ClientServerTestCase {
         client=new Client(socketAddress,config,histories);
         Integer n=10;
         for(int i=1;i<=n;i++) {
-            Message message=factory.other(Type.dummy,"1","1");
+            Message message=factory.other(Message.Type.dummy,"1","1");
             client.send(message);
         }
         while(histories.senderHistory.history.attempts()<n)
@@ -79,7 +79,7 @@ public class ClientServerTestCase {
         client=new Client(socketAddress,config,histories);
         Integer n=10;
         for(int i=1;i<=n;i++) {
-            Message message=factory.other(Type.dummy,"1","1");
+            Message message=factory.other(Message.Type.dummy,"1","1");
             if(i!=5) client.send(message);
         }
         while(histories.senderHistory.history.attempts()<n-1)

@@ -17,9 +17,9 @@ public class Ping {
         Map<String,Required> requireds=new Groups().groups.get("g0");
         String tabletId=Groups.add("localhost",defaultReceivePort,requireds);
         Group group=new Group("1",requireds,Model.mark1);
-        Tablet tablet=Tablet.factory.create2(group,tabletId,group.getModelClone());
+        Tablet tablet=Tablet.factory.create(Tablet.Type.normal,group,tabletId,group.getModelClone());
         group=null; // tablet has a clone of group.
-        ((TabletImpl2)tablet).startServer();
+        tablet.startServer();
         Message message=tablet.messageFactory().other(Type.ping,tablet.group().groupId,tablet.tabletId());
         // not working on the tablets
         // because they don't have a socket address for tablet 99

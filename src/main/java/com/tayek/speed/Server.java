@@ -17,11 +17,11 @@ public interface Server {
     String host();
     int service();
     boolean startServer();
+    boolean isServerRunning();
     void stopServer();
     void broadcast(Object message);
     String report();
     Histories histories();
-    
     ServerSocket serverSocket();
     Message.Factory messageFactory();
     String maps();
@@ -88,7 +88,7 @@ public interface Server {
                 final Message.Factory messageFactory;
                 public volatile boolean isShuttingDown;
             }
-            private static class ServerImpl extends ServerABC implements Server {
+            private static class ServerImpl extends ServerABC {
                 ServerImpl(Required required) throws IOException {
                     super(required);
                 }
@@ -102,6 +102,9 @@ public interface Server {
                     boolean ok=super.startServer();
                     if(ok) createAndAddWriter(id(),required);
                     return ok;
+                }
+                @Override public boolean isServerRunning() {
+                    return serverSocket!=null&&serverSocket.isBound();
                 }
                 @Override public void broadcast(Object message) {
                     p("broadcating: "+message);
@@ -325,7 +328,6 @@ public interface Server {
                             } catch(InterruptedException e) {
                                 e.printStackTrace();
                             }
-
                         } else { // not bound
                             try {
                                 Thread.sleep(1);

@@ -11,6 +11,7 @@ import static com.tayek.io.IO.*;
 import static org.junit.Assert.*;
 import com.tayek.tablet.Enums.*;
 import com.tayek.tablet.Group.*;
+import com.tayek.tablet.Message.Type;
 public class EnumsTestCase {
     @Rule public TestRule watcher=new MyTestWatcher();
 
@@ -51,7 +52,7 @@ public class EnumsTestCase {
     @Before public void setUp() throws Exception {
         Map<String,Required> requireds=new Groups().groups.get("g2OnPc");
         Group group=new Group("1",requireds,Model.mark1);
-        tablet=(TabletImpl2)Tablet.factory.create2(group,group.keys().iterator().next(),group.getModelClone());
+        tablet=Tablet.factory.create(Tablet.Type.normal,group,group.keys().iterator().next(),group.getModelClone());
         group=null; // tablet has a clone of group!
     }
     @After public void tearDown() throws Exception {}
@@ -63,5 +64,5 @@ public class EnumsTestCase {
             // also, getting socket closed exceptions
         }
     }
-    TabletImpl2 tablet;
+    Tablet tablet;
 }

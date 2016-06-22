@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.*;
 import com.tayek.*;
 import com.tayek.Sender.Client;
+import com.tayek.Tablet.Type;
 import com.tayek.io.*;
 import com.tayek.tablet.Group.*;
 import com.tayek.io.Audio.AudioObserver;
@@ -27,7 +28,7 @@ public class Controller {
         InetAddress inetAddress=addressWith(tabletRouterPrefix);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,service);
         p("tablet: "+tabletId);
-        Tablet tablet=Tablet.factory.create2(group,tabletId,group.getModelClone());
+        Tablet tablet=Tablet.factory.create(Type.normal,group,tabletId,group.getModelClone());
         this.tablet=tablet;
         model=tablet.model();
         this.in=in;
@@ -110,11 +111,11 @@ public class Controller {
                 model.reset();
                 break;
             case 's':
-                boolean ok=((TabletImpl2)tablet).startServer();
+                boolean ok=tablet.startServer();
                 if(!ok) p(out,"badness");
                 break;
             case 't':
-                ((TabletImpl2)tablet).stopServer();
+                tablet.stopServer();
                 break;
             case 'q':
                 return false;

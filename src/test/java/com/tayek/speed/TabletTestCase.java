@@ -31,7 +31,7 @@ public class TabletTestCase {
         p("requireds: "+requireds);
         Group group=new Group("1",requireds,Model.mark1);
         String id=group.keys().iterator().next(); // 
-        Tablet tablet=Tablet.factory.create1(group,id);
+        Tablet tablet=Tablet.factory.create(Tablet.Type.normal,group,id,null);
         TabletImpl1 t=(TabletImpl1)tablet;
         p("tablet: "+t.server.maps());
         // need to add connections!

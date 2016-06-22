@@ -73,7 +73,7 @@ import com.tayek.utilities.Single;
         server.startServer();
         // where is client socket bound to?
         Client client=new Client(socketAddress,config,histories);
-        Message dummy=messages.other(Type.dummy,"1","1");
+        Message dummy=messages.other(Message.Type.dummy,"1","1");
         l.info("sending: "+dummy);
         client.send(dummy);
         while(histories.receiverHistory.history.successes()+histories.receiverHistory.history.failures()==0)

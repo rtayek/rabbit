@@ -19,7 +19,7 @@ public class ControllerTestCase {
     @AfterClass public static void tearDownAfterClass() throws Exception {}
     @Before public void setUp() throws Exception {
         Group group=new Group("1",new Groups().groups.get("g2OnPc"),Model.mark1);
-        tablet=(TabletImpl2)Tablet.factory.create2(group,group.keys().iterator().next(),group.getModelClone());
+        tablet=Tablet.factory.create(Tablet.Type.normal,group,group.keys().iterator().next(),group.getModelClone());
         group=null; // this tablet has a clone of group!
     }
     @After public void tearDown() throws Exception {}

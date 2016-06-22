@@ -35,7 +35,7 @@ public abstract class AbstractTabletTestCase {
         staticServiceOffset+=100;
         serviceOffset=staticServiceOffset; // find out why this meeds to be 100, try to make it 1!
     }
-    @After public void tearDown() throws Exception { 
+    @After public void tearDown() throws Exception {
         boolean anyFailures=false;
         if(tablets!=null) for(Tablet tablet:tablets)
             anyFailures|=tablet.histories().anyFailures();
@@ -59,10 +59,8 @@ public abstract class AbstractTabletTestCase {
     protected void startListening() {
         Tablet first=tablets.iterator().next();
         for(Tablet tablet:tablets) {
-            if(tablet instanceof TabletImpl2) {
-                if(!((TabletImpl2)tablet).startServer()) fail(tablet+" startListening() retuns false!");
-                assertNotNull(((TabletImpl2)tablet).server);
-            }
+            if(!tablet.startServer()) fail(tablet+" startListening() retuns false!");
+            assertTrue(tablet.isServerRunning());
             assertEquals(first.model().serialNumber,tablet.model().serialNumber);
             //assertEquals(first.stuff.serialNumber,tablet.stuff.serialNumber);
         }
@@ -182,12 +180,8 @@ public abstract class AbstractTabletTestCase {
         }
     }
     protected void shutdown() {
-        for(Tablet tablet:tablets) {
-            if(tablet instanceof TabletImpl2) {
-                TabletImpl2 t2=(TabletImpl2)tablet;
-                t2.stopServer();
-            }
-        }
+        for(Tablet tablet:tablets)
+            tablet.stopServer();
     }
     protected void sendOneDummyMessageFromEachTabletAndWait(boolean sleepAndPrint) throws InterruptedException {
         sendOneDummyMessageFromEachTablet();
@@ -197,12 +191,7 @@ public abstract class AbstractTabletTestCase {
         for(Tablet tablet:tablets) {
             Histories history=tablet.histories();
             if(history.receiverHistory.history.successes()!=tablets.size()) p(tablet+" received: "+history.receiverHistory.history.successes()+" instead of "+tablets.size());
-            if(tablet instanceof TabletImpl2) {
-                TabletImpl2 t2=(TabletImpl2)tablet;
-                checkHistory(t2,tablets.size(),false);
-            } else {
-                p("how do i check history?");
-            }
+            checkHistory(tablet,tablets.size(),false);
         }
     }
     protected void sendOneDummyMessageFromFirstTabletAndWait(boolean sleepAndPrint) throws InterruptedException {
@@ -213,12 +202,7 @@ public abstract class AbstractTabletTestCase {
         for(Tablet tablet:tablets) {
             Histories histories=tablet.histories();
             if(histories.receiverHistory.history.successes()!=tablets.size()) p(tablet+" received: "+histories.receiverHistory.history.successes()+" instead of "+tablets.size());
-            if(tablet instanceof TabletImpl2) {
-                TabletImpl2 t2=(TabletImpl2)tablet;
-                checkHistory(t2,tablets.size(),true);
-            } else {
-                p("how do i check history?");
-            }
+            checkHistory(tablet,tablets.size(),true);
         }
     }
     protected void sendOneDummyMessageFromEachTabletAndWaitAndShutdown(boolean sleepAndPrint) throws InterruptedException {

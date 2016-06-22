@@ -6,6 +6,7 @@ import java.net.ServerSocket;
 import java.util.*;
 import org.junit.*;
 import org.junit.rules.TestRule;
+import com.tayek.Tablet.Type;
 import com.tayek.io.IO;
 import com.tayek.speed.Server;
 import com.tayek.tablet.Group;
@@ -39,7 +40,7 @@ public class BasicTabletTestCase {
         Map<String,Required> requireds=new TreeMap<>();
         requireds.put(required.id,required);
         Group group=new Group("1",requireds,Model.mark1);
-        Tablet tablet=Tablet.factory.create2(group,required.id,group.getModelClone());
+        Tablet tablet=Tablet.factory.create(Type.normal,group,required.id,group.getModelClone());
         assertTrue(tablet.startServer());
         tablet.stopServer();
         assertTrue(tablet.startServer());

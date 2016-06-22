@@ -48,7 +48,7 @@ public class RunnerABC implements Runnable {
     protected void createTabletAndStart(String tabletId) {
         restarts++;
         p("creating tablet and starting: "+restarts);
-        tablet=Tablet.factory.create2(group,tabletId,model);
+        tablet=useKroImpl?Tablet.factory.create(Tablet.Type.kryo,group,tabletId,model):Tablet.factory.create(Tablet.Type.normal,group,tabletId,model);
         setTablet(tablet);
         p("config: "+tablet.config());
         boolean ok=tablet.startServer(); // don't forget to start accepting
@@ -122,7 +122,7 @@ public class RunnerABC implements Runnable {
         }
     }
     protected void loop(int n) {
-        p(this+", model: "+model+", is shutting down: "+isShuttingDown+", is tablet null: "+(tablet==null));
+        p("host: "+host+", tabletId: "+tabletId+", "+this+", model: "+model+", is shutting down: "+isShuttingDown+", is tablet null: "+(tablet==null));
         if(!model.areAnyButtonsOn()&&audioObserver.isChimimg()) {
             pl("had to stop chimer in runner loop!");
             audioObserver.stopChimer();
@@ -148,8 +148,8 @@ public class RunnerABC implements Runnable {
             else if(hasATablet!=null) hasATablet.setStatusText("can not start tablet, check wifi and router!");
         } else {
             if(isNetworkInterfaceUp&&isRouterOk) {
-                if(((TabletImpl2)tablet).server==null) {
-                    l.severe("server is null, trying to start.");
+                if(!tablet.isServerRunning()) {
+                    l.severe("server is not running, trying to start.");
                     tablet.startServer();
                 }
                 if(tablet!=null&&heartbeatperiod!=0&&n%heartbeatperiod==0&&n>0) {
@@ -215,4 +215,5 @@ public class RunnerABC implements Runnable {
     public int loopSleep=30_000;
     protected final int heartbeatperiod=10;
     static Integer instances=0;
+    public boolean useKroImpl;
 }

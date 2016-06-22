@@ -72,7 +72,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         // hack, change the above before calling new Groups!
     }
     public static class ReceiverImpl implements Receiver {
-        ReceiverImpl(Object id,TabletImpl2 tablet,Set<? extends Object> ids,MessageReceiver messageReceiver) {
+        ReceiverImpl(Object id,Tablet tablet,Set<? extends Object> ids,MessageReceiver messageReceiver) {
             // get rid of tablet
             // use a set of Id's
             this.id=id;
@@ -143,16 +143,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                         break;
                     case rolloverLogNow:
                         p(id+", received rollover: "+message);
-                        l.warning(id+", received rollover: "+message);
-                        break;
-                    case drive:
-                        tablet.driveInThread(true);
-                        break;
-                    case stopDriving:
-                        tablet.stopDriving=true;
-                        break;
-                    case forever:
-                        tablet.foreverInThread();
+                        l.warning(id+", received rollover: "+message); // hack - will trigger rollover in log server!
                         break;
                     default:
                         if(!message.from().equals(id)) tablet.model().receive(message);
@@ -161,7 +152,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
             }
             l.info("exit lastMessageNumbers: "+lastMessageNumbers);
         }
-        final TabletImpl2 tablet; // try to remove this
+        final Tablet tablet; // try to remove this
         // maybe just use group?
         final Object id;
         final MessageReceiver messageReceiver;
@@ -260,118 +251,19 @@ public class Group implements Cloneable { // maybe this belongs in sender?
                 return false;
             }
         }
-        @Override public void stopServer() {
+        @Override public boolean isServerRunning() {
+            return server!=null&&server.serverSocket.isBound();
+        }
+       @Override public void stopServer() {
             if(server!=null) {
                 server.stopServer();
                 server=null;
             }
         }
-        public void drive(int n,int wait,boolean sendReset) {
-            // try sending 3 real fast then waiting a while
-            // repeat a lot.
-            Random random=new Random();
-            int i=0,j0=1;
-            if(sendReset) {
-                click(model().resetButtonId);
-                j0++;
-                try {
-                    Thread.sleep(2_000);
-                } catch(InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
-            boolean sequential=true;
-            double lastToggle=Double.NaN;
-            Et et=new Et();
-            for(int j=j0;j<=n&&!stopDriving;j++) {
-                if(lastToggle!=Double.NaN) ; //p((et.etms()-lastToggle)+" between toggles.");
-                if(sequential) i=(j-j0)%(model().buttons-1);
-                else i=random.nextInt(model().buttons-1); // omit reset button if any
-                toggle(i+1);
-                try {
-                    Thread.sleep(wait);
-                } catch(InterruptedException e) {
-                    l.warning("drive caught: '"+e+"'");
-                    e.printStackTrace();
-                }
-                lastToggle=et.etms();
-            }
-            if(false) try {
-                Thread.sleep(5_000);
-            } catch(InterruptedException e1) {
-                e1.printStackTrace();
-            }
-        }
-        void driveInThread(final boolean sendReset) {
-            new Thread(new Runnable() {
-                @Override public void run() {
-                    drive(100,Config.defaultDriveWait,sendReset);
-                    l.severe("start drive histories.");
-                    l.severe("drive: "+histories().toString("drive"));
-                    l.severe("end drive histories.");
-                }
-            }).start();
-        }
-        void forever() {
-            for(int k=1;k<1000&&!stopDriving;k++) {
-                Message message=messageFactory.other(Type.reset,group.groupId,tabletId());
-                broadcast(message);
-                try {
-                    Thread.sleep(5_000);
-                } catch(InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-                for(int i=1;i<100&&!stopDriving;i++) {
-                    drive(3,75/*Stuff.defaultDriveWait*/,false);
-                    try {
-                        Thread.sleep(5_000);
-                    } catch(InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-                report(tabletId());
-                message=messageFactory.other(Type.rolloverLogNow,group.groupId,tabletId());
-                broadcast(message);
-                try {
-                    Thread.sleep(1_000);
-                } catch(InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
-            stopDriving=false;
-        }
-        void foreverInThread() {
-            new Thread(new Runnable() {
-                @Override public void run() {
-                    forever();
-                }
-            }).start();
-        }
-        public void startSimulating() {
-            if(simulationTimer!=null) stopSimulating();
-            ArrayList<String> ids=new ArrayList<>(group.keys());
-            final int dt=500;
-            final Random random=new Random();
-            simulationTimer=new Timer();
-            simulationTimer.schedule(new TimerTask() {
-                @Override public void run() {
-                    int i=random.nextInt(model().buttons-1);
-                    click(i+1);
-                }
-            },1_000+ids.indexOf(tabletId())*dt,dt*group.keys().size());
-        }
-        public void stopSimulating() {
-            if(simulationTimer!=null) {
-                simulationTimer.cancel();
-                simulationTimer=null;
-            }
-        }
         @Override public Message.Factory messageFactory() {
             return messageFactory;
         }
-        boolean stopDriving;
         public Server server;
-        Timer simulationTimer;
         public final Message.Factory messageFactory;
     }
     public Group(String id) { // makes a new one 
@@ -401,7 +293,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     public Set<Tablet> createAll() { // mostly for testing
         Set<Tablet> tablets=new LinkedHashSet<>();
         for(String tabletId:keys())
-            tablets.add(Tablet.factory.create2(this,tabletId,getModelClone()));
+            tablets.add(Tablet.factory.create(Tablet.Type.normal,this,tabletId,getModelClone()));
         return tablets;
     }
     public static Set<Tablet> createGroupAndstartTablets(String groupId,Map<String,Required> requireds) {
@@ -410,7 +302,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         Set<Tablet> tablets=group.createAll();
         for(Tablet tablet:tablets) {
             tablet.model().addObserver(new AudioObserver(tablet.model())); // maybe not if testing?
-            if(tablet instanceof TabletImpl2) ((TabletImpl2)tablet).startServer();
+            tablet.startServer();
         }
         return tablets;
     }
@@ -500,9 +392,9 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         sb.append("\nend of report histories from: "+id+" ------------------------------------");
         return sb.toString();
     }
-    public Message random(TabletImpl2 tablet) {
+    public Message random(Tablet tablet) {
         int buttonId=random.nextInt(tablet.model().buttons)+1;
-        return tablet.messageFactory.normal(groupId,tablet.tabletId(),buttonId,tablet.model().toCharacters());
+        return tablet.messageFactory().normal(groupId,tablet.tabletId(),buttonId,tablet.model().toCharacters());
     }
     public final int x=2;
     public final String groupId;

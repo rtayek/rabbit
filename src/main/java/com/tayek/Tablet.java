@@ -7,6 +7,7 @@ import com.tayek.tablet.*;
 import com.tayek.tablet.Group.*;
 import com.tayek.tablet.Message.Type;
 import com.tayek.tablet.MessageReceiver.Model;
+import com.tayek.utilities.Et;
 public interface Tablet {
     Config config();
     Group group();
@@ -22,22 +23,34 @@ public interface Tablet {
     String report(String id);
     boolean startServer();
     void stopServer();
+    void startSimulating();
+    boolean isSimulating();
+    void stopSimulating();
+    boolean isServerRunning();
     interface HasATablet {
         Tablet tablet();
         void setTablet(Tablet tablet);
         void setStatusText(String string);
     }
+    enum Type {
+        normal,speed,kryo;
+    }
     interface Factory {
-        Tablet create1(Group group,String id);
-        Tablet create2(Group group,String id,Model model);
+        Tablet create(Type type,Group group,String id,Model model);
         class FactoryImpl implements Factory {
-            @Override public TabletImpl1 create1(Group group,String id) {
-                Server server=Server.factory.create(group.required(id));
-                return new TabletImpl1(group.clone(),id,server,group.getModelClone());
-            }
-            @Override public TabletImpl2 create2(Group group,String id,Model model) {
-                Group clone=group.clone();
-                return new TabletImpl2(clone,id,model);
+            @Override public Tablet create(Type type,Group group,String id,Model model) {
+                switch(type) {
+                    case speed:
+                        Server server=Server.factory.create(group.required(id));
+                        return new TabletImpl1(group.clone(),id,server,group.getModelClone());
+                    case normal:
+                        return new TabletImpl2(group.clone(),id,model);
+                    case kryo:
+                        return new TabletKryoImpl(group.clone(),id,model);
+                    default:
+                        pl("strange type: "+type);
+                        return null;
+                }
             }
             public static abstract class TabletABC implements Tablet {
                 public TabletABC(Group group,String tabletId,Model model,Histories histories) {
@@ -79,7 +92,7 @@ public interface Tablet {
                             synchronized(model()) {
                                 if(model().resetButtonId!=null&&id==model().resetButtonId) {
                                     model().reset();
-                                    Message message=messageFactory().other(Type.reset,group().groupId,tabletId());
+                                    Message message=messageFactory().other(Message.Type.reset,group().groupId,tabletId());
                                     broadcast(message);
                                 } else {
                                     Boolean state=!model().state(id);
@@ -96,7 +109,29 @@ public interface Tablet {
                         e.printStackTrace();
                     }
                 }
-                @Override public Histories histories() {
+                @Override public synchronized boolean isSimulating() {
+                    return simulationTimer!=null;
+                }
+                @Override public synchronized void startSimulating() {
+                    if(isSimulating()) stopSimulating();
+                    ArrayList<String> ids=new ArrayList<>(group.keys());
+                    final int dt=500;
+                    final Random random=new Random();
+                    simulationTimer=new Timer();
+                    simulationTimer.schedule(new TimerTask() {
+                        @Override public void run() {
+                            int i=random.nextInt(model().buttons-1);
+                            click(i+1);
+                        }
+                    },1_000+ids.indexOf(tabletId())*dt,dt*group.keys().size());
+                }
+                @Override public synchronized void stopSimulating() {
+                    if(isSimulating()) {
+                        simulationTimer.cancel();
+                        simulationTimer=null;
+                    }
+                }
+             @Override public Histories histories() {
                     return histories;
                 }
                 protected final Group group;
@@ -105,6 +140,8 @@ public interface Tablet {
                 private final Model model;
                 public Config config=new Config();
                 public final Histories histories;
+                private Timer simulationTimer;
+                boolean stopDriving;
             }
             /* private */ public class TabletImpl1 extends TabletABC { // stays connected
                 TabletImpl1(Group group,String id,Server server,Model model) {
@@ -114,7 +151,10 @@ public interface Tablet {
                 @Override public boolean startServer() {
                     return server.startServer();
                 }
-                @Override public void stopServer() {
+                @Override public boolean isServerRunning() {
+                    return server!=null&&server.isServerRunning();
+                }
+              @Override public void stopServer() {
                     server.stopServer();
                 }
                 @Override public com.tayek.tablet.Message.Factory messageFactory() {
@@ -129,6 +169,7 @@ public interface Tablet {
                 public final Server server;
             }
         }
+        
     }
     class Config implements Cloneable {
         public Config() {}

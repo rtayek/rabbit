@@ -50,7 +50,7 @@ public class LoggingHandler {
             logger.addHandler(handler);
             logger.warning("added file handler: "+handler);
         } catch(Exception e) {
-            logger.warning("file handler caught: "+e);
+            logger.warning("add file handler caught: "+e);
         }
     }
     private static Map<Class<?>,Logger> makeMapAndSetLevels(Set<Class<?>> classes) {

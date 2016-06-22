@@ -28,7 +28,7 @@ test {
     //jvmArgs '-javaagent:tracer.jar'
     //jvmArgs '-verbose:class'
 }
-task wrapper(type: Wrapper) { gradleVersion = '2.9' }
+task wrapper(type: Wrapper) { gradleVersion = '2.14' }
 buildscript {
     repositories {
         jcenter()
@@ -43,13 +43,9 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven { url "https://plugins.gradle.org/m2/" }
-    flatDir {
-        // not working yet
-        name 'core'
-        dirs '../repository'
-    }
 }
 dependencies {
+     compile fileTree(include: ['*.jar'], dir: 'lib')
      testCompile 'junit:junit:4.12'
      integrationTestCompile sourceSets.main.output
      integrationTestCompile configurations.testCompile

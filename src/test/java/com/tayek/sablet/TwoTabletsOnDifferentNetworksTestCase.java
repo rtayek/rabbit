@@ -32,12 +32,7 @@ public class TwoTabletsOnDifferentNetworksTestCase extends AbstractTabletTestCas
     }
     @Test() public void testDummy2Brokem() throws InterruptedException,UnknownHostException,ExecutionException {
         for(Tablet tablet:tablets)
-            if(tablet instanceof TabletImpl2) {
-                TabletImpl2 t2=(TabletImpl2)tablet;
-                t2.stopServer(); // so send will fail
-            } else {
-                // how to break!
-            }
+                tablet.stopServer(); // so send will fail
         Thread.sleep(100);
         sendOneDummyMessageFromEachTablet();
         Thread.sleep(2_000);

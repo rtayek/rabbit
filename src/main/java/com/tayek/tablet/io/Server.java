@@ -193,7 +193,7 @@ public class Server implements Runnable {
     }
     private Thread thread;
     public final Object id;
-    private final ServerSocket serverSocket;
+    public final ServerSocket serverSocket;
     private final Config config;
     private final Receiver receiver;
     private final Histories histories;

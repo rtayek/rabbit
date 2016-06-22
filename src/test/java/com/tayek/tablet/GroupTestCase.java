@@ -7,6 +7,7 @@ import org.junit.*;
 import org.junit.rules.TestRule;
 import static com.tayek.io.IO.*;
 import com.tayek.*;
+import com.tayek.Tablet.Type;
 import com.tayek.io.IO;
 import com.tayek.tablet.Group.*;
 import com.tayek.tablet.MessageReceiver.Model;
@@ -35,7 +36,7 @@ public class GroupTestCase {
         p("inetAddress: "+inetAddress.toString());
         Group group=new Group("1",new Groups().groups.get("g2OnPc"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
-        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(group,tabletId,group.getModelClone());
+        Tablet tablet=Tablet.factory.create(Type.normal,group,tabletId,group.getModelClone());
         assertEquals(tablet.tabletId(),group.keys().iterator().next());
     }
     @Test public void testGetTabletTabletIdFromInetAddressForG0() throws UnknownHostException,InterruptedException,ExecutionException {
@@ -43,7 +44,7 @@ public class GroupTestCase {
         p(inetAddress.toString());
         Group group=new Group("1",new Groups().groups.get("g0"),Model.mark1);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,null);
-        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(group,tabletId,group.getModelClone());
+        Tablet tablet=Tablet.factory.create(Type.normal,group,tabletId,group.getModelClone());
         assertEquals(tablet.tabletId(),group.keys().iterator().next()); // fails now since 1 is not forst!
     }
     @Test public void testGetTabletWithService() throws UnknownHostException,InterruptedException,ExecutionException {
@@ -59,7 +60,7 @@ public class GroupTestCase {
         Iterator<String> i=group.keys().iterator();
         i.next();
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,group.required(i.next()).service);
-        TabletImpl2 tablet=(TabletImpl2)Tablet.factory.create2(group,tabletId,group.getModelClone());
+        Tablet tablet=Tablet.factory.create(Type.normal,group,tabletId,group.getModelClone());
         i=group.keys().iterator();
         i.next(); // skip the first tablet
         assertEquals(tablet.tabletId(),i.next()); // fragile

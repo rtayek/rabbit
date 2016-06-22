@@ -7,7 +7,7 @@ import com.tayek.utilities.Single;
 public interface Message {
     public enum Type { // add levels for logging?
         // set last message number
-        resetMessages,drive,stopDriving,forever,dummy,ping,ack,error,normal,reset,name,heartbeat,soundOn,soundOff,rolloverLogNow;
+        resetMessages,dummy,ping,ack,error,normal,reset,name,heartbeat,soundOn,soundOff,rolloverLogNow;
         public boolean isNormal() {
             return this.equals(normal);
         }

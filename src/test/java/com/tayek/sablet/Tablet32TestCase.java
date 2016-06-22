@@ -31,12 +31,7 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         Et et=new Et();
         sendOneDummyMessageFromEachTabletAndWaitAndShutdown(false);
         for(Tablet tablet:tablets)
-            if(tablet instanceof TabletImpl2) {
-                TabletImpl2 t2=(TabletImpl2)tablet;
-                checkHistory(t2,tablets.size(),false);
-            } else {
-                p("how do i check history?");
-            }
+            checkHistory(tablet,tablets.size(),false);
     }
     private void justOneWithOneMessage() throws InterruptedException {
         Map<String,Required> map=new TreeMap<>();
@@ -48,9 +43,7 @@ public class Tablet32TestCase extends AbstractTabletTestCase {
         Tablet first=tablets.iterator().next();
         boolean areAllLiestening=true;
         if(areAllLiestening) startListening();
-        else {
-            if(first instanceof TabletImpl2) if(!((TabletImpl2)first).startServer()) fail(first+" startListening() retuns false!");
-        }
+        else if(!first.startServer()) fail(first+" startListening() retuns false!");
         first.broadcast(first.messageFactory().other(Type.dummy,first.group().groupId,first.tabletId()));
         Thread.sleep(700);
         Histories histories=first.histories();
