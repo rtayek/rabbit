@@ -41,7 +41,7 @@ public interface Tablet {
             @Override public Tablet create(Type type,Group group,String id,Model model) {
                 switch(type) {
                     case speed:
-                        Server server=Server.factory.create(group.required(id));
+                        Server server=Server.factory.create(group.required(id),model);
                         return new TabletImpl1(group.clone(),id,server,group.getModelClone());
                     case normal:
                         return new TabletImpl2(group.clone(),id,model);
@@ -131,7 +131,7 @@ public interface Tablet {
                         simulationTimer=null;
                     }
                 }
-             @Override public Histories histories() {
+                @Override public Histories histories() {
                     return histories;
                 }
                 protected final Group group;
@@ -154,7 +154,7 @@ public interface Tablet {
                 @Override public boolean isServerRunning() {
                     return server!=null&&server.isServerRunning();
                 }
-              @Override public void stopServer() {
+                @Override public void stopServer() {
                     server.stopServer();
                 }
                 @Override public com.tayek.tablet.Message.Factory messageFactory() {
@@ -169,7 +169,6 @@ public interface Tablet {
                 public final Server server;
             }
         }
-        
     }
     class Config implements Cloneable {
         public Config() {}

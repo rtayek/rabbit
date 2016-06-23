@@ -13,6 +13,7 @@ import com.tayek.*;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.Message;
 import com.tayek.tablet.Message.Type;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.utilities.Et;
 public abstract class AbstractServerTestCase {
     @Rule public TestRule watcher=new MyTestWatcher();
@@ -99,7 +100,7 @@ public abstract class AbstractServerTestCase {
     }
     void createTestTablets(int n) {
         for(Integer i=1;i<=n;i++)
-            servers.add(factory.create(new Required(testingHost,service+i)));
+            servers.add(factory.create(new Required(testingHost,service+i),Model.mark1.clone()));
     }
     void stopServers() throws InterruptedException {
         for(Server server:servers)

@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import static com.tayek.io.IO.*;
 import com.tayek.*;
 import com.tayek.io.IO;
-import com.tayek.tablet.Message;
+import com.tayek.tablet.*;
 import com.tayek.tablet.Message.Type;
 import com.tayek.utilities.*;
 public interface Server {
@@ -23,6 +23,7 @@ public interface Server {
     String report();
     Histories histories();
     ServerSocket serverSocket();
+    MessageReceiver messageReceiver();
     Message.Factory messageFactory();
     String maps();
     void addConnection(String newId,Connection connection);
@@ -30,12 +31,12 @@ public interface Server {
     Map<InetAddress,Pair<String,Histories>> iNetAddressToPair();
     Writer createAndAddWriter(String destinationId,Required required);
     interface Factory {
-        Server create(Required required);
+        Server create(Required required,MessageReceiver messageReceiver);
         static class FactoryImpl implements Factory {
-            @Override public Server create(Required required) {
+            @Override public Server create(Required required,MessageReceiver messageReceiver) {
                 Server server=null;
                 try {
-                    server=new ServerImpl(required);
+                    server=new ServerImpl(required,messageReceiver);
                     ((ServerImpl)server).start();
                 } catch(IOException e) {
                     e.printStackTrace();
@@ -45,9 +46,10 @@ public interface Server {
             }
             public static abstract class ServerABC extends Thread implements Server {
                 // make private again!
-                ServerABC(Required required) throws IOException {
+                ServerABC(Required required,MessageReceiver messageReceiver) throws IOException {
                     super(required.id.toString()+" server");
                     this.required=required;
+                    this.messageReceiver=messageReceiver;
                     //InetAddress inetAddress=InetAddress.getByName(required.host);
                     messageFactory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
                     //serverSocket=new ServerSocket();
@@ -82,15 +84,19 @@ public interface Server {
                 @Override public int service() {
                     return required.service;
                 }
-                final Required required;
+                @Override public MessageReceiver messageReceiver() {
+                    return messageReceiver;
+                }
+             final Required required;
                 final Histories histories=new Histories();
                 ServerSocket serverSocket;
                 final Message.Factory messageFactory;
+                final MessageReceiver messageReceiver;
                 public volatile boolean isShuttingDown;
             }
             private static class ServerImpl extends ServerABC {
-                ServerImpl(Required required) throws IOException {
-                    super(required);
+                ServerImpl(Required required,MessageReceiver messageReceiver) throws IOException {
+                    super(required,messageReceiver);
                 }
                 @Override public ServerSocket serverSocket() {
                     return serverSocket;

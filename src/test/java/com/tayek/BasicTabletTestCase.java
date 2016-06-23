@@ -19,7 +19,7 @@ public class BasicTabletTestCase {
     @Before public void setUp() throws Exception {}
     @After public void tearDown() throws Exception {}
     @Test public void test1Close() throws InterruptedException {
-        Server server=factory.create(required);
+        Server server=factory.create(required,Model.mark1.clone());
         assertTrue(server.startServer());
         ServerSocket serverSocket=server.serverSocket();
         p("before stop: "+IO.toString(serverSocket));
@@ -29,7 +29,7 @@ public class BasicTabletTestCase {
         p("after sleep: "+IO.toString(serverSocket));
     }
     @Test public void test1() {
-        Server server=factory.create(required);
+        Server server=factory.create(required,Model.mark1.clone());
         assertTrue(server.startServer());
         server.stopServer();
         p("start 2");

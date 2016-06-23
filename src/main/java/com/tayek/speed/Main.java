@@ -9,6 +9,7 @@ import com.tayek.Required;
 import com.tayek.io.*;
 import com.tayek.tablet.Group;
 import com.tayek.tablet.Message.Type;
+import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.utilities.Et;
 import static com.tayek.speed.Server.*;
 public class Main {
@@ -17,8 +18,8 @@ public class Main {
         Set<Server> servers=new LinkedHashSet<>();
         // map<string,Pair<String,Integer> map again?
         for(Integer i=1;i<=n;i++)
-            if(i==1) servers.add(factory.create(new Required(raysPcOnRaysNetwork,defaultReceivePort+i)));
-            else servers.add(factory.create(new Required(defaultHost,defaultReceivePort+i)));
+            if(i==1) servers.add(factory.create(new Required(raysPcOnRaysNetwork,defaultReceivePort+i),Model.mark1.clone()));
+            else servers.add(factory.create(new Required(defaultHost,defaultReceivePort+i),Model.mark1.clone()));
         for(Server server:servers)
             p(""+server);
         for(Server tablet:servers)
@@ -78,7 +79,7 @@ public class Main {
         p("requireds: "+requireds);
         if(true) run(4);
         else {
-            Server server=factory.create(new Required("localhost",defaultReceivePort));
+            Server server=factory.create(new Required("localhost",defaultReceivePort),Model.mark1.clone());
             Thread.sleep(100);
             server.broadcast("foo");
             Thread.sleep(100);

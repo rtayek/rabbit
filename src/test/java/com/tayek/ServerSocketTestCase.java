@@ -8,6 +8,7 @@ import org.junit.rules.TestRule;
 import com.tayek.io.LoggingHandler;
 import static com.tayek.io.IO.*;
 import com.tayek.speed.Server;
+import com.tayek.tablet.MessageReceiver.Model;
 public class ServerSocketTestCase {
     @Rule public TestRule watcher=new MyTestWatcher();
 
@@ -21,7 +22,7 @@ public class ServerSocketTestCase {
     @After public void tearDown() throws Exception {}
     @Test public void mytest() throws Exception {
         Required required=new Required("localhost",service);
-        Server server=Server.factory.create(required);
+        Server server=Server.factory.create(required,Model.mark1.clone());
         boolean ok=server.startServer();
         assertTrue(ok);
         ((Server.Factory.FactoryImpl.ServerABC)server).isShuttingDown=true;

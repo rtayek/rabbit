@@ -9,6 +9,14 @@ import com.tayek.Tablet.*;
 import com.tayek.utilities.Et;
 import static com.tayek.io.IO.*;
 public class Server implements Runnable {
+    // make this use an interface (like speed)
+    // have a receiver method or ?
+    // have a set receiver or put in constructor call?
+    // server connections need a receiver!
+    // tablet impl1 needs a receiver.
+    // maybe tablet needs to provide access?
+    // maybe give the server a receiver so he can had it out
+    //
     public Server(Object iD,SocketAddress socketAddress,Receiver receiver,Config config,Histories history) throws IOException {
         this(iD,serverSocket(socketAddress),receiver,config,history);
     }

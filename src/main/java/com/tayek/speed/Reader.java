@@ -3,7 +3,7 @@ import java.io.*;
 import java.net.*;
 import static com.tayek.io.IO.*;
 import com.tayek.*;
-import com.tayek.tablet.Message;
+import com.tayek.tablet.*;
 import com.tayek.utilities.*;
 // maybe this can implement an interface
 // receiver?
@@ -50,6 +50,7 @@ class Reader extends Connection { // Supplier<Message>
                 l.severe(id+": "+this+" received null or empty message!");
             } else {
                 histories.receiverHistory.history.successes();
+                
                 java.io.Writer writer=null;
                 if(replying) writer=sendReply(socket,string);
                 histories.receiverHistory.history.reportSuccess(et);

@@ -5,6 +5,7 @@ import org.junit.*;
 import com.tayek.Required;
 import com.tayek.io.LoggingHandler;
 import com.tayek.tablet.Message.Type;
+import com.tayek.tablet.MessageReceiver.Model;
 import static com.tayek.io.IO.*;
 public class ConnectionTestCase extends AbstractServerTestCase {
     @BeforeClass public static void setUpBeforeClass() throws Exception {}
@@ -44,6 +45,6 @@ public class ConnectionTestCase extends AbstractServerTestCase {
         checkThreads(failOnExtraThreads);
     }
     Required required=new Required("localhost",service);
-    Server server=Server.factory.create(required);
+    Server server=Server.factory.create(required,Model.mark1.clone());
     static boolean failOnExtraThreads=false;
 }
