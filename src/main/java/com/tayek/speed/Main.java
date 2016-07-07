@@ -75,7 +75,7 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
         LoggingHandler.init();
         LoggingHandler.setLevel(Level.WARNING);
-        Map<String,Required> requireds=new TreeMap<>(new Group.Groups().groups.get("g0"));
+        Map<String,Required> requireds=new TreeMap<>(new Groups().groups.get("g0"));
         p("requireds: "+requireds);
         if(true) run(4);
         else {

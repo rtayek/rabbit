@@ -2,7 +2,6 @@ package com.tayek;
 import static org.junit.Assert.*;
 import org.junit.*;
 import org.junit.rules.TestRule;
-import com.tayek.*;
 import com.tayek.Histories.History;
 import static com.tayek.io.IO.*;
 public class HistoriesTestCase {

@@ -37,7 +37,7 @@ public class Main { // http://steveliles.github.io/invoking_processes_from_java.
     // password for ray on conrad's pc and git is 11213
     // password for rays network is: i am a duck
     // password for tablets network is: i am a duck 2
-    // android project needs sdk location.
+    // android project needs sdk location (on laptop).
     // core fails to find gradle wrapper main. fix: run gradle wrapper directly (gradlew).
     // when build fails because there is a lock on the jar, stop the log server! (fixed by copying jar)
     // http://stackoverflow.com/questions/23081263/adb-android-device-unauthorized

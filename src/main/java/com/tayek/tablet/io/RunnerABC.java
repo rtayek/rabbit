@@ -13,6 +13,13 @@ import com.tayek.tablet.MessageReceiver.Model;
 import com.tayek.tablet.io.GuiAdapter.GuiAdapterABC;
 import com.tayek.utilities.*;
 public class RunnerABC implements Runnable {
+    // maybe change this so it finds the network interface first
+    // and the picks the group
+    // so a tablet could be in a different group
+    // so maybe get the network interfaces first
+    // should be only one, so use that to get the group
+    // wifi should have only one interface
+    // pc may gave more than one though
     public RunnerABC(Group group,String router,String routerPrefix) {
         pl("construct runner: "+this);
         if(isAndroid()) printSystemProperties();
@@ -48,7 +55,7 @@ public class RunnerABC implements Runnable {
     protected void createTabletAndStart(String tabletId) {
         restarts++;
         p("creating tablet and starting: "+restarts);
-        tablet=useKroImpl?Tablet.factory.create(Tablet.Type.kryo,group,tabletId,model):Tablet.factory.create(Tablet.Type.normal,group,tabletId,model);
+        tablet=Tablet.factory.create(type,group,tabletId,model);
         setTablet(tablet);
         p("config: "+tablet.config());
         boolean ok=tablet.startServer(); // don't forget to start accepting
@@ -215,5 +222,5 @@ public class RunnerABC implements Runnable {
     public int loopSleep=30_000;
     protected final int heartbeatperiod=10;
     static Integer instances=0;
-    public boolean useKroImpl;
+    public Tablet.Type type=Tablet.Type.normal;
 }

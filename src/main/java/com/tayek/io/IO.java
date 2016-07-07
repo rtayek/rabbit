@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
 import java.util.logging.*;
+import com.tayek.Required;
 import com.tayek.utilities.*;
 public class IO {
     public static void pn(PrintStream out,String string) {
@@ -281,13 +282,76 @@ public class IO {
             }
         }).start();
     }
+    public static class Groups {
+        public static String add(String host,Integer service,Map<String,Required> map) {
+            Required required=new Required(host,service);
+            map.put(required.id,required);
+            return required.id;
+        }
+        public Groups() {
+            // this needs to take testing prefix
+            // really? for socket logging or what?
+            String host;
+            boolean old=false;
+            if(!old) {
+                int tablets=10;
+                for(int i=1;i<=tablets;i++) {
+                    host=tabletRouterPrefix+(10+i);
+                    add(host,defaultReceivePort,g0);
+                }
+                host=raysPcOnTabletNetworkToday;
+                add(host,defaultReceivePort,g0);
+                host=laptopToday;
+                add(host,defaultReceivePort,g0);
+                groups.put("g0",g0);
+            } else {
+                g0.put(aTabletId(1),new Required("fire 1",tabletRouterPrefix+21,defaultReceivePort));
+                g0.put(aTabletId(2),new Required("fire 2",tabletRouterPrefix+22,defaultReceivePort));
+                g0.put(aTabletId(3),new Required("nexus 7",tabletRouterPrefix+70,defaultReceivePort));
+                g0.put(aTabletId(4),new Required("pc-4",tabletRouterPrefix+100,defaultReceivePort+4));
+                g0.put(aTabletId(5),new Required("pc-5",tabletRouterPrefix+100,defaultReceivePort+5));
+                g0.put(aTabletId(6),new Required("azpen",tabletRouterPrefix+33,defaultReceivePort));
+                g0.put(aTabletId(7),new Required("at&t",tabletRouterPrefix+77,defaultReceivePort));
+                g0.put(aTabletId(8),new Required("conrad",tabletRouterPrefix+88,defaultReceivePort));
+                //g0.put(99,new Info("nexus 4",99,IO.defaultReceivePort)));
+            }
+            groups.put("g0",g0);
+            for(int i=1;i<=4;i++) {
+                host=raysRouterPrefix+(30+i); // just in case we swap them in and out?
+                add(host,defaultReceivePort,g1);
+            }
+            host=raysPc;
+            add(host,defaultReceivePort,g1);
+            add(host,defaultReceivePort+1,g1);
+            groups.put("g1",g1);
+            add(testingHost,defaultReceivePort+4,g2OnPc);
+            add(testingHost,defaultReceivePort+5,g2OnPc);
+            groups.put("g2OnPc",g2OnPc);
+            add(defaultHost,defaultReceivePort+4,g2OnRouter);
+            add(defaultHost,defaultReceivePort+5,g2OnRouter);
+            groups.put("g2OnRouter",g2OnRouter);
+            //g1each.put(3,new Info("nexus 7",Main.networkPrefix+70,Main.defaultReceivePort));
+            // two fake tablets on pc, but on different networks.
+            // the 100 is dhcp'ed, so it may change once in a while.
+            add(defaultHost,defaultReceivePort+4,g1each);
+            add(testingHost,defaultReceivePort+5,g1each);
+            groups.put("g1each",g1each);
+        }
+        private final Map<String,Required> g2OnPc=new TreeMap<>();
+        private final Map<String,Required> g2OnRouter=new TreeMap<>();
+        private final Map<String,Required> g0=new TreeMap<>(); // joes on tplink
+        private final Map<String,Required> g1=new TreeMap<>(); // mine on linksys for now
+        private final Map<String,Required> g1each=new TreeMap<>();
+        public final Map<String,Map<String,Required>> groups=new TreeMap<>();
+        // hack, change the above before calling new Groups!
+    }
     public static final boolean isRaysPc=System.getProperty("user.dir").contains("D:\\");
     public static final boolean isLaptop=System.getProperty("user.dir").contains("C:\\Users\\");
     public static final Integer defaultReceivePort=33000;
     public static final String networkStub="192.168.";
     public static final String tabletRouterPrefix="192.168.0.";
     public static final String tabletRouter="192.168.0.1";
-    public static final String tabletWifiSsid="\"tablets\"";
+    public static String tabletWifiSsid="\"tablets\"";
     public static final String raysRouterPrefix="192.168.1.";
     public static final String raysRouter="192.168.1.1";
     public static final String raysPc="192.168.1.2";
@@ -316,7 +380,7 @@ public class IO {
         androidIds.put(4,"0ab62207");
         androidIds.put(5,"0b029b33"); // 3bcdcfbdd2cd4e42
         androidIds.put(6,"0ab61d9b"); // 7c513f24bfe99daa
-        androidIds.put(7,"0b03ae31"); // #7 on 192.168.1.19
+        androidIds.put(7,"0b03ae31"); // #7 on 192.168.0.19
         androidIds.put(8,"015d2109aa080e1a"); // my nexus 7 on 192.168.0.18
     }
     public static final Logger l=Logger.getLogger(IO.class.getName());

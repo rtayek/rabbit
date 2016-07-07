@@ -12,6 +12,7 @@ public class Exec {
     }
     public Exec(String[] strings) {
         List<String> command=Arrays.asList(strings);
+        p("command: "+command);
         processBuilder=new ProcessBuilder(command);
     }
     public static String output(InputStream inputStream) throws IOException {
@@ -62,7 +63,7 @@ public class Exec {
         //p("building process: "+Arrays.asList(strings));
         Exec exec=new Exec(strings);
         exec.run();
-        //exec.print();
+        exec.print();
         return exec.rc;
     }
     public static int exec(String command) {

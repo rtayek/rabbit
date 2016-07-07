@@ -17,60 +17,6 @@ import com.tayek.tablet.io.Server;
 import com.tayek.utilities.*;
 import static com.tayek.utilities.Utility.*;
 public class Group implements Cloneable { // maybe this belongs in sender?
-    public static class Groups {
-        public static String add(String host,Integer service,Map<String,Required> map) {
-            Required required=new Required(host,service);
-            map.put(required.id,required);
-            return required.id;
-        }
-        public Groups() {
-            // this needs to take testing prefix
-            // really? for socket logging or what?
-            boolean old=false;
-            if(!old) {
-                int tablets=10;
-                String host,id;
-                for(int i=1;i<=tablets;i++) {
-                    host=tabletRouterPrefix+(10+i);
-                    add(host,defaultReceivePort,g0);
-                }
-                host=raysPcOnTabletNetworkToday;
-                add(host,defaultReceivePort,g0);
-                host=laptopToday;
-                add(host,defaultReceivePort,g0);
-                groups.put("g0",g0);
-            } else {
-                g0.put(aTabletId(1),new Required("fire 1",tabletRouterPrefix+21,defaultReceivePort));
-                g0.put(aTabletId(2),new Required("fire 2",tabletRouterPrefix+22,defaultReceivePort));
-                g0.put(aTabletId(3),new Required("nexus 7",tabletRouterPrefix+70,defaultReceivePort));
-                g0.put(aTabletId(4),new Required("pc-4",tabletRouterPrefix+100,defaultReceivePort+4));
-                g0.put(aTabletId(5),new Required("pc-5",tabletRouterPrefix+100,defaultReceivePort+5));
-                g0.put(aTabletId(6),new Required("azpen",tabletRouterPrefix+33,defaultReceivePort));
-                g0.put(aTabletId(7),new Required("at&t",tabletRouterPrefix+77,defaultReceivePort));
-                g0.put(aTabletId(8),new Required("conrad",tabletRouterPrefix+88,defaultReceivePort));
-                //g0.put(99,new Info("nexus 4",99,IO.defaultReceivePort)));
-            }
-            groups.put("g0",g0);
-            add(testingHost,defaultReceivePort+4,g2OnPc);
-            add(testingHost,defaultReceivePort+5,g2OnPc);
-            groups.put("g2OnPc",g2OnPc);
-            add(defaultHost,defaultReceivePort+4,g2OnRouter);
-            add(defaultHost,defaultReceivePort+5,g2OnRouter);
-            groups.put("g2OnRouter",g2OnRouter);
-            //g1each.put(3,new Info("nexus 7",Main.networkPrefix+70,Main.defaultReceivePort));
-            // two fake tablets on pc, but on different networks.
-            // the 100 is dhcp'ed, so it may change once in a while.
-            add(defaultHost,defaultReceivePort+4,g1each);
-            add(testingHost,defaultReceivePort+5,g1each);
-            groups.put("g1each",g1each);
-        }
-        private final Map<String,Required> g2OnPc=new TreeMap<>();
-        private final Map<String,Required> g2OnRouter=new TreeMap<>();
-        private final Map<String,Required> g0=new TreeMap<>();
-        private final Map<String,Required> g1each=new TreeMap<>();
-        public final Map<String,Map<String,Required>> groups=new TreeMap<>();
-        // hack, change the above before calling new Groups!
-    }
     public static class ReceiverImpl implements Receiver {
         ReceiverImpl(Object id,Tablet tablet,Set<? extends Object> ids,MessageReceiver messageReceiver) {
             // get rid of tablet
@@ -157,7 +103,6 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         final Object id;
         final MessageReceiver messageReceiver;
         final Histories.ReceiverHistory receiverHistory; // change to histories?
-        
         Et ackEt;
         private final Factory messageFactory;
         private final Map<Object,Integer> lastMessageNumbers=new LinkedHashMap<>();
@@ -174,14 +119,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         public Group group() {
             return group;
         }
-        // strange dream about two ways to do something
-        // (kike get host and service?)
-        // about how to see which is faster or better?
-        // do them on seperate threads?
         @Override public void broadcast(Object message) {
-            // maybe pass in a histories, so we can see what happened
-            // to all of the tablets.
-            // then add it in?
             l.info("broadcasting: "+message);
             for(String destinationTabletId:group.keys()) {
                 InetSocketAddress inetSocketAddress=group.socketAddress(destinationTabletId);
@@ -254,7 +192,7 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         @Override public boolean isServerRunning() {
             return server!=null&&server.serverSocket.isBound();
         }
-       @Override public void stopServer() {
+        @Override public void stopServer() {
             if(server!=null) {
                 server.stopServer();
                 server=null;
@@ -396,7 +334,6 @@ public class Group implements Cloneable { // maybe this belongs in sender?
         int buttonId=random.nextInt(tablet.model().buttons)+1;
         return tablet.messageFactory().normal(groupId,tablet.tabletId(),buttonId,tablet.model().toCharacters());
     }
-    public final int x=2;
     public final String groupId;
     public final Config config=new Config();
     private final Model prototype; // use only for cloning
