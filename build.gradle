@@ -43,6 +43,15 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven { url "https://plugins.gradle.org/m2/" }
+    flatDir {
+        name "localRepository"
+        dirs "d:/ray/gradlerepository/"
+    }
+}
+uploadArchives {
+    repositories {
+        add project.repositories.localRepository
+    }
 }
 dependencies {
      compile fileTree(include: ['*.jar'], dir: 'lib')
@@ -67,7 +76,8 @@ jar {
     exclude('com/tayek/io/swing/**') // not needed if swing stuff is in another project
 }
 group='core'
-version = "1.0"
+version = "1.1"
+
 mainClassName = MyStuff.main // for application plugin (or is it the dist thing?)
 //checkstyle {
 //       configFile = new File(rootDir, "checkstyle.xml")
