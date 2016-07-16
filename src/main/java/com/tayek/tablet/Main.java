@@ -13,6 +13,7 @@ import com.tayek.tablet.Message.Factory;
 import com.tayek.tablet.io.*;
 import static com.tayek.io.IO.*;
 import com.tayek.utilities.*;
+// made alpha1branch - added kryo jar to lib
 // http://cs.nyu.edu/~yap/prog/cygwin/FAQs.html
 // http://poppopret.org/2013/01/07/suterusu-rootkit-inline-kernel-function-hooking-on-x86-and-arm/
 // http://angrytools.com/android/
@@ -20,7 +21,8 @@ import com.tayek.utilities.*;
 // https://www.bignerdranch.com/blog/splash-screens-the-right-way/
 // http://blog.iangclifton.com/2011/01/01/android-splash-screens-done-right/
 // http://pete.akeo.ie/2013/09/rooting-your-nexus-7-2013-for-android.html
-public class Main { // http://steveliles.github.io/invoking_processes_from_java.html
+public class Main {
+    // http://steveliles.github.io/invoking_processes_from_java.html
     // router login and password are both: admin
     // android studio project is d:\AnsdroidStudioProjectsCb7 and https://github.com/rtayek/Cb7.git
     // core java project is d:/ray/dev/conradapps/rabbit and https://github.com/rtayek/rabbit.git
