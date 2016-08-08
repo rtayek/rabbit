@@ -110,6 +110,12 @@ public class Group implements Cloneable { // maybe this belongs in sender?
     public static class TabletImpl2 extends TabletABC {
         // get group out of constructor!
         // or fix all of the callers!
+        // seems like we should not need this class at all.
+        // the routers ssid will let us connect to it on the android.
+        // if we assume a range of ip address like aa.bb.cc.dd where dd goes from 101-132,
+        // we don't care what aa, bb, and cc are.
+        // we don't need any tablet id, but could use the android id or the tablets name.
+        // seems to work ok in the new core stuff.
         public TabletImpl2(Group group,String tabletId,Model model) {
             super(group,tabletId,model,group.required(tabletId).histories());
             messageFactory=Message.instance.create(required.host,required.service,new Single<Integer>(0));
