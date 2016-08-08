@@ -59,8 +59,8 @@ public class Colors {
     public final int rows=2,columns=5,n=rows*columns+1;
     public final int background=0xd0d0e0;
     public final Integer[] on=new Integer[columns],off=new Integer[columns];
-    public final Integer whiteOn=0xffffff,whiteOff=0xe0e0e0;
-    public final Integer resetOn=0xffff80,resetOff=0x80ffff;
+    public Integer whiteOn=0xffffff,whiteOff=0x808080;
+    public Integer resetOn=0xffff80,resetOff=0x80e0e0;
     {
         on[0]=red;
         on[1]=yellow;
