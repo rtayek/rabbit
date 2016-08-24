@@ -67,7 +67,7 @@ jar {
     exclude('com/tayek/io/swing/**') // not needed if swing stuff is in another project
 }
 group='core'
-version = "1.0"
+version = 'alpha1'
 mainClassName = MyStuff.main // for application plugin (or is it the dist thing?)
 //checkstyle {
 //       configFile = new File(rootDir, "checkstyle.xml")
