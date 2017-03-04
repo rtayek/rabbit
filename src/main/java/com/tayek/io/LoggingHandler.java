@@ -44,7 +44,7 @@ public class LoggingHandler {
         try {
             String pattern=prefix+".%u.%g.log";
             File logFile=new File(logFileDirectory,pattern);
-            p("log file get path: "+logFile.getPath());
+            //p("log file get path: "+logFile.getPath());
             Handler handler=new FileHandler(logFile.getPath(),50_000_000,10,false);
             handler.setLevel(Level.ALL);
             logger.addHandler(handler);

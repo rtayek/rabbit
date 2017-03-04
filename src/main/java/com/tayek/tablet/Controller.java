@@ -26,6 +26,7 @@ public class Controller {
         String host=required.host;
         Integer service=other?group.required(id).service:null; // hack to get second tablet
         InetAddress inetAddress=addressWith(tabletRouterPrefix);
+        p("inetAddress: "+inetAddress);
         String tabletId=group.getTabletIdFromInetAddress(inetAddress,service);
         p("tablet: "+tabletId);
         Tablet tablet=Tablet.factory.create(Type.normal,group,tabletId,group.getModelClone());

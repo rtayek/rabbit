@@ -17,7 +17,7 @@ public interface Audio {
         electronic_chime_kevangc_495939803,glass_ping_go445_1207030150,store_door_chime_mike_koenig_570742973;
     }
     void play(Sound sound);
-    class AudioObserver implements Observer {
+    public class AudioObserver implements Observer {
         public AudioObserver(Model model) {
             this.model=model;
         }

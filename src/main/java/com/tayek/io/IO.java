@@ -1,10 +1,8 @@
 package com.tayek.io;
-import static com.tayek.io.IO.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.*;
 import java.util.logging.*;
 import com.tayek.utilities.*;
 public class IO {
@@ -304,8 +302,8 @@ public class IO {
     static {
         for(Integer service:new Integer[] {defaultLogServerService,/*chainsawLogServerService,lilithLogServerService,*/}) {
             //logServerHosts.put(new Pair<String,Integer>(raysPc,service),null);
-            logServerHosts.put(new Pair<String,Integer>(raysPcOnTabletNetworkToday,service),null);
-            //logServerHosts.put(new Pair<String,Integer>(laptopToday,service),null);
+            //logServerHosts.put(new Pair<String,Integer>("192.168.0.138"/*raysPcOnTabletNetworkToday*/,service),null);
+            logServerHosts.put(new Pair<String,Integer>(laptopToday,service),null);
         }
     }
     public static final Map<Integer,String> androidIds=new TreeMap<>();
